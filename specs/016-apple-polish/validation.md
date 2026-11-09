@@ -20,3 +20,6 @@ menjani nepovezani modalni testovi ili produkcioni tokovi radi tih upozorenja.
 Prikazi i pravila integracije: docs/apple-polish/README.md.
 CI i merge ostaju blokirani prethodno potvrđenom naplatom naloga, koju je vlasnik
 odložio; lokalna provera se ne predstavlja kao zelen GitHub Actions rezultat.
+
+Završni detalj: macOS ikonica izvozi isti postojeći TavliBrand. Provereno svih
+sedam dimenzija i alpha ivice; originalni asset katalog/putanje su očuvani.

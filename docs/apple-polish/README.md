@@ -46,6 +46,18 @@ a ne tvrdnja da su te grane već spojene u main.
 
 ![Pristupačan prikaz](screens/dark-large-text.png)
 
+## macOS ikonica
+
+Podrazumevani Flutter znak zamenjen je postojećim Tavli znakom iz interfejsa.
+Svih sedam macOS veličina (16–1024 px) renderovano je direktno iz `TavliBrand`,
+sa proverenim dimenzijama i transparentnim ivicama. Izvoz se može ponoviti:
+
+```sh
+flutter test tools/export_app_icon.dart
+```
+
+Ovo je asset exporter preko Flutter renderera; ne dodaje se u redovnu test zbirku.
+
 ## Integracija
 
 016 je nezavisna grana iz origin/main. Pri zajedničkom pregledu zadržati 016
