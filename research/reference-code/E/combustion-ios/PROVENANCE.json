@@ -1,0 +1,19 @@
+{
+  "repo_url": "https://github.com/combustion-inc/combustion-ios-ble",
+  "commit": "797416a7944b8f652c7a602981c004703b29c620",
+  "license": "MIT",
+  "upstream_notice": "No NOTICE file found in this pinned repository; LICENSE and source copyright notice preserved verbatim.",
+  "purpose": "Complete temperature conversion utility as native adapter reference; not linked into Tavli runtime. Foundation import only.",
+  "files": [
+    {
+      "local_path": "research/reference-code/E/combustion-ios/LICENSE",
+      "upstream_path": "LICENSE",
+      "sha256": "a84ccd0d957a5c48c966a7a5638ca517cdd31a14a56a295f6fec8287396b166e"
+    },
+    {
+      "local_path": "research/reference-code/E/combustion-ios/TemperatureUtilities.swift",
+      "upstream_path": "Sources/CombustionBLE/TemperatureUtilities.swift",
+      "sha256": "ce069c8441c383fe12becf6df4669f5720d714f48dae104408ad7ef11d610df2"
+    }
+  ]
+}

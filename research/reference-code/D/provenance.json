@@ -1,0 +1,24 @@
+{
+  "source_repository": "https://github.com/dinerojs/dinero.js",
+  "commit": "76b969e519dc44675d4af898d25629995d0b16f2",
+  "license": "MIT",
+  "files": [
+    {
+      "local_path": "research/reference-code/D/dinero/packages/dinero.js/src/core/utils/distribute.ts",
+      "upstream_path": "packages/dinero.js/src/core/utils/distribute.ts",
+      "sha256": "87867645f6e799820373e614d70764bafa129ebb745d7d771b196e8a45c0515b",
+      "source_url": "https://github.com/dinerojs/dinero.js/blob/76b969e519dc44675d4af898d25629995d0b16f2/packages/dinero.js/src/core/utils/distribute.ts",
+      "license_path": "research/reference-code/D/dinero/LICENSE"
+    },
+    {
+      "local_path": "research/reference-code/D/dinero/LICENSE",
+      "upstream_path": "LICENSE",
+      "sha256": "7a969a5e42591379b094775b72db3dfef33feac26f499c5af56e5d755aa02686",
+      "source_url": "https://github.com/dinerojs/dinero.js/blob/76b969e519dc44675d4af898d25629995d0b16f2/LICENSE",
+      "license_path": "research/reference-code/D/dinero/LICENSE"
+    }
+  ],
+  "notice": "Copyright (c) 2018-present Sarah Dayan; full original LICENSE preserved. No NOTICE file found in upstream inventory. Files copied verbatim.",
+  "use": "Reference-only complete upstream source file, not a runnable standalone package. Imports ../types and comparison helpers require the pinned upstream package; those dependencies are not vendored. No upstream code was executed or connected to Tavli.",
+  "review": "distribute allocates residue by descending ratio, not by largest fractional remainder. Its equal-ratio comparator returns 1; Tavli must specify its own stable tie policy and reject empty/all-zero/negative weights rather than copying those semantics."
+}
