@@ -5,5 +5,5 @@
 - [x] Izbor liste/mreže na stvarnim podacima.
 - [x] Funkcionalna, responsive i vizuelna provera.
 - [x] Dokumentovan konačan prenos.
-- [ ] Draft PR.
+- [x] [Draft PR #4](https://github.com/umilutinovic25-hash/tavli-next/pull/4).
 - [ ] Native macOS smoke i zelen CI pre merge-a.

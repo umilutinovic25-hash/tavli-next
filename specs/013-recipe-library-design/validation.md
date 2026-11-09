@@ -23,3 +23,6 @@
 
 Native macOS debug build zahteva puni Xcode koji nije instaliran. CI mora
 proći pre spajanja; lokalni testovi nisu dokaz objavljene aplikacije.
+
+GitHub [provera PR-a](https://github.com/umilutinovic25-hash/tavli-next/actions/runs/42674992114)
+završava sa `startup_failure`; nije zelen CI. Draft PR je #4.
