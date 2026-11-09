@@ -42,8 +42,26 @@ bez izmišljenih sinonima i bez pretvaranja mase u zapreminu.
   manjka, filter, pretraga, postojeći recept, prijava, error/retry, prazna stanja.
 - Širine 320/390/768/1024/1440 i tri tamne teme sa tekstom 2×; stvarni Flutter
   renderi ispod, vizuelno pregledani. Prikaz koristi postojeću temu aplikacije.
-- Native macOS build: **blokiran**, Flutter prijavljuje `Xcode not installed`.
-- GitHub CI mora biti zelen pre merge-a; lokalni prolaz ne zamenjuje CI.
+- Native macOS debug build: **prolazi**, Xcode 27.2 (27B52), Flutter 3.47.9.
+  Prolaze i samostalna 014 grana i zajednička 011 + 012 + 013 + 014 verzija.
+- Aktivni `xcode-select` put pokazuje na Command Line Tools. Puna instalacija
+  Xcode-a postoji; build je uspeo sa lokalnim `DEVELOPER_DIR` izborom ispod.
+  Nije bilo potrebe za promenom koda, generisanih fajlova ili globalnih postavki.
+- GitHub CI je blokiran **naplatom naloga**, ne workflow sintaksom. Run
+  [42684051970](https://github.com/umilutinovic25-hash/tavli-next/actions/runs/42684051970)
+  u Annotations navodi neuspelu naplatu ili potrebu za većim spending limitom.
+  Poslovi zato nisu ni pokrenuti. Vlasnik je odložio sređivanje naplate.
+- PR ostaje draft i nije spojen u `main`. Posle sređivanja Billing-a treba
+  pokrenuti novi CI run i sačekati zelen rezultat; lokalni prolaz ne zamenjuje CI.
+
+Komanda koja je uspešno izgradila obe verzije:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer flutter build macos --debug
+```
+
+Debug aplikacija je u `build/macos/Build/Products/Debug/tavli.app` svakog
+worktree-a. Build je urađen bez čitanja ili unošenja stvarnih korisničkih ključeva.
 
 ### Zajednički pregled 011 + 012 + 013 + 014
 
