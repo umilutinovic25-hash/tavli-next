@@ -29,3 +29,6 @@ stvarne podatke Ostave umesto fiksnog čekanja na stari placeholder.
 `flutter build macos --debug --no-pub` blokira nedostajući puni Xcode.
 Native smoke nije prošao i aplikacija nije objavljena. CI mora proći pre
 spajanja. Postojeći server sync/RLS nije menjan; novi hosted testovi nisu rađeni.
+
+GitHub [PR provera](https://github.com/umilutinovic25-hash/tavli-next/actions/runs/42670474633)
+završava sa `startup_failure`. Lokalno uspešni testovi ne predstavljaju zelen CI.
