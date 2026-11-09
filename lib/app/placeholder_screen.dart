@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'animations/content_reveal.dart';
 import 'tab_app_bar.dart';
 
 class PlaceholderScreen extends StatelessWidget {
@@ -44,31 +45,44 @@ class EmptyStateScreen extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                art,
-                const SizedBox(height: 20),
-                Text(
-                  title,
-                  style: theme.textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                if (body case final body?) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    body,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+            child: ContentReveal(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer.withValues(
+                        alpha: 0.45,
+                      ),
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: art,
                     ),
                   ),
+                  const SizedBox(height: 28),
+                  Text(
+                    title,
+                    style: theme.textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  if (body case final body?) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      body,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                  if (action case final action?) ...[
+                    const SizedBox(height: 24),
+                    action,
+                  ],
                 ],
-                if (action case final action?) ...[
-                  const SizedBox(height: 24),
-                  action,
-                ],
-              ],
+              ),
             ),
           ),
         ),
