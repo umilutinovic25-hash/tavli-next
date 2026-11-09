@@ -9,6 +9,7 @@ import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
 import 'add_recipe_sheet.dart';
 import 'recipe_detail_screen.dart';
+import 'recipe_grid.dart';
 import 'recipe_photo.dart';
 import 'recipe_providers.dart';
 
@@ -120,6 +121,7 @@ class _RecipeListState extends ConsumerState<_RecipeList> {
   @override
   Widget build(BuildContext context) {
     final query = ref.watch(recipeSearchProvider);
+    final grid = ref.watch(recipeGridViewProvider);
     return ref
         .watch(recipesProvider)
         .when(
@@ -137,28 +139,72 @@ class _RecipeListState extends ConsumerState<_RecipeList> {
               );
             }
             final recipes = filterRecipes(all, query);
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: SearchBar(
-                    controller: _search,
-                    hintText: 'Pretraži recepte',
-                    leading: const Icon(Icons.search),
-                    onChanged: ref.read(recipeSearchProvider.notifier).set,
-                    trailing: [
-                      if (query.isNotEmpty)
-                        IconButton(
-                          tooltip: 'Obriši pretragu',
-                          icon: const Icon(Icons.close),
-                          onPressed: () {
-                            _search.clear();
-                            ref.read(recipeSearchProvider.notifier).set('');
-                          },
-                        ),
+            final controls = <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: SearchBar(
+                  controller: _search,
+                  hintText: 'Pretraži recepte',
+                  leading: const Icon(Icons.search),
+                  onChanged: ref.read(recipeSearchProvider.notifier).set,
+                  trailing: [
+                    if (query.isNotEmpty)
+                      IconButton(
+                        tooltip: 'Obriši pretragu',
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          _search.clear();
+                          ref.read(recipeSearchProvider.notifier).set('');
+                        },
+                      ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: SegmentedButton<bool>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(
+                        value: false,
+                        icon: Icon(Icons.view_list_outlined),
+                        tooltip: 'Prikaži listu',
+                      ),
+                      ButtonSegment(
+                        value: true,
+                        icon: Icon(Icons.grid_view_outlined),
+                        tooltip: 'Prikaži mrežu',
+                      ),
                     ],
+                    selected: {grid},
+                    onSelectionChanged: (value) => ref
+                        .read(recipeGridViewProvider.notifier)
+                        .set(value.single),
                   ),
                 ),
+              ),
+            ];
+            if (grid && recipes.isNotEmpty) {
+              return Column(
+                children: [
+                  ...controls,
+                  Expanded(
+                    child: SpoonRefresh(
+                      onRefresh: _refresh,
+                      child: RecipeGrid(
+                        recipes: recipes,
+                        selectedId: widget.selectedId,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+            return Column(
+              children: [
+                ...controls,
                 Expanded(
                   child: recipes.isEmpty
                       ? _Message(

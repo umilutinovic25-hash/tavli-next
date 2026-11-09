@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="sr-Latn">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,"><title>Tavli — pregled preuzetih obrazaca</title>
+<style>
+@font-face{font-family:Jakarta;src:url('../../assets/fonts/PlusJakartaSans-Regular.ttf')}@font-face{font-family:Jakarta;src:url('../../assets/fonts/PlusJakartaSans-Bold.ttf');font-weight:700}
+:root{--bg:#f8f7f2;--text:#1b1f1c;--muted:#5c6660;--green:#3d7a57;--surface:#fff;--line:#e5e3db}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 Jakarta,system-ui,sans-serif}main{max-width:1320px;margin:auto;padding:40px 24px}.brand{color:var(--green);font-weight:700}h1{font-size:clamp(30px,5vw,46px);letter-spacing:-.04em;line-height:1.2;margin:20px 0 16px}h2{font-size:20px}p{max-width:760px;color:var(--muted)}nav{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0}button{font:inherit;font-weight:700;border:1px solid var(--line);border-radius:14px;min-height:48px;padding:12px 20px;background:var(--surface);color:var(--text);cursor:pointer}button[aria-pressed=true]{background:var(--green);color:white}button:focus-visible,a:focus-visible{outline:3px solid var(--green);outline-offset:4px}.layout{display:grid;grid-template-columns:minmax(280px,390px) minmax(0,1fr);gap:48px;align-items:start}figure{margin:0}img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:20px;background:var(--surface)}.wide{grid-template-columns:1fr}.wide aside{max-width:760px}a{color:var(--green)}li{margin-bottom:12px}footer{border-top:1px solid var(--line);margin-top:36px;padding-top:20px;color:var(--muted);font-size:14px}@media(max-width:760px){.layout{grid-template-columns:1fr;gap:24px}figure{max-width:390px}.wide figure{max-width:none}}
+</style>
+<main><span class="brand">Tavli / biblioteka recepata</span><h1>Novi pregled recepata.</h1>
+<p>Lista za brz pregled ili mreža za izbor iz zbirke. Ista pretraga, recepti, porcije i vreme — povezani sa postojećim podacima aplikacije.</p>
+<nav aria-label="Izaberi pregled"><button type="button" data-view="phone" aria-pressed="true">Telefon</button><button type="button" data-view="wide" aria-pressed="false">Široki ekran</button><button type="button" data-view="dark" aria-pressed="false">Tamna tema</button></nav>
+<div class="layout" id="layout"><figure><img id="preview" src="screens/grid-390.png" alt="Nova Tavli mreža recepata na telefonu"></figure>
+<aside><h2>Šta smo preneli</h2><ul><li><strong>Crouton:</strong> miran raspored i odmah dostupni metapodaci.</li><li><strong>Umami:</strong> pregled kolekcije kroz mrežu.</li><li><strong>Paprika:</strong> izbor prikaza i sadržaj u prvom planu.</li></ul>
+<p>U uzorku deset izvora Crouton dobija najjasniju direktnu pohvalu dizajnu, a Paprika praktičnoj dubini. To nije reprezentativna rang-lista.</p>
+<p><a href="DESIGN.md">Dizajn i REA dokazi</a> · <a href="USER-REVIEWS.md">Korisnička iskustva</a> · <a href="../../research/reusable/README.md">Preuzeti MIT kod</a></p></aside></div>
+<footer>Galerija prikazuje stvarne Flutter widgete sa probnim podacima. Dugmad menjaju slike pregleda; funkcije aplikacije proverene su widget testovima. Sačuvane slike ili neutralni motivi čine kartice; tuđe fotografije i brend nisu dodati aplikaciji.</footer></main>
+<script>
+const sources={phone:'grid-390',wide:'grid-1440',dark:'grid-dark-bosiljak'};
+document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('button').forEach(other=>other.setAttribute('aria-pressed',String(other===button)));document.querySelector('#preview').src=`screens/${sources[button.dataset.view]}.png`;document.querySelector('#preview').alt=`Tavli biblioteka recepata: ${button.textContent}`;document.querySelector('#layout').classList.toggle('wide',button.dataset.view==='wide');}));
+</script></html>
