@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../account/auth_controller.dart';
 import '../domain/ids.dart';
+import '../domain/use_first.dart';
 import '../sync/synced_writer.dart';
 import 'database.dart';
 
@@ -73,4 +74,41 @@ class PantryRepository {
           ))
           .watch()
           .map((rows) => {for (final r in rows) r.sourceShoppingItemId!});
+
+  /// Ista fizička zaliha i njene postojeće rezervacije, bez upisa/outbox-a.
+  /// Join prati obe tabele pa promena rezervacije osvežava predloge.
+  Stream<List<PantryStock>> watchSuggestionStock() {
+    final p = _db.pantryItems;
+    final a = _db.supplyAllocations;
+    final query = _db.select(p).join([
+      leftOuterJoin(
+        a,
+        a.householdId.equals(_scope.householdId) &
+            a.supplyId.equalsExp(coalesce([p.sourceShoppingItemId, p.id])),
+      ),
+    ])..where(p.householdId.equals(_scope.householdId));
+    return query.watch().map((rows) {
+      final stocks = <String, PantryStock>{};
+      for (final result in rows) {
+        final row = result.readTable(p);
+        final reserved = result.readTableOrNull(a);
+        final previous = stocks[row.id];
+        stocks[row.id] = PantryStock(
+          id: row.id,
+          name: row.name,
+          quantity: row.quantity,
+          unit: row.unit,
+          confirmedAt: row.confirmedAt,
+          expiresAt: row.expiresAt,
+          sourceShoppingItemId: row.sourceShoppingItemId,
+          reservedMicros:
+              (previous?.reservedMicros ?? 0) + (reserved?.micros ?? 0),
+          reservedWhole:
+              (previous?.reservedWhole ?? false) ||
+              (reserved?.coversWholeUnknown ?? false),
+        );
+      }
+      return stocks.values.toList();
+    });
+  }
 }
