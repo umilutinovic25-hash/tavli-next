@@ -1,0 +1,190 @@
+{
+  "checked_on": "2026-11-09",
+  "method": "GitHub REST repository metadata and default-branch HEAD; README and selected official docs reviewed. pushed_at is not latest release date.",
+  "repositories": [
+    {
+      "full_name": "mealie-recipes/mealie",
+      "description": "Mealie is a self hosted recipe manager and meal planner with a RestAPI backend and a reactive frontend application built in Vue for a pleasant user experience for the whole family. Easily add recipes into your database by providing the url and mealie will automatically import the relevant data or add a family recipe with the UI editor",
+      "html_url": "https://github.com/mealie-recipes/mealie",
+      "stargazers_count": 13859,
+      "pushed_at": "2026-11-09T11:44:27Z",
+      "archived": false,
+      "default_branch": "mealie-next",
+      "language": "Python",
+      "license": {
+        "key": "agpl-3.0",
+        "name": "GNU Affero General Public License v3.0",
+        "spdx_id": "AGPL-3.0",
+        "url": "https://api.github.com/licenses/agpl-3.0",
+        "node_id": "MDc6TGljZW5zZTE="
+      },
+      "observed_head_sha": "471c7936d3c782a431fd2081b632f404cb3dbb1a",
+      "observed_head_url": "https://github.com/mealie-recipes/mealie/commit/471c7936d3c782a431fd2081b632f404cb3dbb1a"
+    },
+    {
+      "full_name": "TandoorRecipes/recipes",
+      "description": "Application for managing recipes, planning meals, building shopping lists and much much more!",
+      "html_url": "https://github.com/TandoorRecipes/recipes",
+      "stargazers_count": 8727,
+      "pushed_at": "2026-11-01T00:44:57Z",
+      "archived": false,
+      "default_branch": "develop",
+      "language": "HTML",
+      "license": {
+        "key": "other",
+        "name": "Other",
+        "spdx_id": "NOASSERTION",
+        "url": null,
+        "node_id": "MDc6TGljZW5zZTA="
+      },
+      "observed_head_sha": "cbb96e151fe0c57c16a4456fe1bd04230b1c1e5c",
+      "observed_head_url": "https://github.com/TandoorRecipes/recipes/commit/cbb96e151fe0c57c16a4456fe1bd04230b1c1e5c"
+    },
+    {
+      "full_name": "TomBursch/kitchenowl",
+      "description": "KitchenOwl is a self-hosted grocery list and recipe manager. The backend is made with Flask and the frontend with Flutter. Easily add items to your shopping list before you go shopping. You can also create recipes and add items based on what you want to cook.",
+      "html_url": "https://github.com/TomBursch/kitchenowl",
+      "stargazers_count": 3829,
+      "pushed_at": "2026-11-08T01:59:16Z",
+      "archived": false,
+      "default_branch": "main",
+      "language": "Dart",
+      "license": {
+        "key": "agpl-3.0",
+        "name": "GNU Affero General Public License v3.0",
+        "spdx_id": "AGPL-3.0",
+        "url": "https://api.github.com/licenses/agpl-3.0",
+        "node_id": "MDc6TGljZW5zZTE="
+      },
+      "observed_head_sha": "3cc27f41e3de3d805abd66bdac9eb283eb16e72c",
+      "observed_head_url": "https://github.com/TomBursch/kitchenowl/commit/3cc27f41e3de3d805abd66bdac9eb283eb16e72c"
+    },
+    {
+      "full_name": "grocy/grocy",
+      "description": "ERP beyond your fridge - Grocy is a web-based self-hosted groceries & household management solution for your home",
+      "html_url": "https://github.com/grocy/grocy",
+      "stargazers_count": 9670,
+      "pushed_at": "2026-09-16T20:14:38Z",
+      "archived": false,
+      "default_branch": "master",
+      "language": "Blade",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "observed_head_sha": "41206cb90154e0d17d3e108cc1f182b94fdb465d",
+      "observed_head_url": "https://github.com/grocy/grocy/commit/41206cb90154e0d17d3e108cc1f182b94fdb465d"
+    },
+    {
+      "full_name": "cooklang/cookcli",
+      "description": "Recipe Management CLI + embedded web-server in one binary",
+      "html_url": "https://github.com/cooklang/cookcli",
+      "stargazers_count": 1435,
+      "pushed_at": "2026-11-07T15:34:29Z",
+      "archived": false,
+      "default_branch": "main",
+      "language": "Rust",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "observed_head_sha": "4e53c8c9c29a5ced2b444b19133cb38a5217c8bb",
+      "observed_head_url": "https://github.com/cooklang/cookcli/commit/4e53c8c9c29a5ced2b444b19133cb38a5217c8bb"
+    },
+    {
+      "full_name": "reaper47/recipya-rs",
+      "description": "A clean, simple and powerful recipe manager your whole family will enjoy.",
+      "html_url": "https://github.com/reaper47/recipya-rs",
+      "stargazers_count": 40,
+      "pushed_at": "2026-11-08T18:35:57Z",
+      "archived": false,
+      "default_branch": "main",
+      "language": "Rust",
+      "license": {
+        "key": "agpl-3.0",
+        "name": "GNU Affero General Public License v3.0",
+        "spdx_id": "AGPL-3.0",
+        "url": "https://api.github.com/licenses/agpl-3.0",
+        "node_id": "MDc6TGljZW5zZTE="
+      },
+      "observed_head_sha": "8905642a33e977d92fa735bd050881c242d48149",
+      "observed_head_url": "https://github.com/reaper47/recipya-rs/commit/8905642a33e977d92fa735bd050881c242d48149"
+    },
+    {
+      "full_name": "julianpoy/RecipeSage",
+      "description": "A Collaborative Recipe Keeper, Meal Planner, and Shopping List Organizer in PWA form.",
+      "html_url": "https://github.com/julianpoy/RecipeSage",
+      "stargazers_count": 995,
+      "pushed_at": "2026-11-09T18:02:29Z",
+      "archived": false,
+      "default_branch": "master",
+      "language": "TypeScript",
+      "license": {
+        "key": "other",
+        "name": "Other",
+        "spdx_id": "NOASSERTION",
+        "url": null,
+        "node_id": "MDc6TGljZW5zZTA="
+      },
+      "observed_head_sha": "acbe0fa6750f08defb2089c619bad7871ffbd427",
+      "observed_head_url": "https://github.com/julianpoy/RecipeSage/commit/acbe0fa6750f08defb2089c619bad7871ffbd427"
+    },
+    {
+      "full_name": "nextcloud/cookbook",
+      "description": "🍲 A library for all your recipes",
+      "html_url": "https://github.com/nextcloud/cookbook",
+      "stargazers_count": 653,
+      "pushed_at": "2026-11-09T17:43:21Z",
+      "archived": false,
+      "default_branch": "master",
+      "language": "HTML",
+      "license": {
+        "key": "agpl-3.0",
+        "name": "GNU Affero General Public License v3.0",
+        "spdx_id": "AGPL-3.0",
+        "url": "https://api.github.com/licenses/agpl-3.0",
+        "node_id": "MDc6TGljZW5zZTE="
+      },
+      "observed_head_sha": "1067a3be78f8243b36760f0c818bde7bd7880c32",
+      "observed_head_url": "https://github.com/nextcloud/cookbook/commit/1067a3be78f8243b36760f0c818bde7bd7880c32"
+    },
+    {
+      "full_name": "hhursev/recipe-scrapers",
+      "description": "Python package for scraping recipes data",
+      "html_url": "https://github.com/hhursev/recipe-scrapers",
+      "stargazers_count": 2265,
+      "pushed_at": "2026-11-08T18:15:48Z",
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "observed_head_sha": "80266d1db324d58f1426d78facbe2e342662b990",
+      "observed_head_url": "https://github.com/hhursev/recipe-scrapers/commit/80266d1db324d58f1426d78facbe2e342662b990"
+    },
+    {
+      "full_name": "carllvin/recipe-bridge",
+      "description": "Import entire cookbooks or websites into Tandoor/Mealie using LLM. Use different tools to structure and clean up your database.",
+      "html_url": "https://github.com/carllvin/recipe-bridge",
+      "stargazers_count": 11,
+      "pushed_at": "2026-10-27T19:27:46Z",
+      "archived": false,
+      "default_branch": "main",
+      "language": "Python",
+      "license": null,
+      "observed_head_sha": "c9abdce970e91abe351606521ba8c4bcc91f2ed6",
+      "observed_head_url": "https://github.com/carllvin/recipe-bridge/commit/c9abdce970e91abe351606521ba8c4bcc91f2ed6"
+    }
+  ]
+}
