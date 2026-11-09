@@ -84,8 +84,8 @@ void main() {
       }
 
       await tester.tap(find.text('Ostava').last);
-      // Postojeća ilustracija se animira neprekidno.
-      await tester.pump(const Duration(milliseconds: 400));
+      // Ostava učitava stvarne podatke; prazna animacija igra jednom.
+      await tester.pumpAndSettle();
       expect(currentTab(tester), 'Ostava');
       expect(find.text('Još nema unetih namirnica'), findsOneWidget);
       await capture(tester, 'pantry-${width.toInt()}');
