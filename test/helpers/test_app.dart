@@ -171,6 +171,8 @@ class TestApp {
   /// Nalog kao da je već bio prijavljen na uređaju (sesija + keš).
   Future<void> signIn({String? name = 'Ana Petrović'}) async {
     secrets.values[SessionStore.key] = session.json;
+    // Server ima isto ime kao uređaj (preuzimanje profila ga ne briše).
+    backend.server.profiles[scope.userId]!['display_name'] = name;
     await db
         .into(db.accounts)
         .insertOnConflictUpdate(
