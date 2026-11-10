@@ -165,6 +165,16 @@ void main() {
           .first,
     );
     expect(find.text('Ostalo'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Deterdžent'),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('Deterdžent'), findsOneWidget);
 
     await tapIn(

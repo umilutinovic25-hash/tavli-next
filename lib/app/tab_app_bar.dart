@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/account/account_header.dart';
+import '../features/use_first/use_first_screen.dart';
 import 'tavli_brand.dart';
 
 /// Telefon prikazuje brend, a širi ekran naziv otvorene sekcije.
@@ -35,7 +36,7 @@ class TabAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
       actionsPadding: const EdgeInsets.only(right: 12),
       automaticallyImplyLeading: false,
-      actions: const [ProfileButton()],
+      actions: const [UseFirstButton(), ProfileButton()],
     );
   }
 }

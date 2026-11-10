@@ -1,0 +1,780 @@
+{
+  "stream": "D",
+  "schema_version": 1,
+  "baseline_commit": "1eca2c3d14fb5dd9b25a42958aa018c8d8dfbb94",
+  "features": [
+    {
+      "id": "F010",
+      "title": "Fotografija, brend i napomena uz nabavku",
+      "current_state": "lib/data/database.dart::ShoppingItems ima name/quantity/unit/category/isBought/isManual i purchaseProvenanceJson, bez fotografije, brenda i korisničke napomene. ShoppingContributions.notesJson čuva napomene sastojaka, nije isto što i kupčeva napomena. lib/data/shopping_repository.dart::_reconcile spaja potrebe; lib/features/shopping/shopping_list_view.dart::ShoppingItemTile prikazuje postojeću stavku. lib/sync/photo_sync.dart::PhotoSync je obrazac za slike recepata, ne gotova podrška za slike artikala.",
+      "proposed_changes": [
+        "Dodati ShoppingItemDetails(itemId, householdId, brand?, shopperNote?, photoAssetId?, revision); polja u zasebnom zavisnom redu čuvaju nezavisne revizije od isBought i reconciliation količine.",
+        "Asset ima UUID, relativnu lokalnu putanju, privatni objectKey household/item/asset, mime, size i uploadState. Bez javnog URL-a; brisanje i retry prate isti outbox. Snapshot detalja ide u potvrđenu kupovinu; pri nestanku automatske stavke unapred definisati obrisati detalje ili prikazati predlog za novu stavku, bez tihog prenošenja na drugi proizvod."
+      ],
+      "dependencies": [
+        "G-SYNC",
+        "G-SCHEMA",
+        "G-ASSETS"
+      ],
+      "scope_slices": [
+        "Tekstualna napomena i brend offline kroz postojeći repository/writer.",
+        "Privatna slika, ograničenje veličine i retry bez dupliranja.",
+        "Prikaz detalja pri kupovini i snapshot istorije."
+      ],
+      "acceptance_criteria": [
+        "Izmena napomene ne menja quantity, isBought ili potražnju iz recepta.",
+        "Slika radi offline posle preuzimanja; drugi član istog domaćinstva je vidi, drugi nalog van domaćinstva dobija zabranu.",
+        "Brisanje slike i ponovljeno slanje ne ostavljaju vidljiv duplikat."
+      ],
+      "verification": [
+        "Dopuniti test/data/shopping_repository_test.dart: promena plana, spajanje iste namirnice i kupovina zadržavaju predviđene detalje.",
+        "Faked PhotoRemote: prekid posle upload-a, retry istog asset UUID-a; lokalni pgTAP sa dva domaćinstva za Storage/RLS.",
+        "Widget: telefon i širok ekran, tekst „Napomena za kupovinu”, „Brend”, „Slika proizvoda”."
+      ],
+      "phase": "P1",
+      "target_modules": [
+        "lib/domain/shopping_item_details.dart (new)",
+        "lib/data/shopping_repository.dart (extend)",
+        "lib/sync/photo_sync.dart (extend)",
+        "lib/features/shopping/shopping_list_view.dart (extend)"
+      ]
+    },
+    {
+      "id": "F011",
+      "title": "Zajednička lista, članstvo i brze izmene",
+      "current_state": "lib/domain/account.dart::Account nosi jednu householdId i role; lib/account/account_api.dart::SupabaseAccountApi.fetch koristi limit(1). supabase/migrations/20261030120100_accounts.sql::household_members dozvoljava samo owner. lib/sync/uploader.dart::_send šalje ceo red upsert-om; lib/sync/downloader.dart::_hasLocalChange preskače remote red dok postoji lokalni outbox, a _applyTombstone briše lokalnu promenu. lib/sync/sync_engine.dart::onStart/onResume su pull okidači, bez realtime pretplate.",
+      "proposed_changes": [
+        "Membership(householdId,userId,role owner|admin|member|viewer,status,revision). Owner prenosi vlasništvo i briše domaćinstvo; owner/admin upravljaju običnim članovima i pozivnicama; member menja zajedničku nabavku i svoje glasove; viewer samo čita. Niko ne može sebi podići ulogu. Poslednji owner ne može otići bez transfera ili brisanja solo domaćinstva.",
+        "Invitation(id,householdId,hashedToken,expiresAt,revokedAt,maxUses=1); server proverava auth i uslove pri prihvatanju u jednoj transakciji. Raw token nije u logu ni običnom kešu.",
+        "Operacije sa operationId, actor, boundHouseholdId, expectedRevision i patch ostaju u postojećem outbox-u sa opcionim payload-om; server RPC atomarno proverava članstvo, reviziju, idempotency i tombstone. Realtime je invalidacija sa naknadnim pull-om, ne izvor istine. Detaljan conflict ugovor je ispod."
+      ],
+      "dependencies": [
+        "G-SCHEMA",
+        "G-SYNC"
+      ],
+      "scope_slices": [
+        "Pozivnica, role RLS i prikaz članstva, bez realtime-a.",
+        "Server revizije i idempotentne komande u postojećem outbox-u, zatim lokalni conflict UI.",
+        "Realtime invalidacija, reconnect pull i prikaz pending/rejected/conflict."
+      ],
+      "acceptance_criteria": [
+        "Dva člana u kontrolisanom lokalnom testu vide potvrđenu promenu za najviše 2 s pri dostupnom realtime transportu; prekid prelazi na pull bez gubitka.",
+        "Dve operacije nad istom revizijom ne mogu obe uspeti; različita nezavisna polja ne prepisuju jedno drugo.",
+        "Viewer ne piše ni direktnim REST/RPC pozivom; opozvana pozivnica i uklonjeni član ne mogu slati nove operacije.",
+        "Offline izmena je odmah vidljiva lokalno, uz „Čeka slanje”; konflikt ne pokazuje lažno „Sačuvano”."
+      ],
+      "verification": [
+        "Local Supabase pgTAP: owner/admin/member/viewer plus outsider, self escalation, replay invite, expiry tačno na granici, paralelno prihvatanje, last-owner transfer.",
+        "Dve fake replike: kupi/poništi, napomena/kupi, obriši/izmeni, duplirani event i operationId, offline 24 h, reconnect i izmenjen sat.",
+        "Regression: test/sync/downloader_test.dart, uploader_test.dart i test/data/shopping_repository_test.dart; provera reconciliation veza i prijema u ostavu."
+      ],
+      "phase": "P2",
+      "target_modules": [
+        "lib/domain/account.dart (extend)",
+        "lib/account/account_api.dart (extend)",
+        "lib/sync/synced_writer.dart (extend)",
+        "lib/sync/uploader.dart (extend)",
+        "lib/sync/downloader.dart (extend)",
+        "lib/sync/sync_remote.dart (extend)",
+        "lib/sync/sync_engine.dart (extend)"
+      ]
+    },
+    {
+      "id": "F018",
+      "title": "Cene, prodavnica, datum i dokaz",
+      "current_state": "lib/data/database.dart::ShoppingItems nema cenu, valutu, proizvod ili poslovnicu; lib/domain/shopping_demand.dart::normalizeUnit poznaje uporedive jedinice hrane, ne pakovanja proizvoda. lib/data/shopping_repository.dart::setBought/_buy zamrzava poreklo nabavke, ne novčani iznos. Postojeći supabase/migrations/20261030120200_household_data.sql nema price tabelu.",
+      "proposed_changes": [
+        "ProductRef(id,barcode?,name,brand?,packageQuantityMicros?,unitGroup,source,sourceId) je odvojen od ingredientKey; potvrđen IngredientProductMapping nije automatski jednak barkodu.",
+        "PriceObservation(id,householdId,productRefId,storeBranchId,observedOn,recordedAt,currency,rawDecimal,scale,priceBasis package|kg|l|unit,proofAssetId?,source,sourceRecordId?,promotionId?,qualityFlags). Exact decimal/rational quote čuva se bez float-a; Money nastaje tek po izračunatoj stavci i pravilu zaokruživanja.",
+        "PriceProvider.capabilities i import javno dozvoljenih fixture podataka; ručni unos radi bez provajdera. Pokrivenost = broj stavki sa uporedivom dovoljno svežom cenom / broj traženih stavki, uz nepoznate količine odvojeno. Nijedan API nije pozvan; pokrivenost Srbije ostaje nepoznata."
+      ],
+      "dependencies": [
+        "G-MONEY",
+        "G-SCHEMA"
+      ],
+      "scope_slices": [
+        "Ručna cena, poslovnica i datum sa privatnim dokazom.",
+        "Istorija i poređenje iste jedinice/pakovanja, prikaz zastarelosti i pokrivenosti.",
+        "Provider adapter tek posle provere uslova podataka i relevantnosti Srbije na odobrenim offline uzorcima."
+      ],
+      "acceptance_criteria": [
+        "Dve cene za 500 g i 1 kg porede se po kg; nepoznata masa ne daje lažnu najnižu cenu.",
+        "Iznos 1.235 iz izvora sa tri decimale zadržava se tačno; total se zaokružuje samo jednom po definisanom obračunu.",
+        "Od 10 redova sa 6 uporedivih svežih cena prikaz je 6/10 uz 4 nepoznate, bez izmišljene ukupne uštede.",
+        "Dokaz računa ostaje privatan dok korisnik posebno ne odluči o eventualnom javnom doprinosu."
+      ],
+      "verification": [
+        "Offline fixture parser za decimalni string, null datum, nedostajući proof, 3-decimalnu cenu i valutu koja nije RSD.",
+        "Ručni proračun: 500 g za 15000 minor = 30000 minor/kg; 1 kg za 28000 je jeftiniji za 2000 minor/kg.",
+        "Repository/migration roundtrip, local RLS isolation, fake provider denied/rate-limited/unconfigured bez mreže."
+      ],
+      "phase": "P2",
+      "optional_dependencies": [
+        "F017",
+        "F073"
+      ],
+      "dependency_notes": [
+        "F017 (optional barcode input from C)",
+        "F073 (optional confirmed receipt evidence from C)"
+      ],
+      "target_modules": [
+        "lib/domain/price_observation.dart (new)",
+        "lib/data/price_repository.dart (new)",
+        "lib/data/shopping_repository.dart (extend)",
+        "lib/features/shopping/price_history_sheet.dart (new)"
+      ]
+    },
+    {
+      "id": "F041",
+      "title": "Redosled kategorija prema prodavnici",
+      "current_state": "lib/features/shopping/shopping_list_view.dart::ShoppingItemsList koristi byCategory(open,...); nema izabrane poslovnice ni StoreLayout u lib/data/database.dart. Postojeće kategorije i ShoppingItemTile treba zadržati.",
+      "proposed_changes": [
+        "StoreBranch i StoreLayout(householdId,branchId,revision,categoryOrder[]) sa jedinstvenim category ključevima; opciona pozicija artikla kasnije. Sort ključ = poznata pozicija kategorije, postojeći redosled nepoznatih kategorija, stabilni itemId. To je pogled, ne promena identiteta ili potražnje stavke."
+      ],
+      "dependencies": [
+        "G-SCHEMA"
+      ],
+      "scope_slices": [
+        "Ručni izbor/profil poslovnice i sačuvan raspored.",
+        "Determinističko sortiranje otvorenih stavki u postojećoj listi.",
+        "Uređivanje redosleda i offline sync rasporeda."
+      ],
+      "acceptance_criteria": [
+        "Isti spisak pri promeni prodavnice menja samo redosled; bought status i izvori ostaju isti.",
+        "Nepoznate kategorije se pojavljuju posle uređenih i nijedna stavka nije izgubljena.",
+        "Kupljene stavke ostaju u postojećoj odvojenoj sekciji."
+      ],
+      "verification": [
+        "Pure sorter fixture: voće/mlečno/hleb i nepoznata kategorija, jednaki rangovi i prazan layout.",
+        "Widget promena A→B→A na telefonu/široko; repository roundtrip i regression setBought/receivePurchases."
+      ],
+      "phase": "P1",
+      "target_modules": [
+        "lib/domain/store_layout.dart (new)",
+        "lib/data/store_repository.dart (new)",
+        "lib/features/shopping/shopping_list_view.dart (extend)"
+      ]
+    },
+    {
+      "id": "F043",
+      "title": "Budžet tokom kupovine",
+      "current_state": "lib/data/shopping_repository.dart::setBought/_buy i lib/features/shopping/shopping_list_view.dart::ShoppingItemsList razlikuju kupljeno/otvoreno, bez novčanog modela. ShoppingItems.purchaseProvenanceJson zamrzava izvor, ne cenu.",
+      "proposed_changes": [
+        "ShoppingBudget(listId,currency,limitMinor?); PurchaseLine(itemId,purchaseEventId,quantityMicros,actualLineTotalMinor?,currency,source,confirmedAt); EstimateLine ima observationId i freshness. Odvojiti confirmedBoughtTotal, estimatedOpenTotal i unknownLineCount; null nije nula. Snapshot stvarne kupovine ne zavisi od kasnije promene kataloške cene."
+      ],
+      "dependencies": [
+        "G-MONEY",
+        "G-SCHEMA"
+      ],
+      "scope_slices": [
+        "Potvrđena cena cele kupljene stavke i zbir.",
+        "Budžetski limit i odvojena procena preostalog.",
+        "Cena po jedinici, potvrđene količine i ispravka računa kao nova revizija."
+      ],
+      "acceptance_criteria": [
+        "Kupljene stavke 12345 i 20000 minor daju 32345; procena otvorene 5000 i jedna nepoznata daju prikaz 32345 potvrđeno + 5000 procenjeno + 1 bez cene.",
+        "Mešane valute se ne sabiraju; nedostajuća cena nije 0.",
+        "Označavanje bought bez cene radi kao danas i dodaje nepoznatu vrednost."
+      ],
+      "verification": [
+        "Test-first money parser/sum i boundary overflow; negativni račun kroz refund događaj, ne negativnu cenu artikla.",
+        "Repository buy/unbuy/rebuy sa dva uređaja; povratak iz ostave po postojećim ograničenjima i ispravka cene ne menjaju zalihu.",
+        "Widget „Potvrđeno”, „Procena preostalog”, „Bez cene: 1”, „Budžet”."
+      ],
+      "phase": "P2",
+      "optional_dependencies": [
+        "F018"
+      ],
+      "dependency_notes": [
+        "F018 (optional estimates)"
+      ],
+      "target_modules": [
+        "lib/domain/money.dart (new, shared finance)",
+        "lib/domain/shopping_budget.dart (new)",
+        "lib/data/shopping_repository.dart (extend)",
+        "lib/features/shopping/shopping_list_view.dart (extend)"
+      ]
+    },
+    {
+      "id": "F044",
+      "title": "Preuzimanje stavki od strane članova",
+      "current_state": "lib/data/database.dart::ShoppingItems ima isBought, nema assignedTo; lib/data/shopping_repository.dart::setBought potvrđuje kupovinu. Osnovno članstvo trenutno podržava samo owner u 20261030120100_accounts.sql.",
+      "proposed_changes": [
+        "ItemClaim(itemId,householdId,assigneeUserId?,claimedAt,revision). claim(itemId,expectedRevision) je CAS komanda u postojećem outbox-u; assignment i bought su nezavisni. Sam član preuzima/oslobađa svoje; owner/admin mogu preraspodeliti uz vidljiv trag. Offline preuzimanje je provisional do server potvrde, nikad obećanje ekskluzivnosti."
+      ],
+      "dependencies": [
+        "F011",
+        "G-SCHEMA"
+      ],
+      "scope_slices": [
+        "Prikaz „Kupujem ja” i lokalna provisional dodela.",
+        "Server CAS i UI za izgubljeno preuzimanje.",
+        "Oslobađanje, admin preraspodela i uklanjanje člana."
+      ],
+      "acceptance_criteria": [
+        "Istovremeni zahtev dva člana daje tačno jednog potvrđenog kupca; drugi vidi čije je preuzimanje uspelo.",
+        "Claim ne menja isBought, pantry ni demand.",
+        "Uklonjeni član ne ostaje aktivni assignee; istorija kupovine zadržava postojeće autorstvo."
+      ],
+      "verification": [
+        "Dva fake klijenta claim na istoj reviziji, duplicate/reordered delivery, claim+buy i claim+delete.",
+        "Local RLS member iz drugog domaćinstva i viewer ne preuzimaju; widget „Preuzeo/la”, „Čeka potvrdu”, „Oslobodi”."
+      ],
+      "phase": "P2",
+      "target_modules": [
+        "lib/domain/item_claim.dart (new)",
+        "lib/data/shopping_repository.dart (extend)",
+        "lib/features/shopping/shopping_list_view.dart (extend)"
+      ]
+    },
+    {
+      "id": "F045",
+      "title": "Moja osnovna korpa",
+      "current_state": "lib/data/shopping_repository.dart::addManual dodaje ručnu stavku, _reconcile čuva ručne stavke; lib/data/database.dart nema šablon redovne kupovine. To je odvojeno od ostave i minimalnih zaliha.",
+      "proposed_changes": [
+        "ShoppingTemplate(id,householdId,name,revision) i TemplateLine(id,templateId,name,quantityMicros?,unit,category,productRefId?,details). instantiate(selection,listId,operationId) eksplicitno pravi ručne ShoppingItems kroz proširenje postojećeg ShoppingRepository; batch UUID obezbeđuje idempotentni retry. Pravilo duplikata je pregled i izbor „Dodaj posebno”/„Spoji”, nikad tiho povećanje kupljene stavke."
+      ],
+      "dependencies": [
+        "G-SCHEMA"
+      ],
+      "scope_slices": [
+        "Sačuvaj i uredi šablon, bez automatskog dodavanja.",
+        "Izaberi podskup i dodaj u postojeću listu atomarno sa outbox-om.",
+        "Pregled duplikata i opcioni product/details snapshot."
+      ],
+      "acceptance_criteria": [
+        "Od 5 omiljenih izabrana 2 stvaraju tačno 2 očekivana unosa; retry istog operationId ne dodaje nove.",
+        "Promena šablona ne menja već stvorenu nabavku.",
+        "Nema automatskog čitanja minimalne zalihe niti automatske kupovine."
+      ],
+      "verification": [
+        "Repository transaction rollback i duplicate batch retry; merge dve iste namirnice sa uporedivim/neuporedivim jedinicama.",
+        "Widget „Moja osnovna korpa” → izbor → pregled → dodaj; regression recipe/plan reconciliation i ručni redovi."
+      ],
+      "phase": "P1",
+      "target_modules": [
+        "lib/domain/shopping_template.dart (new)",
+        "lib/data/shopping_repository.dart (extend)",
+        "lib/features/shopping/template_sheet.dart (new)"
+      ]
+    },
+    {
+      "id": "F056",
+      "title": "Glasanje za predloge jela",
+      "current_state": "lib/domain/meal_plan.dart i lib/data/meal_plan_repository.dart drže planove; lib/domain/account.dart i server household_members još nemaju višekorisnički tok. U lib/data/database.dart nema poll/ballot tabele.",
+      "proposed_changes": [
+        "MealPoll(id,householdId,planId?,closesAt,status open|closed,revision), PollOption(id,pollId,recipeId?,recipeSnapshot,constraintVersion,eligibility), Ballot(pollId,voterUserId,optionId,revision), unique(pollId,voterUserId) za jedan glas. Autor plana potvrđuje izbor; nije automatska izmena zaključanog obroka. Eligibility se ponovo proverava po važećim obaveznim ograničenjima pre primene."
+      ],
+      "dependencies": [
+        "F011",
+        "G-SCHEMA",
+        "G-PLAN-CONSTRAINTS"
+      ],
+      "scope_slices": [
+        "Otvoren poll sa snapshot opcijama i jednim glasom po članu.",
+        "Zatvaranje po serverskom vremenu i pregled rezultata.",
+        "Potvrđena primena uz ponovnu proveru ograničenja i zaključavanja."
+      ],
+      "acceptance_criteria": [
+        "Promena glasa zamenjuje prethodni; replay ne povećava broj glasova.",
+        "Najviše glasova ne dozvoljava jelo koje krši obavezno ograničenje; nerešen rezultat traži odluku.",
+        "Offline glas posle zatvaranja je odbijen uz vidljivo stanje, bez retroaktivne izmene rezultata."
+      ],
+      "verification": [
+        "Fake clock: tik pre/tačno na/posle closesAt; dva uređaja istog glasača i revizije.",
+        "RLS član vidi samo poll svog domaćinstva, piše samo svoj ballot; test zaključanog plana i promene alergena nakon glasanja.",
+        "Widget „Glasanje”, „Zatvoreno”, „Potvrdi izbor”; 3 člana, 2:1 rezultat, zatim nevažeća pobednička opcija."
+      ],
+      "phase": "P2",
+      "target_modules": [
+        "lib/domain/meal_poll.dart (new)",
+        "lib/data/meal_poll_repository.dart (new)",
+        "lib/data/meal_plan_repository.dart (extend)",
+        "lib/features/planning/meal_poll_sheet.dart (new beside existing plan_screen.dart)"
+      ]
+    },
+    {
+      "id": "F063",
+      "title": "Više nezavisnih domaćinstava",
+      "current_state": "lib/domain/account.dart::Account ima tačno jedno domaćinstvo; lib/account/account_api.dart::fetch limit(1), lib/account/auth_controller.dart::accountScopeProvider izvodi taj jedan scope. lib/data/database.dart::Accounts ima householdId a SyncCursors key je accountId+entity. lib/sync/sync_remote.dart::fetchSince se oslanja na RLS i ne filtrira aktivno domaćinstvo. Repozitorijumi već filtriraju householdId; to je osnova za proširenje.",
+      "proposed_changes": [
+        "Account ostaje identitet, Membership list postaje zaseban cache, SelectedHousehold(userId,householdId) je korisnikov izbor. Postojeći AccountScope se rekreira sa epoch-om; sve async rezultate, odabrani plan i pretplate vezati za epoch, nikad za trenutno promenljivi scope.",
+        "Odlučeno: download svih važećih domaćinstava po nalogu sa postojećim account-global cursor-om; pri novom članstvu obavezan poseban full bootstrap tog household-a i entiteta, jer stari updated_at ne bi prošao globalni cursor. UI bira samo aktivno. Ne prebacivati na household-filtered download bez particionisanja kursora.",
+        "Outbox svaki nalog/operacija trajno vezuje originalno householdId, uključujući delete, i radi nezavisno od izabranog ekrana. Membership refresh pri reconnect-u uklanja pristup opozvanom prostoru i zaustavlja njegove upload-e."
+      ],
+      "dependencies": [
+        "F011",
+        "G-SCHEMA",
+        "G-SYNC"
+      ],
+      "scope_slices": [
+        "Normalizovati account/membership cache i migrirati postojeće jedino članstvo bez novih praznih domaćinstava.",
+        "Switcher + reset scoped providera i zaštita od odgovora starog scope-a.",
+        "Bootstrap novog članstva, opoziv, offline switching i account deletion regresije."
+      ],
+      "acceptance_criteria": [
+        "A→B→A bez mešanja planova, ostave, lista, assets, glasova ili budžeta; ne poslati A pending write u B.",
+        "Offline dozvoliti izbor ranije keširanog važećeg članstva sa oznakom poslednje provere; novo članstvo traži mrežu.",
+        "Novo pridruženo domaćinstvo sa zapisima starijim od postojećeg kursora potpuno se preuzme.",
+        "Brisanje naloga čuva zajednički prostor preostalih članova i rešava poslednjeg vlasnika pre uklanjanja članstva."
+      ],
+      "verification": [
+        "Migration fixture sa starim Accounts redom, starim cursor-om i pending delete; proveriti nepromenjene UUID-jeve i broj redova.",
+        "Fake transport zadrži A odgovor do prebacivanja u B; potvrditi da se ne pojavi A sadržaj.",
+        "Local pgTAP tri naloga/dva household-a, član oba, outsider, revoke; pregled supabase/migrations/20261030120700_delete_account.sql i Edge Function solo-household ponašanja."
+      ],
+      "phase": "P2",
+      "target_modules": [
+        "lib/domain/account.dart (extend)",
+        "lib/account/account_api.dart (extend)",
+        "lib/account/auth_controller.dart (extend)",
+        "lib/data/database.dart (extend memberships/selection)",
+        "lib/sync/downloader.dart (extend bootstrap)"
+      ]
+    },
+    {
+      "id": "F066",
+      "title": "Razduživanje zajedničkih troškova",
+      "current_state": "lib/data/database.dart nema Expense/Settlement; lib/data/shopping_repository.dart::_buy čuva kupljene potrebe, bez platioca, učesnika i iznosa. F043 je predložena osnova računa korpe, ne gotov ledger.",
+      "proposed_changes": [
+        "Expense(id,householdId,purchaseEventId?,currency,totalMinor,paidBy,revision,status draft|posted|void), ExpenseLine(totalMinor,beneficiaryWeights[]), Share(userId,amountMinor), Settlement(id,from,to,currency,amountMinor,confirmedAt). Lične stavke dodeliti samo tom korisniku; ne bacati ih iz ukupnog plaćenog iznosa. Za više platioca zasebne Payment reda sa sum(payment)=expense total.",
+        "Posted dokument je nepromenljiv; ispravka pravi storno/replacement sa sourceExpenseId. Balance=payments-shares+outgoingSettlements-incomingSettlements. Predlog transfera je informativan i nije bankovno plaćanje. Svaka valuta ima zaseban ledger; odlazak člana ne briše dug ili menja istorijske udela."
+      ],
+      "dependencies": [
+        "F011",
+        "F043",
+        "G-MONEY",
+        "G-SCHEMA"
+      ],
+      "scope_slices": [
+        "Draft trošak sa platiocem, izuzimanjem ličnih stavki i tačnom raspodelom.",
+        "Posted ledger, saldo i predlog transfera.",
+        "Potvrđeno poravnanje, storno i audit/idempotency."
+      ],
+      "acceptance_criteria": [
+        "A plati 10001 minor: lično A 2000, zajedničko 8001 sa jednakim težinama A/B/C; shares su A=4667,B=2667,C=2667 po stabilnom member-ID poretku, A saldo +5334, B/C -2667.",
+        "Svaki događaj ima sum(payments)=sum(shares); suma salda domaćinstva po valuti je 0.",
+        "Kada B plati A 2667, B saldo je 0, A +2667 i C -2667; duplirani settlementId ništa ne menja."
+      ],
+      "verification": [
+        "Test-first parser i allocator; random/property fixtures: konzervacija minor jedinica, stabilnost pri drugačijem input poretku, nulte težine i rejected all-zero/negative weights.",
+        "Golden 10001 primer iznad, refund/storno i više platioca; ne izvršavati upstream kod.",
+        "Local RLS čitanje/sopstvena izmena draft-a/posted zabrana, rollback i replay; widget „Ko je platio”, „Lična stavka”, „Potvrdi poravnanje”."
+      ],
+      "phase": "P2",
+      "optional_dependencies": [
+        "F073"
+      ],
+      "dependency_notes": [
+        "F073 (optional receipt reconciliation)"
+      ],
+      "target_modules": [
+        "lib/domain/expense.dart (new)",
+        "lib/domain/money.dart (shared from G-MONEY)",
+        "lib/data/expense_repository.dart (new)",
+        "lib/features/shopping/expense_sheet.dart (new)"
+      ]
+    },
+    {
+      "id": "F067",
+      "title": "Slanje korpe online prodavnici",
+      "current_state": "lib/data/shopping_repository.dart i lib/features/shopping/shopping_screen.dart završavaju na lokalnoj/sinhronizovanoj nabavci. Nema retailer adapter-a, merchant productId ili checkout ugovora u lib/data/database.dart.",
+      "proposed_changes": [
+        "RetailerAdapter.probe() vraća unavailable|exportText|exportLink|cartApi sa region, storeBranch, checkedAt, limits i reasons; zahteva dokumentovan podržan interfejs i prava. MerchantMapping(ingredient/productRef,merchantSku,packSize,confidence,confirmedByUser). CartDraft(id,listSnapshotHash,merchantId,branchId,lines,substitutions,quoteExpiresAt,feesMinor?,currency,capabilityVersion).",
+        "Najpre prikaži SKU, pakovanja, zamene, cenu i naknade; prenos zahteva izričitu radnju nad pregledanom korpom. submitExport sa idempotencyKey gde ugovor trgovca to podržava; unknown delivery status se proverava pre ponavljanja. Izvoz nije potvrda porudžbine; ne označava isBought ni dopunu ostave. Nema podržanog trgovca potvrđenog u ovom istraživanju."
+      ],
+      "dependencies": [
+        "F018",
+        "G-CAPABILITY",
+        "G-SCHEMA"
+      ],
+      "scope_slices": [
+        "Deterministički lokalni tekst/CSV izvoz i ručni product mapping.",
+        "Fake adapter sa capability probe, preview i zamenama.",
+        "Jedan stvarni adapter tek kada su prava/API ugovor dokazani; finalni checkout kod trgovca potvrđuje korisnik."
+      ],
+      "acceptance_criteria": [
+        "Nepokriveni artikli i nepoznate naknade su eksplicitni; nepodržan trgovac daje „Izvoz za ovu prodavnicu nije dostupan”.",
+        "Promena liste ili istek quote-a obavezno poništava staru potvrdu pregleda.",
+        "Izvoz ili timeout ne menja bought/expense/pantry; nijedna porudžbina nije automatski postavljena."
+      ],
+      "verification": [
+        "Fake probe disabled/region mismatch/auth required; unit map 1200 g potrebe na 500 g SKU daje 3 pakovanja i 300 g viška.",
+        "Widget potvrda tačnog snapshot-a, unavailable zamena, quote expiry i naknade.",
+        "Contract fixtures za export payload; request timeout nakon slanja i sigurni replay/query status bez produkcijskih API poziva."
+      ],
+      "phase": "P2",
+      "optional_dependencies": [
+        "F083",
+        "F071"
+      ],
+      "dependency_notes": [
+        "F083 (optional availability C)",
+        "F071 (optional promotions)"
+      ],
+      "target_modules": [
+        "lib/domain/cart_draft.dart (new)",
+        "lib/data/retailer_adapter.dart (new interface)",
+        "lib/features/shopping/cart_export_sheet.dart (new)"
+      ]
+    },
+    {
+      "id": "F068",
+      "title": "Kartice lojalnosti",
+      "current_state": "lib/data/database.dart nema loyalty card, a lib/features/shopping/shopping_list_view.dart nema kasni prikaz kartice. Barcode namirnice F017 nije isto što i sačuvana članska kartica.",
+      "proposed_changes": [
+        "LoyaltyCard(id,ownerUserId,retailerId,label,symbology,valueAsString,expiresAt?,status,sharePolicy=personal). Kod je string radi vodećih nula. Prvo podržati dokumentovane statične code128/EAN/QR formate kroz renderer iza interfejsa; dinamičke/rotirajuće kartice unavailable. Program eligibility token za F071 je samo tvrdnja da kartica postoji/da korisnik ispunjava uslov, ne dokaz da će kasa odobriti popust.",
+        "Lične kartice sinhronizovati kao privatne korisničke podatke uz RLS, nikad automatski članovima domaćinstva ili u javni dokaz računa. Izbor da li deljenje program dozvoljava ostaje gate pre eksplicitnog opt-in deljenja."
+      ],
+      "dependencies": [
+        "G-SCHEMA",
+        "G-CAPABILITY"
+      ],
+      "scope_slices": [
+        "Ručni unos i privatno čuvanje koda sa validacijom symbology.",
+        "Offline prikaz iz nabavke i tekstualni fallback.",
+        "Provider/program capability i opcioni datum isteka; deljenje tek posle potvrđenih pravila programa."
+      ],
+      "acceptance_criteria": [
+        "Kod 0012345678905 roundtrip čuva obe vodeće nule; renderer generiše isti payload.",
+        "Drugi član domaćinstva ne može čitati ličnu karticu direktnim upitom.",
+        "Nepodržana/dinamička kartica prikazuje „Ova vrsta kartice nije podržana” i ne prikazuje lažno važeći statični kod."
+      ],
+      "verification": [
+        "Barcode encode/decode fixture i checksum validacija gde format to zahteva; Unicode/dužina/leading-zero slučajevi.",
+        "Local RLS isti household različiti user-i; offline cold start i sign-out session isolation.",
+        "Fizički skener i osvetljenje uređaja samo sa sintetičkim test kodom, bez tvrdnje da trgovac prihvata karticu."
+      ],
+      "phase": "P2",
+      "target_modules": [
+        "lib/domain/loyalty_card.dart (new)",
+        "lib/data/loyalty_card_repository.dart (new)",
+        "lib/features/shopping/loyalty_card_sheet.dart (new)"
+      ]
+    },
+    {
+      "id": "F069",
+      "title": "Podsetnik blizu prodavnice",
+      "current_state": "Nema geofence modela u lib/data/database.dart niti lokacijskog toka u lib/features/shopping/shopping_screen.dart. Postojeći AccountScope i lokalne otvorene ShoppingItems su tačke vezivanja, ne postojeća device capability podrška.",
+      "proposed_changes": [
+        "StoreReminder(id,userId,householdId,branchId,center,radiusMeters,enabled,listIds,cooldownSeconds) je sinhronizovana preferenca; GeofenceRegistration i poslednja obaveštenja su lokalni po uređaju. DeviceCapability probe platformSupported/locationServices/preciseLocation/backgroundPermission/notificationPermission/registrationQuota; dozvole tražiti tek po uključivanju.",
+        "Dwell/enter → ponovo proveri aktivno članstvo i lokalnu otvorenu stavku → dedupe po reminder+visit+cooldown → lokalno obaveštenje. Nema upload-a istorije kretanja. Opoziv dozvole/članstva i odjava uklanjaju registracije; desktop unavailable daje ručni podsetnik. Android pozadinski događaji nisu trenutni; Apple adapter zahteva zaseban platform spike."
+      ],
+      "dependencies": [
+        "G-CAPABILITY",
+        "F041",
+        "F063"
+      ],
+      "scope_slices": [
+        "Model podsetnika i fake geofence/notifier adapter.",
+        "Android permission/register/unregister lifecycle i cooldown.",
+        "iOS capability spike i real-device verifikacija; macOS ručni fallback dok podrška nije dokazano završena."
+      ],
+      "acceptance_criteria": [
+        "Sa otvorenim artiklom jedan dwell daje najviše jedno obaveštenje u 4 h; sve bought daje 0.",
+        "Denied/restricted/unsupported ne blokira Nabavku i jasno prikazuje „Podsetnik na lokaciji nije dostupan”.",
+        "Odjava ili uklanjanje iz household-a briše registracije tog scope-a i ne otkriva naziv liste na zaključanom ekranu po default-u."
+      ],
+      "verification": [
+        "Fake clock i event fixture: dupli enter/dwell, enter posle cooldown-a, buy pre dwell-a, revoke pre callback-a, restart i reboot re-registration.",
+        "Device matrix Android/iOS: deny→grant→revoke, battery saver i notifications denied; dokumentovati izmerena kašnjenja umesto obećanja.",
+        "Test offline stale-list notification wording i tap otvara tačnu household/list scope uz novu proveru članstva."
+      ],
+      "phase": "P3",
+      "target_modules": [
+        "lib/domain/store_reminder.dart (new)",
+        "lib/data/store_reminder_repository.dart (new)",
+        "lib/features/shopping/store_reminder_sheet.dart (new)",
+        "lib/device/geofence_gateway.dart (proposed new interface; device package decision gated)"
+      ]
+    },
+    {
+      "id": "F070",
+      "title": "Stvarna isplativost obilaska prodavnica",
+      "current_state": "lib/domain/shopping_demand.dart računa potrebe i uporedive jedinice, ali nema route/store/Money model. ShoppingRepository.planTotals daje količine, ne trošak puta. F018 i F071 su predloženi podaci za cene i uslovne ponude.",
+      "proposed_changes": [
+        "RouteScenario(currency,storeAssignment,packCounts,goodsTotalMinor,transportTotalMinor,feesMinor,travelSeconds,shoppingSeconds,unknownItems,priceCoverage,assumptions,dataVersion). Objective=goods+transport+fees; hard constraint travel+shopping <= maxDurationSeconds. Vrednost vremena je opcioni odvojeni scenario, ne skriveni trošak.",
+        "DistanceMatrixProvider sa mode/checkedAt/source/errors; bez njega korisnik unosi povratni put i trošak, a heuristika je označena kao procena. Prvo ograničiti na najviše 3 radnje i enumerisati sve dopuštene raspodele/pakovanja; ne obećavati globalni optimum van tog skupa. Haversine blizina nije dužina puta. Nepokriveni artikli sprečavaju tvrdnju da je jedna korpa ukupno jeftinija."
+      ],
+      "dependencies": [
+        "F018",
+        "F043",
+        "F071",
+        "G-MONEY",
+        "G-CAPABILITY"
+      ],
+      "scope_slices": [
+        "Ručni troškovi i vremena: jedna naspram dve radnje sa jednakom pokrivenošću.",
+        "Ograničen egzaktan optimizer i prikaz pretpostavki/nesigurnosti.",
+        "Distance provider tek uz dokazanu mogućnost, prava i quote/freshness invalidaciju."
+      ],
+      "acceptance_criteria": [
+        "Korpa A 100000 minor + put 10000 = 110000; A+B roba 90000 + put 25000 = 115000: jedna radnja je povoljnija za 5000 minor uprkos nižim cenama robe.",
+        "Scenario 50 min ne ulazi u rezultat kad je limit 40 min.",
+        "Nedostajuća cena ili matrica udaljenosti daje nepotpun scenario, ne 0 troška ili garantovanu uštedu."
+      ],
+      "verification": [
+        "Golden ručni primer i brute-force oracle za <=3 radnje/<=6 artikala, MOQ/pakovanja i neispunjena promocija.",
+        "Test dateline/straight-line map podatak ne glumi voznu distancu; deterministic tie storeId i isti snapshot.",
+        "Widget prikaže prevoz, robu, naknade, vreme i pokrivenost; fake route provider unavailable/rate-limited/offline."
+      ],
+      "phase": "P3",
+      "optional_dependencies": [
+        "F083"
+      ],
+      "dependency_notes": [
+        "F083 (optional availability C)"
+      ],
+      "target_modules": [
+        "lib/domain/shopping_route.dart (new)",
+        "lib/data/route_matrix_provider.dart (new interface)",
+        "lib/features/shopping/route_comparison_sheet.dart (new)"
+      ]
+    },
+    {
+      "id": "F071",
+      "title": "Kuponi i uslovne akcije",
+      "current_state": "ShoppingItems i supabase/migrations/20261030120200_household_data.sql nemaju promotion model. Open Prices Price.discount_type je kategorizacija ponude, bez izvršivog predicate ugovora za količinu, vremenski interval i članstvo.",
+      "proposed_changes": [
+        "Promotion(id,retailerId,branchScope,productScope,currency,validFrom,validUntilExclusive,storeTimeZone,predicateAST,effect,stackGroup,priority,maxUses,source,sourceVersion). Predicate je tipiziran allowlist AST: All/Any, QuantityAtLeast, QualifyingSpendAtLeast, HasLoyaltyProgram, CouponActivated, StoreIn, ProductIn i WithinWindow; bez eval teksta ili AI generisanog izvršnog koda.",
+        "Evaluator vraća eligible|ineligible|unknown sa reason codes i trace-om; efekat fixedBundlePrice/buyNPayM/percentOffBasisPoints/fixedOff ima limit i eksplicitno pravilo kombinovanja. Unknown predicate se ne primenjuje kao popust. Redemption rezervacija nije ostvarena ušteda, a ista couponId se ne troši dvaput."
+      ],
+      "dependencies": [
+        "F018",
+        "G-MONEY",
+        "G-SCHEMA"
+      ],
+      "scope_slices": [
+        "Quantity/validity/loyalty predicate i obrazloženje za jednu ponudu.",
+        "Bundle/percentage effects, zaokruživanje i eksplicitna ekskluzivnost.",
+        "Aktivacija kupona, use-limit ledger i pregled kombinovanih ponuda."
+      ],
+      "acceptance_criteria": [
+        "Jedinica 10000 minor, buy2 bundle 15000: qty1 = 10000 bez popusta, qty2 = 15000, qty3 = 25000; ne primeniti 7500 na qty1.",
+        "Loyalty potrebna + status unknown daje unknown i osnovnu cenu; interval [start,end) isključuje tačno end.",
+        "10% na 19999 minor daje discount 2000 i net 17999 po half-up pravilu; dva exclusive kupona ne sabiraju uštede."
+      ],
+      "verification": [
+        "Truth table svih predicate čvorova i All(false,unknown)=false, Any(true,unknown)=true; ostalo po tri-state ugovoru.",
+        "Fake clock/store time zone: UTC offset, DST i datum isteka; qty 1/2/3, pogrešna poslovnica i pakovanje.",
+        "Golden cent/minor zaokruživanje, bundle remainder, cap, stacking, replay redemption i nedozvoljeni AST; svi podaci sintetički bez trgovca."
+      ],
+      "phase": "P2",
+      "optional_dependencies": [
+        "F068"
+      ],
+      "dependency_notes": [
+        "F068 (optional loyalty eligibility)"
+      ],
+      "target_modules": [
+        "lib/domain/promotion.dart (new pure evaluator)",
+        "lib/data/promotion_repository.dart (new)",
+        "lib/features/shopping/promotion_explanation_sheet.dart (new)"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "repo_url": "https://github.com/TomBursch/kitchenowl",
+      "commit": "3cc27f41e3de3d805abd66bdac9eb283eb16e72c",
+      "license_spdx_or_unknown": "AGPL-3.0-only",
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "symbol": "root license",
+          "finding": "Actual full AGPL version 3 file read. Project README also says AGPL-3.0; no permissive per-file exception observed in inspected source. only/or-later grant not further established; conservative no-copy decision applies either way."
+        },
+        {
+          "path": "kitchenowl/lib/services/transactions/shoppinglist.dart",
+          "symbol": "TransactionShoppingListAddItem.runLocal/runOnline; TransactionShoppingListRemoveItem",
+          "finding": "Local MemStorage changes and persisted transaction classes are separate from API calls; server IDs/name fallback appear in requests."
+        },
+        {
+          "path": "kitchenowl/lib/cubits/shoppinglist_cubit.dart",
+          "symbol": "ShoppinglistCubit; _onConnectionChange; onShoppinglistItemAdd",
+          "finding": "Socket listeners, reconnect refresh and a 30-second periodic fallback; event transaction uses forceOffline=true/saveTransaction=false to avoid echo."
+        },
+        {
+          "path": "backend/app/sockets/connection_socket.py",
+          "symbol": "on_connect",
+          "finding": "Authenticated user joins rooms for memberships."
+        },
+        {
+          "path": "backend/app/sockets/shoppinglist_socket.py",
+          "symbol": "on_add; on_remove",
+          "finding": "Authorizes Shoppinglist before item mutations and emits household-room events. on_remove imports removeShoppinglistItem while helper is separately named removeShoppinglistItemFunc in controller: observed source inconsistency, not a validated working socket removal path."
+        },
+        {
+          "path": "backend/app/controller/shoppinglist/shoppinglist_controller.py",
+          "symbol": "removeShoppinglistItemFunc",
+          "finding": "Deletes current association; optional client removed_at feeds History. This is not expected-revision conflict arbitration."
+        },
+        {
+          "path": "backend/app/helpers/authorize_household.py",
+          "symbol": "RequiredRights; authorize_household",
+          "finding": "Member/admin/admin-or-self authorization; server admin bypass and member owner/admin flags. Use design observation, not Tavli access policy verbatim."
+        },
+        {
+          "path": "backend/app/models/household.py",
+          "symbol": "Household; HouseholdMember",
+          "finding": "Household owns lists, items and expenses. Owner/admin flags and float expense_balance observed."
+        },
+        {
+          "path": "kitchenowl/lib/enums/shoppinglist_sorting.dart",
+          "symbol": "ShoppinglistSorting.sortShoppinglistItems",
+          "finding": "Alphabetical/category/algorithmic sorting; no per-store aisle mapping established."
+        },
+        {
+          "path": "backend/app/models/expense.py",
+          "symbol": "Expense; ExpensePaidFor",
+          "finding": "Float amount and integer factor allocation associations."
+        },
+        {
+          "path": "backend/app/service/recalculate_balances.py",
+          "symbol": "recalculateBalances",
+          "finding": "Paid amounts minus weighted expenses, scoped by household; floating-point calculations unsuitable for proposed Tavli finance contract."
+        },
+        {
+          "path": "kitchenowl/lib/models/expense.dart",
+          "symbol": "Expense; PaidForModel",
+          "finding": "Flutter double amount, paidById and factor-based paidFor. Independent implementation should use integer minor units."
+        }
+      ],
+      "reuse_decision": "Study and cite architecture only. No AGPL code, assets or tests copied; proposed Tavli design is an independently authored blueprint."
+    },
+    {
+      "repo_url": "https://github.com/openfoodfacts/open-prices",
+      "commit": "ecb334d80083908cabd372df04121314d628af8c",
+      "license_spdx_or_unknown": "AGPL-3.0-only",
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "symbol": "root license",
+          "finding": "Actual AGPL version 3 LICENSE read, not a search snippet; no permissive exception established. Exact only/or-later project grant remains unresolved."
+        },
+        {
+          "path": "open_prices/prices/models.py",
+          "symbol": "Price; Price.clean; Price.set_is_duplicate_of",
+          "finding": "Three-decimal DecimalField prices, currency/date/store/proof references and duplicate identity; values can be nullable."
+        },
+        {
+          "path": "open_prices/prices/validators.py",
+          "symbol": "validate_price_price_rules; validate_price_date_rules; validate_price_location_rules; validate_price_proof_rules",
+          "finding": "Discount/base-price consistency, future date rejection, paired OSM identity, proof owner/type compatibility; callable validation is more than table shape."
+        },
+        {
+          "path": "open_prices/prices/constants.py",
+          "symbol": "DISCOUNT_TYPE_LIST; PRICE_PER_LIST",
+          "finding": "Discount class labels and UNIT/KILOGRAM/LITER bases; labels are not a full executable promotion predicate."
+        },
+        {
+          "path": "open_prices/api/prices/filters.py",
+          "symbol": "PriceFilterForm.clean; PriceFilter.filter_queryset",
+          "finding": "Coordinates/radius supplied together, validated bounds; nearby location IDs constrain prices plus currency/date/product filters."
+        },
+        {
+          "path": "open_prices/locations/models.py",
+          "symbol": "LocationQuerySet.nearby",
+          "finding": "Bounding box plus spherical proximity, antimeridian/pole handling; proximity is not route travel cost."
+        },
+        {
+          "path": "open_prices/proofs/models.py",
+          "symbol": "ProofQuerySet",
+          "finding": "Receipt/price-tag/import distinctions and draft/community/consumption grouping observed."
+        },
+        {
+          "path": "open_prices/api/prices/views.py",
+          "symbol": "PriceViewSet.get_authenticators/create/get_serializer_class",
+          "finding": "Read versus authenticated create/update paths and owner handling observed. No live API call, availability, Serbia coverage or data redistribution rights verified."
+        }
+      ],
+      "reuse_decision": "Study/cite only; no AGPL code copied. Future adapter needs independent implementation plus separate data/evidence license, attribution and current API contract validation."
+    },
+    {
+      "repo_url": "https://github.com/dinerojs/dinero.js",
+      "commit": "76b969e519dc44675d4af898d25629995d0b16f2",
+      "license_spdx_or_unknown": "MIT",
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "symbol": "MIT grant and Sarah Dayan copyright",
+          "finding": "Actual complete license read; preserved verbatim with copied source. No NOTICE found in upstream file inventory."
+        },
+        {
+          "path": "packages/dinero.js/src/core/utils/distribute.ts",
+          "symbol": "distribute",
+          "finding": "Integer division and remainder distribution by descending ratios; full unchanged source file collected as reference, imports not vendored."
+        },
+        {
+          "path": "packages/dinero.js/src/core/utils/__tests__/distribute.test.ts",
+          "symbol": "distribute test suite",
+          "finding": "Examples 1003 split 50/50, negative/zero ratios, largest-ratio residue and MAX_SAFE_INTEGER guard inspected, not run or copied."
+        },
+        {
+          "path": "packages/dinero.js/src/core/utils/equal.ts",
+          "symbol": "equal",
+          "finding": "Comparison via injected calculator; inspected dependency."
+        },
+        {
+          "path": "packages/dinero.js/src/core/utils/greaterThan.ts",
+          "symbol": "greaterThan",
+          "finding": "Comparison helper dependency inspected."
+        },
+        {
+          "path": "packages/dinero.js/src/core/utils/greaterThanOrEqual.ts",
+          "symbol": "greaterThanOrEqual",
+          "finding": "Comparison helper dependency inspected."
+        },
+        {
+          "path": "packages/dinero.js/src/core/utils/lessThan.ts",
+          "symbol": "lessThan",
+          "finding": "Comparison helper dependency inspected."
+        },
+        {
+          "path": "packages/dinero.js/src/core/types/DineroCalculator.ts",
+          "symbol": "DineroCalculator; DineroComparisonOperator",
+          "finding": "Injected arithmetic interface; confirms full copied file is a reference requiring upstream dependencies, not standalone executable code."
+        }
+      ],
+      "reuse_decision": "Copy one complete source file plus LICENSE verbatim for review/reference only. Implement Tavli allocator independently with validated nonnegative weights, stable member-ID ties, bounded exact arithmetic; do not run this subset."
+    }
+  ],
+  "copied_files": [
+    {
+      "local_path": "research/reference-code/D/dinero/packages/dinero.js/src/core/utils/distribute.ts",
+      "upstream_path": "packages/dinero.js/src/core/utils/distribute.ts",
+      "sha256": "87867645f6e799820373e614d70764bafa129ebb745d7d771b196e8a45c0515b",
+      "source_url": "https://github.com/dinerojs/dinero.js/blob/76b969e519dc44675d4af898d25629995d0b16f2/packages/dinero.js/src/core/utils/distribute.ts",
+      "license_path": "research/reference-code/D/dinero/LICENSE"
+    },
+    {
+      "local_path": "research/reference-code/D/dinero/LICENSE",
+      "upstream_path": "LICENSE",
+      "sha256": "7a969a5e42591379b094775b72db3dfef33feac26f499c5af56e5d755aa02686",
+      "source_url": "https://github.com/dinerojs/dinero.js/blob/76b969e519dc44675d4af898d25629995d0b16f2/LICENSE",
+      "license_path": "research/reference-code/D/dinero/LICENSE"
+    }
+  ],
+  "unknowns": [
+    "Open Prices Serbia/branch/product coverage and freshness have not been measured; no production API queried.",
+    "Open Prices database, proof-image redistribution terms, rate limits and future API contract need a separate integration gate; AGPL software license does not establish data/image rights.",
+    "Exact AGPL only/or-later project grant not conclusively established; root LICENSE confirms AGPL v3 and no-copy decision is unchanged.",
+    "No retailer cart API, partnership, checkout flow or loyalty-program acceptance verified; manual export is the initial deliverable.",
+    "Apple documentation page requires JS and its Markdown link failed in browsing tool; Apple capability/quotas/background delivery remain an implementation spike, not a verified support claim.",
+    "Household role product policy and ledger visibility proposed here need final spec decisions; no role migration has been implemented.",
+    "Currency exponent table, cash rounding rules and receipt discrepancy policy must be versioned and confirmed before monetary implementation.",
+    "No native device tests, app tests, database tests or upstream tests were run in this research-only stream."
+  ],
+  "external_documents": [
+    {
+      "url": "https://developer.android.com/develop/sensors-and-location/location/geofencing",
+      "accessed_on": "2026-11-09",
+      "finding": "Opened official Android documentation; permissions, quota, dwell and background delay support capability gates. No source copied."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/corelocation/monitoring-the-user-s-proximity-to-geographic-regions",
+      "accessed_on": "2026-11-09",
+      "finding": "JS placeholder; Markdown linked content failed to fetch. No Apple support claim or code collected."
+    }
+  ]
+}
