@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/day_rules.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/recipe_format.dart';
+import '../../domain/time_budget.dart';
+import 'rule_notes.dart';
+import 'time_check_note.dart';
 
 /// Jedno mesto u planu: vrsta obroka, jelo, vreme, porcije i oznake
 /// Zaključano/Skuvano (tekstom, ne samo bojom).
@@ -12,6 +16,9 @@ class MealEntryCard extends StatelessWidget {
     required this.meal,
     this.selected = false,
     this.onTap,
+    this.onEmptyTap,
+    this.timeCheck,
+    this.rules = const [],
   });
 
   final MealSlot slot;
@@ -19,21 +26,34 @@ class MealEntryCard extends StatelessWidget {
   final bool selected;
   final VoidCallback? onTap;
 
+  /// Prazno mesto (npr. izbor obroka van kuće).
+  final VoidCallback? onEmptyTap;
+
+  /// Provera vremena za taj dan (prikazuje se samo prekoračenje i
+  /// nepoznato).
+  final TimeCheck? timeCheck;
+
+  /// Rezultati pravila dana za jelo na ovom mestu.
+  final List<RuleResult> rules;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final meal = this.meal;
-    final snapshot = meal?.snapshot;
-    final details = [
-      if (snapshot?.prepMinutes case final m?) '$m min',
-      if (meal != null) servingsLabel(meal.servings),
-    ].join(' · ');
+    final away = meal?.isAway ?? false;
+    final snapshot = away ? null : meal?.snapshot;
+    final details = away
+        ? ''
+        : [
+            if (snapshot?.prepMinutes case final m?) '$m min',
+            if (meal != null) servingsLabel(meal.servings),
+          ].join(' · ');
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       color: selected ? colors.secondaryContainer : null,
       child: InkWell(
-        onTap: meal == null ? null : onTap,
+        onTap: meal == null ? onEmptyTap : onTap,
         borderRadius: BorderRadius.circular(20),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 56),
@@ -52,11 +72,15 @@ class MealEntryCard extends StatelessWidget {
                 Text(
                   meal == null
                       ? 'Nije planirano'
+                      : away
+                      ? meal.awayTitle
                       : (snapshot?.title ?? 'Recept nije dostupan'),
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: meal == null ? colors.onSurfaceVariant : null,
                   ),
                 ),
+                TimeCheckNote(timeCheck),
+                RuleNotes(rules, overrides: meal?.ruleOverrides ?? const {}),
                 if (details.isNotEmpty || meal != null) ...[
                   const SizedBox(height: 8),
                   Wrap(
@@ -70,6 +94,11 @@ class MealEntryCard extends StatelessWidget {
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: colors.onSurfaceVariant,
                           ),
+                        ),
+                      if (away)
+                        const _Tag(
+                          icon: Icons.restaurant_outlined,
+                          text: 'Van kuće',
                         ),
                       if (meal?.isLocked ?? false)
                         const _Tag(

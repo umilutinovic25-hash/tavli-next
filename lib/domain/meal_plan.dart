@@ -2,6 +2,7 @@
 /// čuvanja. Nacrt živi samo u sesiji; čuva se tek odobren.
 library;
 
+import 'day_rules.dart';
 import 'plan_calendar.dart';
 import 'shopping_demand.dart' show maxServings, minServings;
 import 'shopping_source.dart';
@@ -19,6 +20,36 @@ enum MealType {
   static MealType? tryParse(Object? name) =>
       values.asNameMap()[name is String ? name.trim() : null];
 }
+
+/// Vrsta obroka u planu. `away` zauzima mesto, ali ne traži namirnice.
+enum MealKind {
+  cook,
+  away;
+
+  /// Prazno je stari zapis (kuva se); nepoznata vrsta sa novije verzije
+  /// zauzima mesto bez nabavke, kao [away].
+  static MealKind parse(String? name) => switch (name) {
+    null || 'cook' => cook,
+    _ => away,
+  };
+}
+
+/// Zašto se obrok ne kuva kod kuće. `name` je vrednost u bazi.
+enum AwayReason {
+  restaurant('Restoran'),
+  visiting('Kod roditelja'),
+  skip('Preskačem');
+
+  const AwayReason(this.label);
+
+  final String label;
+
+  static AwayReason? tryParse(Object? name) =>
+      values.asNameMap()[name is String ? name : null];
+}
+
+/// Najduža napomena uz obrok van kuće.
+const maxAwayNoteLength = 80;
 
 /// Najduži plan: ceo kalendarski mesec.
 const maxPlanDays = 31;
@@ -56,6 +87,7 @@ class PlanRequest {
     this.usePantry = true,
     this.wishes,
     this.pantryNames = const [],
+    this.rules = const [],
     Set<MealSlot>? only,
   }) : mealTypes = Set.unmodifiable(mealTypes),
        only = only == null ? null : Set.unmodifiable(only) {
@@ -87,6 +119,9 @@ class PlanRequest {
 
   /// Nazivi potvrđene zalihe; koriste se samo kad je [usePantry].
   final List<String> pantryNames;
+
+  /// Pravila po danima domaćinstva (AI ih dobija; čuvanje ih proverava).
+  final List<DayRule> rules;
 
   /// Samo ova mesta (zamena jednog jela ili ponovni predlog bez zaštićenih
   /// obroka); null = sva mesta plana.
@@ -238,12 +273,31 @@ class PlannedMeal {
     this.recipeId,
     this.isLocked = false,
     this.isCooked = false,
+    this.kind = MealKind.cook,
+    this.awayReason,
+    this.awayNote,
+    this.ruleOverrides = const {},
   });
 
   final String id;
   final String planId;
   final MealSlot slot;
   final int servings;
+
+  /// Kod [MealKind.away] snimak (ako postoji) je jelo pre promene, da
+  /// može da se vrati; nabavka ga ne vidi.
+  final MealKind kind;
+  final AwayReason? awayReason;
+  final String? awayNote;
+
+  bool get isAway => kind == MealKind.away;
+
+  /// "Restoran · sa kolegama"; nepoznat razlog je "Van kuće".
+  String get awayTitle =>
+      [awayReason?.label ?? 'Van kuće', ?awayNote].join(' · ');
+
+  /// Obavezna pravila dana (id) dozvoljena baš za ovaj obrok.
+  final Set<String> ruleOverrides;
 
   /// null samo za stari unos bez snimka.
   final RecipeSnapshot? snapshot;
@@ -255,7 +309,7 @@ class PlannedMeal {
 }
 
 /// Mesta plana koja ponovni predlog sme da menja: bez zaključanih,
-/// skuvanih i prošlih obroka.
+/// skuvanih, obroka van kuće i prošlih obroka.
 Set<MealSlot> regenerableSlots(
   MealPlan plan,
   List<PlannedMeal> meals,
@@ -263,7 +317,7 @@ Set<MealSlot> regenerableSlots(
 ) {
   final protected = {
     for (final m in meals)
-      if (m.isLocked || m.isCooked) m.slot,
+      if (m.isLocked || m.isCooked || m.isAway) m.slot,
   };
   return {
     for (final s in plan.slots)

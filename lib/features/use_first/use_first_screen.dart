@@ -8,6 +8,7 @@ import '../../domain/recipe.dart';
 import '../../domain/use_first.dart';
 import '../recipes/recipe_providers.dart';
 import '../shopping/shopping_providers.dart';
+import 'quick_ingredients_input.dart';
 import 'suggestion_card.dart';
 
 final suggestionStockProvider = StreamProvider.autoDispose<List<PantryStock>>(
@@ -36,6 +37,7 @@ class _UseFirstScreenState extends ConsumerState<UseFirstScreen> {
   int _servings = 2;
   _SuggestionFilter _filter = _SuggestionFilter.all;
   String _query = '';
+  List<String> _selectedIngredients = const [];
   late final Timer _timer;
   late final AppLifecycleListener _lifecycle;
 
@@ -101,6 +103,7 @@ class _UseFirstScreenState extends ConsumerState<UseFirstScreen> {
       stock,
       now: ref.read(clockProvider)(),
       servings: _servings,
+      selectedIngredients: _selectedIngredients,
     );
     final filtered = suggestions
         .where(
@@ -123,8 +126,18 @@ class _UseFirstScreenState extends ConsumerState<UseFirstScreen> {
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Prednost imaju namirnice kojima rok ističe u narednih 7 dana. Računamo potvrđene, slobodne količine iz Ostave.',
+        Text(
+          _selectedIngredients.isEmpty
+              ? 'Prednost imaju namirnice kojima rok ističe u narednih 7 dana. Računamo potvrđene, slobodne količine iz Ostave.'
+              : 'Prednost imaju recepti koji koriste više izabranih namirnica. Računamo samo potvrđene, slobodne količine iz Ostave.',
+        ),
+        const SizedBox(height: 12),
+        QuickIngredientsInput(
+          selected: _selectedIngredients,
+          onChanged: (names) => setState(() {
+            _selectedIngredients = names;
+            _filter = _SuggestionFilter.all;
+          }),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -150,6 +163,7 @@ class _UseFirstScreenState extends ConsumerState<UseFirstScreen> {
           ],
         ),
         TextField(
+          key: const ValueKey('suggestion-search'),
           decoration: const InputDecoration(
             labelText: 'Pretraži predloge',
             prefixIcon: Icon(Icons.search),
@@ -186,6 +200,13 @@ class _UseFirstScreenState extends ConsumerState<UseFirstScreen> {
             'Sačuvaj recepte da bismo ih povezali sa Ostavom.',
             'Otvori recepte',
             () => context.go('/recipes'),
+          )
+        else if (suggestions.isEmpty && _selectedIngredients.isNotEmpty)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Nema recepata sa izabranim namirnicama. Promeni izbor ili dodaj recept u zbirku.',
+            ),
           )
         else if (suggestions.isEmpty)
           _message(

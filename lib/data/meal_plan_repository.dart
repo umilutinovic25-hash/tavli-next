@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../account/auth_controller.dart';
+import '../domain/day_rules.dart';
 import '../domain/ids.dart';
 import '../domain/meal_plan.dart';
 import '../domain/plan_calendar.dart';
@@ -11,6 +12,7 @@ import '../domain/shopping_demand.dart' show maxServings, minServings;
 import '../domain/shopping_source.dart';
 import '../sync/synced_writer.dart';
 import 'database.dart';
+import 'day_rule_repository.dart';
 import 'shopping_repository.dart';
 
 /// Nacrt nije potpun, a nepotpuno čuvanje nije izričito izabrano (ili
@@ -27,6 +29,13 @@ class ProtectedMealException implements Exception {
 /// Obrok ne postoji u ovom domaćinstvu.
 class MealNotFoundException implements Exception {
   const MealNotFoundException();
+}
+
+/// Jela na ovim mestima krše obavezno pravilo dana, a izuzetak nije dat.
+class RuleViolationException implements Exception {
+  const RuleViolationException(this.slots);
+
+  final List<MealSlot> slots;
 }
 
 /// Plan se promenio otkako je nacrt počeo (ili ga više nema): nacrt se ne
@@ -287,12 +296,37 @@ class MealPlanRepository {
   /// [allowPartial]; prazna mesta ostaju prazna. Nacrt sa [PlanDraft.base]
   /// menja taj plan samo ako se nije promenio i ne dira zaključane,
   /// skuvane ni prošle obroke.
-  Future<String> approve(PlanDraft draft, {bool allowPartial = false}) {
+  ///
+  /// Jelo koje krši obavezno pravilo dana čuva se samo uz izuzetak za to
+  /// mesto i to pravilo ([overrides]); inače [RuleViolationException].
+  Future<String> approve(
+    PlanDraft draft, {
+    bool allowPartial = false,
+    Map<MealSlot, Set<String>> overrides = const {},
+  }) {
     final ready = draft.readySlots;
     if (ready.isEmpty || (!draft.isComplete && !allowPartial)) {
       return Future.error(const IncompleteDraftException());
     }
     return _db.transaction(() async {
+      final rules = await _rules();
+      final allowed = <MealSlot, String?>{};
+      final violating = <MealSlot>[];
+      for (final slot in ready) {
+        final results = evaluateSlot(rules, slot, draft.snapshotFor(slot));
+        final given = overrides[slot] ?? const <String>{};
+        if (blockingViolations(results, given).isNotEmpty) {
+          violating.add(slot);
+          continue;
+        }
+        // Čuvaju se samo izuzeci za pravila koja jelo zaista krši.
+        final used = [
+          for (final r in results)
+            if (r.fit == RuleFit.fail && given.contains(r.rule.id)) r.rule.id,
+        ];
+        allowed[slot] = used.isEmpty ? null : jsonEncode(used);
+      }
+      if (violating.isNotEmpty) throw RuleViolationException(violating);
       final base = draft.base;
       final String planId;
       final existing = <MealSlot, MealPlanEntryRow>{};
@@ -349,6 +383,7 @@ class MealPlanRepository {
                   recipeId: Value(recipeId),
                   servings: Value(draft.request.servings),
                   recipeSnapshotJson: Value(snapshot),
+                  ruleOverridesJson: Value(allowed[slot]),
                   householdId: Value(_scope.householdId),
                 ),
               );
@@ -366,6 +401,12 @@ class MealPlanRepository {
             // Zamena jela ne menja porcije koje je osoba izabrala za obrok.
             servings: Value(current.servings ?? draft.request.servings),
             recipeSnapshotJson: Value(snapshot),
+            // Izričita zamena obroka van kuće receptom: ponovo se kuva.
+            kind: const Value('cook'),
+            awayReason: const Value(null),
+            awayNote: const Value(null),
+            // Novo jelo: stari izuzeci ne važe.
+            ruleOverridesJson: Value(allowed[slot]),
           ),
         );
         await _writer.upsert(_entry, current.id);
@@ -397,6 +438,111 @@ class MealPlanRepository {
     entryId,
     (_) async => MealPlanEntriesCompanion(isCooked: Value(cooked)),
   );
+
+  /// Mesto plana postaje obrok van kuće: zauzeto, bez nabavke. Postojeće
+  /// jelo se pamti (za [restoreMeal]); njegova neiskorišćena zaliha i
+  /// otvorena potreba se oslobađaju, kupljeno ostaje. Vraća id obroka.
+  Future<String> setAway(
+    String planId,
+    MealSlot slot,
+    AwayReason reason, {
+    String? note,
+  }) => _db.transaction<String>(() async {
+    final trimmed = note?.trim();
+    final cleanNote = trimmed == null || trimmed.isEmpty ? null : trimmed;
+    if ((cleanNote?.length ?? 0) > maxAwayNoteLength) {
+      throw ArgumentError.value(note, 'note');
+    }
+    final plan = await _planQuery(planId).getSingleOrNull();
+    if (plan == null) throw const MealNotFoundException();
+    final mealPlan = _planFromRow(plan);
+    if (!mealPlan.slots.contains(slot)) throw const MealNotFoundException();
+    MealPlanEntryRow? current;
+    for (final e in await _entriesQuery(planId).get()) {
+      if (_slotOf(e) == slot) current = e;
+    }
+    if (current == null) {
+      final id = newId();
+      await _db
+          .into(_db.mealPlanEntries)
+          .insert(
+            MealPlanEntriesCompanion.insert(
+              id: id,
+              planId: planId,
+              date: slot.date.toWire(),
+              mealType: slot.type.name,
+              kind: const Value('away'),
+              awayReason: Value(reason.name),
+              awayNote: Value(cleanNote),
+              householdId: Value(_scope.householdId),
+            ),
+          );
+      await _writer.upsert(_entry, id);
+      await _shopping.reconcilePlan(planId);
+      return id;
+    }
+    if (current.isLocked || current.isCooked) {
+      throw const ProtectedMealException();
+    }
+    final id = current.id;
+    await (_db.update(
+      _db.mealPlanEntries,
+    )..where((t) => t.id.equals(id))).write(
+      MealPlanEntriesCompanion(
+        kind: const Value('away'),
+        awayReason: Value(reason.name),
+        awayNote: Value(cleanNote),
+      ),
+    );
+    await _writer.upsert(_entry, id);
+    await _shopping.reconcilePlan(planId);
+    return id;
+  });
+
+  /// Vraća jelo koje je bilo pre obroka van kuće; nabavka ga ponovo traži.
+  Future<void> restoreMeal(String entryId) => _edit(entryId, (e) async {
+    if (e.recipeSnapshotJson == null) throw const MealNotFoundException();
+    if (e.isLocked || e.isCooked) throw const ProtectedMealException();
+    return const MealPlanEntriesCompanion(
+      kind: Value('cook'),
+      awayReason: Value(null),
+      awayNote: Value(null),
+    );
+  });
+
+  /// Dozvoljava (ili ukida) izuzetak od pravila dana baš za ovaj obrok.
+  Future<void> setRuleOverride(
+    String entryId,
+    String ruleId, {
+    required bool allowed,
+  }) => _edit(entryId, (e) async {
+    final current = _overrides(e.ruleOverridesJson);
+    final next = allowed
+        ? {...current, ruleId}
+        : ({...current}..remove(ruleId));
+    return MealPlanEntriesCompanion(
+      ruleOverridesJson: Value(next.isEmpty ? null : jsonEncode(next.toList())),
+    );
+  });
+
+  Future<List<DayRule>> _rules() async => [
+    for (final r in await (_db.select(
+      _db.dayRules,
+    )..where((t) => t.householdId.equals(_scope.householdId))).get())
+      ?DayRuleRepository.fromRow(r),
+  ];
+
+  static Set<String> _overrides(String? json) {
+    if (json == null) return const {};
+    try {
+      return {
+        for (final id in jsonDecode(json) as List<dynamic>)
+          if (id is String) id,
+      };
+    } on Object {
+      return const {};
+    }
+  }
 
   /// Uklanja obrok iz plana i oslobađa njegovu potrebu; kupljeno ostaje.
   Future<void> removeMeal(String entryId) => _db.transaction(() async {
@@ -553,6 +699,10 @@ class MealPlanRepository {
       recipeId: e.recipeId,
       isLocked: e.isLocked,
       isCooked: e.isCooked,
+      kind: MealKind.parse(e.kind),
+      awayReason: AwayReason.tryParse(e.awayReason),
+      awayNote: e.awayNote,
+      ruleOverrides: _overrides(e.ruleOverridesJson),
     );
   }
 }

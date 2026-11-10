@@ -92,6 +92,10 @@ class MealPlanAI {
               alreadyPlanned: planned.toList(),
               wishes: request.wishes,
               pantry: request.usePantry ? request.pantryNames : const [],
+              rules: [
+                for (final r in request.rules)
+                  if (missing.any(r.appliesTo)) r.promptLine,
+              ],
             ),
             temperature: 0.8,
           ),

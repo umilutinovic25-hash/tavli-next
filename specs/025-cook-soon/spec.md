@@ -1,0 +1,9 @@
+# Red „Uskoro kuvam“
+
+Osoba iz detalja recepta dodaje recept u red „Uskoro kuvam“: recept čeka bez datuma i ne traži kupovinu. Red se vidi u Planu (odeljak ispod „Otvori nabavku“), deli se u domaćinstvu, radi offline i sinhronizuje se kroz outbox. Stavka čuva snimak recepta, pa ostaje upotrebljiva i kad se recept obriše; isti recept dvaput je dve odvojene namere. Redosled se menja i stavka se uklanja kroz meni („Pomeri gore/dole“, „Ukloni iz reda“), bez obaveznog prevlačenja.
+
+„Rasporedi“ otvara izbor dana (od danas do kraja plana) i obroka prikazanog plana i pre potvrde kaže šta se dešava sa mestom: prazno mesto, zamena postojećeg obroka (obrok zadržava svoje porcije) ili zaključan/skuvan obrok koji se ne menja. Potvrda ide kroz isto odobrenje kao zamena jela: obrok, snimak i nabavka se upisuju i stavka se uklanja iz reda u jednoj transakciji. Ako se plan u međuvremenu promenio, ništa se ne menja i stavka ostaje u redu. Bez plana prazan ekran Plana kaže koliko recepata čeka u redu.
+
+Tekst: „Dodaj u „Uskoro kuvam““, „Dodato u „Uskoro kuvam“. Rasporedi ga u Planu.“, „Recept nije dodat. Pokušaj ponovo.“, „Uskoro kuvam“, „Recepti bez datuma; nabavka se pravi tek kad ih rasporediš.“, „Rasporedi“, „Još opcija za „…““, „Pomeri gore“, „Pomeri dole“, „Ukloni iz reda“, „Uklonjeno iz reda „Uskoro kuvam“.“, „Rasporedi „…““, „Dan“, „Obrok“, „Mesto je prazno; obrok dobija N porcija.“, „Zameniće „…“; obrok zadržava N porcija.“, „„…“ je zaključan/skuvan i ne menja se.“, „Plan je prošao. Izaberi ili napravi plan za naredne dane.“, „Zameni“, „Otkaži“, „„…“ je u planu.“, „Recept više nije u redu „Uskoro kuvam“.“, „U redu „Uskoro kuvam“ čeka N recepata; rasporedićeš ih u planu.“
+
+Prevlačenje na širokom ekranu, raspoređivanje bez sačuvanog plana i konflikt dva uređaja na serveru (operationId) nisu deo ove funkcije.

@@ -7,16 +7,20 @@ import 'package:go_router/go_router.dart';
 import '../../app/placeholder_screen.dart';
 import '../../app/section_heading.dart';
 import '../../app/tab_app_bar.dart';
+import '../../domain/day_rules.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/plan_calendar.dart';
 import '../../domain/recipe_format.dart';
 import '../recipes/recipe_providers.dart';
+import 'cook_soon_section.dart';
+import 'meal_away.dart';
 import 'meal_entry_card.dart';
 import 'meal_entry_detail.dart';
 import 'plan_calendar.dart';
 import 'plan_format.dart';
 import 'plan_generation.dart';
 import 'planning_providers.dart';
+import 'time_check_note.dart';
 import 'week_templates.dart';
 
 /// Širina od koje Plan prikazuje kalendar i recept jedan pored drugog.
@@ -43,6 +47,7 @@ class PlanScreen extends ConsumerWidget {
         final view = ref.watch(planViewProvider);
         final plan = selectedPlan(list, view, ref.watch(clockProvider)());
         if (plan == null) {
+          final queued = ref.watch(cookSoonItemsProvider).value?.length ?? 0;
           return EmptyStateScreen(
             art: Icon(
               Icons.calendar_month_outlined,
@@ -52,7 +57,9 @@ class PlanScreen extends ConsumerWidget {
             title: 'Još nemaš plan',
             body:
                 'Izaberi nedelju ili mesec i obroke; predlog pregledaš '
-                'pre čuvanja.',
+                'pre čuvanja.'
+                '${queued == 0 ? '' : '\n\nU redu „Uskoro kuvam“ čeka '
+                          '${recipesCount(queued)}; rasporedićeš ih u planu.'}',
             action: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -91,6 +98,8 @@ class _PlanView extends ConsumerWidget {
     final selected = selectedDate(plan, view, today);
     final meals = ref.watch(plannedMealsProvider(plan.id)).value ?? const [];
     final bySlot = {for (final m in meals) m.slot: m};
+    final budgets = ref.watch(dayBudgetsProvider).value ?? const [];
+    final rules = ref.watch(dayRulesProvider).value ?? const [];
     final wide = MediaQuery.sizeOf(context).width >= planWideWidth;
     final week = weekOf(selected);
     final days = [
@@ -182,6 +191,7 @@ class _PlanView extends ConsumerWidget {
           icon: const Icon(Icons.shopping_basket_outlined),
           label: const Text('Otvori nabavku'),
         ),
+        CookSoonSection(plan: plan, meals: meals),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
@@ -260,6 +270,16 @@ class _PlanView extends ConsumerWidget {
               meal: bySlot[slot],
               selected: wide && bySlot[slot]?.id == view.entryId,
               onTap: () => open(bySlot[slot]!),
+              onEmptyTap: () =>
+                  chooseAway(context, ref, plan: plan, slot: slot),
+              timeCheck: mealTimeCheck(
+                bySlot[slot]?.snapshot,
+                slot.date,
+                budgets,
+              ),
+              rules: bySlot[slot] == null
+                  ? const []
+                  : evaluateSlot(rules, slot, bySlot[slot]!.snapshot),
             ),
         ],
         const SizedBox(height: 24),
@@ -287,6 +307,16 @@ class _PlanView extends ConsumerWidget {
               onPressed: () => context.go('/plan/new'),
               icon: const Icon(Icons.add),
               label: const Text('Napravi novi plan'),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => context.go('/plan/time'),
+              icon: const Icon(Icons.timer_outlined),
+              label: const Text('Vreme po danu'),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => context.go('/plan/rules'),
+              icon: const Icon(Icons.rule),
+              label: const Text('Pravila po danima'),
             ),
           ],
         ),

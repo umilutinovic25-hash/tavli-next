@@ -2,8 +2,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../domain/quantity_review.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
+import '../../domain/step_links.dart';
 import 'recipe_photo.dart';
 
 /// Sadržaj recepta: slika, porcije, sastojci po kategorijama, koraci.
@@ -14,6 +16,8 @@ class RecipeView extends StatelessWidget {
     super.key,
     this.photoBytes,
     this.showTitle = false,
+    this.reviewQuantities = false,
+    this.onEditIngredient,
   });
 
   final Recipe recipe;
@@ -21,6 +25,8 @@ class RecipeView extends StatelessWidget {
   /// Slika koja još nije sačuvana (pregled recepta iz slike).
   final Uint8List? photoBytes;
   final bool showTitle;
+  final bool reviewQuantities;
+  final ValueChanged<int>? onEditIngredient;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +72,16 @@ class RecipeView extends StatelessWidget {
                 avatar: const Icon(Icons.timer_outlined, size: 18),
                 label: Text('${recipe.prepMinutes} min'),
               ),
+            if (recipe.activeMinutes case final m?)
+              Chip(
+                avatar: const Icon(Icons.back_hand_outlined, size: 18),
+                label: Text('Aktivno $m min'),
+              ),
+            if (recipe.totalMinutes case final m?)
+              Chip(
+                avatar: const Icon(Icons.hourglass_bottom, size: 18),
+                label: Text('Ukupno $m min'),
+              ),
           ],
         ),
         const SizedBox(height: 16),
@@ -80,12 +96,40 @@ class RecipeView extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
           ),
-          for (final i in items)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text('• ${ingredientLine(i)}'),
-            ),
+          for (final (index, i) in recipe.ingredients.indexed)
+            if (items.contains(i))
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: onEditIngredient == null
+                    ? _ingredient(context, i)
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: _ingredient(context, i)),
+                          IconButton(
+                            key: ValueKey('review-ingredient-$index'),
+                            tooltip: 'Izmeni sastojak: ${i.name}',
+                            onPressed: () => onEditIngredient!(index),
+                            icon: const Icon(Icons.edit_outlined),
+                          ),
+                        ],
+                      ),
+              ),
         ],
+        for (final c in useConflicts(recipe.ingredients, recipe.stepUses))
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              '„${c.ingredient.name}“: koraci koriste '
+              '${formatQuantity(c.usedQuantity)}'
+              '${c.ingredient.unit == null ? '' : ' ${c.ingredient.unit}'}, '
+              'a recept ima ${formatQuantity(c.ingredient.quantity!)}'
+              '${c.ingredient.unit == null ? '' : ' ${c.ingredient.unit}'}.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ),
         const SizedBox(height: 20),
         Text('Priprema', style: theme.textTheme.titleMedium),
         const SizedBox(height: 8),
@@ -112,7 +156,16 @@ class RecipeView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Expanded(child: Text(step)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(step),
+                        for (final use in recipe.usesFor(n))
+                          StepUseLine(use, recipe.ingredients),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -125,6 +178,73 @@ class RecipeView extends StatelessWidget {
           Text(origin, style: theme.textTheme.bodySmall),
         ],
       ],
+    );
+  }
+
+  Widget _ingredient(BuildContext context, Ingredient ingredient) {
+    final line = Text(
+      '• ${ingredientLine(ingredient, preservePrecision: reviewQuantities)}',
+    );
+    final issue = reviewQuantities ? quantityReviewIssue(ingredient) : null;
+    if (issue == null) return line;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        line,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 18,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                issue.label,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Sastojak uz korak: "300 g brašno"; bez količine samo naziv (raspodela
+/// se ne izmišlja); sastojak koji više nije u receptu se jasno označava.
+class StepUseLine extends StatelessWidget {
+  const StepUseLine(this.use, this.ingredients, {super.key});
+
+  final StepUse use;
+  final List<Ingredient> ingredients;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    Ingredient? ingredient;
+    for (final i in ingredients) {
+      if (i.id == use.ingredientId) ingredient = i;
+    }
+    final text = ingredient == null
+        ? 'Sastojak više nije u receptu'
+        : [
+            if (use.quantity case final q?) formatQuantity(q),
+            if (use.quantity != null) ?(use.unit ?? ingredient.unit),
+            ingredient.name,
+          ].join(' ');
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        '↳ $text',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: ingredient == null
+              ? theme.colorScheme.error
+              : theme.colorScheme.primary,
+        ),
+      ),
     );
   }
 }

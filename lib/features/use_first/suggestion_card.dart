@@ -34,11 +34,17 @@ class SuggestionCard extends StatelessWidget {
                   ? 'Sve poznate količine su dostupne'
                   : '${s.coveredCount}/${s.ingredients.length} sastojaka potpuno pokriveno',
             ),
+            if (s.selectionSize > 0)
+              Text(
+                'Koristi ${s.selectedIngredientCount}/${s.selectionSize} izabranih namirnica',
+              ),
             Text('Porcije: ${s.servings}'),
             for (final i in s.ingredients.where((i) => i.missingMicros != 0))
               Text(
                 i.missingMicros == null
                     ? 'Proveri količinu: ${i.name}'
+                    : i.selected && i.matchedMicros == 0
+                    ? 'Proveri količinu: ${i.name} · za recept ${_amount(i.requiredMicros!, i.baseUnit)}'
                     : 'Nedostaje: ${i.name} · ${_amount(i.missingMicros!, i.baseUnit)}',
               ),
             const SizedBox(height: 8),

@@ -61,6 +61,7 @@ void main() {
           {'name': 'kupus', 'quantity': 0.5},
         ]);
         expect(r['steps'], ['Kuvati.']);
+        expect(r['step_links'], isNull);
         expect(r['image_path'], 'a.jpg');
         expect(r['source_url'], 'https://example.com/pita');
         expect(r['created_at'], '2026-10-30T10:05:07.000Z');
@@ -71,6 +72,84 @@ void main() {
     expect(row.imagePath, 'recipe_photos/a.jpg');
     expect(row.sourceUrl, 'https://example.com/pita');
     expect(row.updatedAt.toUtc(), DateTime.utc(2026, 10, 30, 12));
+  });
+
+  test('recept sa vezama koraka: step_links kao lista', () async {
+    await roundTrip(
+      const RecipeEntity(),
+      RecipesCompanion.insert(
+        id: 'r2',
+        title: 'Testo',
+        servings: 4,
+        source: 'manual',
+        ingredientsJson: '[{"name":"brašno","quantity":500,"id":"i-b"}]',
+        stepsJson: '["Prosejati."]',
+        stepLinksJson: const Value(
+          '[{"text":"Prosejati.","uses":[{"ingredientId":"i-b","quantity":300}]}]',
+        ),
+        createdAt: t,
+        updatedAt: t,
+        householdId: const Value('h1'),
+      ),
+      'r2',
+      (r) {
+        expect(r['ingredients'], [
+          {'name': 'brašno', 'quantity': 500, 'id': 'i-b'},
+        ]);
+        expect(r['step_links'], [
+          {
+            'text': 'Prosejati.',
+            'uses': [
+              {'ingredientId': 'i-b', 'quantity': 300},
+            ],
+          },
+        ]);
+      },
+    );
+  });
+
+  test('recept sa potvrđenim vremenom i vreme po danu', () async {
+    await roundTrip(
+      const RecipeEntity(),
+      RecipesCompanion.insert(
+        id: 'r3',
+        title: 'Pasulj',
+        servings: 4,
+        prepMinutes: const Value(15),
+        source: 'manual',
+        ingredientsJson: '[]',
+        stepsJson: '[]',
+        activeMinutes: const Value(15),
+        totalMinutes: const Value(60),
+        createdAt: t,
+        updatedAt: t,
+        householdId: const Value('h1'),
+      ),
+      'r3',
+      (r) {
+        expect(r['prep_minutes'], 15);
+        expect(r['active_minutes'], 15);
+        expect(r['total_minutes'], 60);
+      },
+    );
+    await roundTrip(
+      const DayTimeBudgetEntity(),
+      DayTimeBudgetsCompanion.insert(
+        id: 'h1-2',
+        householdId: const Value('h1'),
+        weekday: 2,
+        maxActiveMinutes: const Value(20),
+        windowStart: const Value(1080),
+        windowEnd: const Value(1125),
+      ),
+      'h1-2',
+      (r) {
+        expect(r['weekday'], 2);
+        expect(r['max_active_minutes'], 20);
+        expect(r['window_start'], 1080);
+        expect(r['window_end'], 1125);
+      },
+    );
   });
 
   test('verzija recepta', () async {
@@ -175,6 +254,53 @@ void main() {
     );
   });
 
+  test('stavka reda „Uskoro kuvam“: snimak kao objekat', () async {
+    await roundTrip(
+      const CookSoonItemEntity(),
+      CookSoonItemsCompanion.insert(
+        id: 'q1',
+        householdId: const Value('h1'),
+        recipeSnapshotJson: '{"title":"Sarma","servings":4,"ingredients":[]}',
+        servings: 4,
+        position: 2,
+        createdAt: t,
+      ),
+      'q1',
+      (r) {
+        expect(r['household_id'], 'h1');
+        expect(r['recipe_id'], isNull);
+        expect(r['recipe_snapshot'], {
+          'title': 'Sarma',
+          'servings': 4,
+          'ingredients': <Object>[],
+        });
+        expect(r['servings'], 4);
+        expect(r['position'], 2);
+        expect(r['created_at'], '2026-10-30T10:05:07.000Z');
+      },
+    );
+  });
+
+  test('pravilo dana', () async {
+    await roundTrip(
+      const DayRuleEntity(),
+      DayRulesCompanion.insert(
+        id: 'd1',
+        householdId: const Value('h1'),
+        weekday: 1,
+        kind: 'noMeat',
+        createdAt: t,
+      ),
+      'd1',
+      (r) {
+        expect(r['weekday'], 1);
+        expect(r['meal_type'], isNull);
+        expect(r['kind'], 'noMeat');
+        expect(r['mode'], 'required');
+      },
+    );
+  });
+
   test('ocena i profil ukusa pripadaju osobi', () async {
     await roundTrip(
       const RatingEntity(),
@@ -253,7 +379,7 @@ void main() {
         );
       }
     }
-    expect(names, hasLength(14));
+    expect(names, hasLength(17));
     expect(const SupplyAllocationEntity().parents, [
       'shopping_contribution',
       'pantry_item',
@@ -302,6 +428,28 @@ void main() {
             'servings': 4,
             'ingredients': <Object?>[],
           });
+          expect(r['kind'], 'cook');
+          expect(r['away_reason'], isNull);
+        },
+      );
+      await roundTrip(
+        const MealPlanEntryEntity(),
+        MealPlanEntriesCompanion.insert(
+          id: 'e2',
+          planId: 'p1',
+          date: DateTime.utc(2026, 11, 4),
+          mealType: 'lunch',
+          kind: const Value('away'),
+          awayReason: const Value('restaurant'),
+          awayNote: const Value('sa kolegama'),
+          householdId: const Value('h1'),
+        ),
+        'e2',
+        (r) {
+          expect(r['kind'], 'away');
+          expect(r['away_reason'], 'restaurant');
+          expect(r['away_note'], 'sa kolegama');
+          expect(r['recipe_snapshot'], isNull);
         },
       );
       await roundTrip(

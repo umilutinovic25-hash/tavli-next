@@ -2,11 +2,12 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../../app/animations/photo_scan.dart';
 import '../../app/animations/simmering_pot.dart';
+import '../../domain/quantity_review.dart';
 import '../../domain/recipe.dart';
 import '../../domain/shopping_source.dart';
 import 'ingredient_review_sheet.dart';
+import 'photo_recipe_comparison.dart';
 import 'recipe_view.dart';
 
 /// Recept koji je AI napravio, pre čuvanja.
@@ -19,39 +20,34 @@ class AiRecipePreview extends StatelessWidget {
     required this.onDiscard,
     this.photoBytes,
     this.saving = false,
+    this.onEditIngredient,
   });
 
   final Recipe recipe;
   final Uint8List? photoBytes;
   final bool saving;
+  final ValueChanged<int>? onEditIngredient;
   final VoidCallback onSave;
   final VoidCallback onRetry;
   final VoidCallback onDiscard;
 
   @override
   Widget build(BuildContext context) {
+    final invalidQuantity =
+        photoBytes != null &&
+        recipe.ingredients.any(
+          (i) => quantityReviewIssue(i) == QuantityReviewIssue.invalid,
+        );
     return Column(
       children: [
         Expanded(
-          child: ReadableScroll(
-            children: [
-              // Slika sa prepoznatim sastojcima koji iskaču jedan po jedan.
-              if (photoBytes case final bytes?) ...[
-                PhotoScan(
-                  scanning: false,
-                  height: 220,
-                  ingredients: [for (final i in recipe.ingredients) i.name],
-                  photo: Image.memory(
-                    bytes,
-                    fit: BoxFit.cover,
-                    semanticLabel: 'Slika recepta',
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-              RecipeView(recipe, showTitle: true),
-            ],
-          ),
+          child: photoBytes != null
+              ? PhotoRecipeComparison(
+                  recipe: recipe,
+                  photo: photoBytes!,
+                  onEditIngredient: saving ? null : onEditIngredient,
+                )
+              : ReadableScroll(children: [RecipeView(recipe, showTitle: true)]),
         ),
         const Divider(height: 1),
         SafeArea(
@@ -68,7 +64,7 @@ class AiRecipePreview extends StatelessWidget {
                   child: const Text('Odbaci'),
                 ),
                 OutlinedButton.icon(
-                  onPressed: saving
+                  onPressed: saving || invalidQuantity
                       ? null
                       : () => showIngredientReview(
                           context,
@@ -84,7 +80,7 @@ class AiRecipePreview extends StatelessWidget {
                   label: const Text('Pokušaj ponovo'),
                 ),
                 FilledButton.icon(
-                  onPressed: saving ? null : onSave,
+                  onPressed: saving || invalidQuantity ? null : onSave,
                   icon: const Icon(Icons.check),
                   label: const Text('Sačuvaj'),
                 ),

@@ -79,6 +79,17 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _stepLinksJsonMeta = const VerificationMeta(
+    'stepLinksJson',
+  );
+  @override
+  late final GeneratedColumn<String> stepLinksJson = GeneratedColumn<String>(
+    'step_links_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _imagePathMeta = const VerificationMeta(
     'imagePath',
   );
@@ -145,6 +156,28 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _activeMinutesMeta = const VerificationMeta(
+    'activeMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> activeMinutes = GeneratedColumn<int>(
+    'active_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _totalMinutesMeta = const VerificationMeta(
+    'totalMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> totalMinutes = GeneratedColumn<int>(
+    'total_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -154,12 +187,15 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
     source,
     ingredientsJson,
     stepsJson,
+    stepLinksJson,
     imagePath,
     answeredBy,
     sourceUrl,
     createdAt,
     updatedAt,
     householdId,
+    activeMinutes,
+    totalMinutes,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -230,6 +266,15 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
     } else if (isInserting) {
       context.missing(_stepsJsonMeta);
     }
+    if (data.containsKey('step_links_json')) {
+      context.handle(
+        _stepLinksJsonMeta,
+        stepLinksJson.isAcceptableOrUnknown(
+          data['step_links_json']!,
+          _stepLinksJsonMeta,
+        ),
+      );
+    }
     if (data.containsKey('image_path')) {
       context.handle(
         _imagePathMeta,
@@ -273,6 +318,24 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
         ),
       );
     }
+    if (data.containsKey('active_minutes')) {
+      context.handle(
+        _activeMinutesMeta,
+        activeMinutes.isAcceptableOrUnknown(
+          data['active_minutes']!,
+          _activeMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('total_minutes')) {
+      context.handle(
+        _totalMinutesMeta,
+        totalMinutes.isAcceptableOrUnknown(
+          data['total_minutes']!,
+          _totalMinutesMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -310,6 +373,10 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
         DriftSqlType.string,
         data['${effectivePrefix}steps_json'],
       )!,
+      stepLinksJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}step_links_json'],
+      ),
       imagePath: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}image_path'],
@@ -334,6 +401,14 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
         DriftSqlType.string,
         data['${effectivePrefix}household_id'],
       ),
+      activeMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}active_minutes'],
+      ),
+      totalMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_minutes'],
+      ),
     );
   }
 
@@ -351,12 +426,19 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
   final String source;
   final String ingredientsJson;
   final String stepsJson;
+
+  /// Veze sastojaka i koraka (v12): [{text, uses}], null bez veza.
+  final String? stepLinksJson;
   final String? imagePath;
   final String? answeredBy;
   final String? sourceUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? householdId;
+
+  /// Potvrđeno aktivno i ukupno vreme u minutima (v13).
+  final int? activeMinutes;
+  final int? totalMinutes;
   const RecipeRow({
     required this.id,
     required this.title,
@@ -365,12 +447,15 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     required this.source,
     required this.ingredientsJson,
     required this.stepsJson,
+    this.stepLinksJson,
     this.imagePath,
     this.answeredBy,
     this.sourceUrl,
     required this.createdAt,
     required this.updatedAt,
     this.householdId,
+    this.activeMinutes,
+    this.totalMinutes,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -384,6 +469,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     map['source'] = Variable<String>(source);
     map['ingredients_json'] = Variable<String>(ingredientsJson);
     map['steps_json'] = Variable<String>(stepsJson);
+    if (!nullToAbsent || stepLinksJson != null) {
+      map['step_links_json'] = Variable<String>(stepLinksJson);
+    }
     if (!nullToAbsent || imagePath != null) {
       map['image_path'] = Variable<String>(imagePath);
     }
@@ -397,6 +485,12 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || householdId != null) {
       map['household_id'] = Variable<String>(householdId);
+    }
+    if (!nullToAbsent || activeMinutes != null) {
+      map['active_minutes'] = Variable<int>(activeMinutes);
+    }
+    if (!nullToAbsent || totalMinutes != null) {
+      map['total_minutes'] = Variable<int>(totalMinutes);
     }
     return map;
   }
@@ -412,6 +506,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       source: Value(source),
       ingredientsJson: Value(ingredientsJson),
       stepsJson: Value(stepsJson),
+      stepLinksJson: stepLinksJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stepLinksJson),
       imagePath: imagePath == null && nullToAbsent
           ? const Value.absent()
           : Value(imagePath),
@@ -426,6 +523,12 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       householdId: householdId == null && nullToAbsent
           ? const Value.absent()
           : Value(householdId),
+      activeMinutes: activeMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(activeMinutes),
+      totalMinutes: totalMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(totalMinutes),
     );
   }
 
@@ -442,12 +545,15 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       source: serializer.fromJson<String>(json['source']),
       ingredientsJson: serializer.fromJson<String>(json['ingredientsJson']),
       stepsJson: serializer.fromJson<String>(json['stepsJson']),
+      stepLinksJson: serializer.fromJson<String?>(json['stepLinksJson']),
       imagePath: serializer.fromJson<String?>(json['imagePath']),
       answeredBy: serializer.fromJson<String?>(json['answeredBy']),
       sourceUrl: serializer.fromJson<String?>(json['sourceUrl']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       householdId: serializer.fromJson<String?>(json['householdId']),
+      activeMinutes: serializer.fromJson<int?>(json['activeMinutes']),
+      totalMinutes: serializer.fromJson<int?>(json['totalMinutes']),
     );
   }
   @override
@@ -461,12 +567,15 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       'source': serializer.toJson<String>(source),
       'ingredientsJson': serializer.toJson<String>(ingredientsJson),
       'stepsJson': serializer.toJson<String>(stepsJson),
+      'stepLinksJson': serializer.toJson<String?>(stepLinksJson),
       'imagePath': serializer.toJson<String?>(imagePath),
       'answeredBy': serializer.toJson<String?>(answeredBy),
       'sourceUrl': serializer.toJson<String?>(sourceUrl),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'householdId': serializer.toJson<String?>(householdId),
+      'activeMinutes': serializer.toJson<int?>(activeMinutes),
+      'totalMinutes': serializer.toJson<int?>(totalMinutes),
     };
   }
 
@@ -478,12 +587,15 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     String? source,
     String? ingredientsJson,
     String? stepsJson,
+    Value<String?> stepLinksJson = const Value.absent(),
     Value<String?> imagePath = const Value.absent(),
     Value<String?> answeredBy = const Value.absent(),
     Value<String?> sourceUrl = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<String?> householdId = const Value.absent(),
+    Value<int?> activeMinutes = const Value.absent(),
+    Value<int?> totalMinutes = const Value.absent(),
   }) => RecipeRow(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -492,12 +604,19 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     source: source ?? this.source,
     ingredientsJson: ingredientsJson ?? this.ingredientsJson,
     stepsJson: stepsJson ?? this.stepsJson,
+    stepLinksJson: stepLinksJson.present
+        ? stepLinksJson.value
+        : this.stepLinksJson,
     imagePath: imagePath.present ? imagePath.value : this.imagePath,
     answeredBy: answeredBy.present ? answeredBy.value : this.answeredBy,
     sourceUrl: sourceUrl.present ? sourceUrl.value : this.sourceUrl,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     householdId: householdId.present ? householdId.value : this.householdId,
+    activeMinutes: activeMinutes.present
+        ? activeMinutes.value
+        : this.activeMinutes,
+    totalMinutes: totalMinutes.present ? totalMinutes.value : this.totalMinutes,
   );
   RecipeRow copyWithCompanion(RecipesCompanion data) {
     return RecipeRow(
@@ -512,6 +631,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
           ? data.ingredientsJson.value
           : this.ingredientsJson,
       stepsJson: data.stepsJson.present ? data.stepsJson.value : this.stepsJson,
+      stepLinksJson: data.stepLinksJson.present
+          ? data.stepLinksJson.value
+          : this.stepLinksJson,
       imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
       answeredBy: data.answeredBy.present
           ? data.answeredBy.value
@@ -522,6 +644,12 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       householdId: data.householdId.present
           ? data.householdId.value
           : this.householdId,
+      activeMinutes: data.activeMinutes.present
+          ? data.activeMinutes.value
+          : this.activeMinutes,
+      totalMinutes: data.totalMinutes.present
+          ? data.totalMinutes.value
+          : this.totalMinutes,
     );
   }
 
@@ -535,12 +663,15 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
           ..write('source: $source, ')
           ..write('ingredientsJson: $ingredientsJson, ')
           ..write('stepsJson: $stepsJson, ')
+          ..write('stepLinksJson: $stepLinksJson, ')
           ..write('imagePath: $imagePath, ')
           ..write('answeredBy: $answeredBy, ')
           ..write('sourceUrl: $sourceUrl, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('householdId: $householdId')
+          ..write('householdId: $householdId, ')
+          ..write('activeMinutes: $activeMinutes, ')
+          ..write('totalMinutes: $totalMinutes')
           ..write(')'))
         .toString();
   }
@@ -554,12 +685,15 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     source,
     ingredientsJson,
     stepsJson,
+    stepLinksJson,
     imagePath,
     answeredBy,
     sourceUrl,
     createdAt,
     updatedAt,
     householdId,
+    activeMinutes,
+    totalMinutes,
   );
   @override
   bool operator ==(Object other) =>
@@ -572,12 +706,15 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
           other.source == this.source &&
           other.ingredientsJson == this.ingredientsJson &&
           other.stepsJson == this.stepsJson &&
+          other.stepLinksJson == this.stepLinksJson &&
           other.imagePath == this.imagePath &&
           other.answeredBy == this.answeredBy &&
           other.sourceUrl == this.sourceUrl &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.householdId == this.householdId);
+          other.householdId == this.householdId &&
+          other.activeMinutes == this.activeMinutes &&
+          other.totalMinutes == this.totalMinutes);
 }
 
 class RecipesCompanion extends UpdateCompanion<RecipeRow> {
@@ -588,12 +725,15 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
   final Value<String> source;
   final Value<String> ingredientsJson;
   final Value<String> stepsJson;
+  final Value<String?> stepLinksJson;
   final Value<String?> imagePath;
   final Value<String?> answeredBy;
   final Value<String?> sourceUrl;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String?> householdId;
+  final Value<int?> activeMinutes;
+  final Value<int?> totalMinutes;
   final Value<int> rowid;
   const RecipesCompanion({
     this.id = const Value.absent(),
@@ -603,12 +743,15 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     this.source = const Value.absent(),
     this.ingredientsJson = const Value.absent(),
     this.stepsJson = const Value.absent(),
+    this.stepLinksJson = const Value.absent(),
     this.imagePath = const Value.absent(),
     this.answeredBy = const Value.absent(),
     this.sourceUrl = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.householdId = const Value.absent(),
+    this.activeMinutes = const Value.absent(),
+    this.totalMinutes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   RecipesCompanion.insert({
@@ -619,12 +762,15 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     required String source,
     required String ingredientsJson,
     required String stepsJson,
+    this.stepLinksJson = const Value.absent(),
     this.imagePath = const Value.absent(),
     this.answeredBy = const Value.absent(),
     this.sourceUrl = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.householdId = const Value.absent(),
+    this.activeMinutes = const Value.absent(),
+    this.totalMinutes = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        title = Value(title),
@@ -642,12 +788,15 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     Expression<String>? source,
     Expression<String>? ingredientsJson,
     Expression<String>? stepsJson,
+    Expression<String>? stepLinksJson,
     Expression<String>? imagePath,
     Expression<String>? answeredBy,
     Expression<String>? sourceUrl,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String>? householdId,
+    Expression<int>? activeMinutes,
+    Expression<int>? totalMinutes,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -658,12 +807,15 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
       if (source != null) 'source': source,
       if (ingredientsJson != null) 'ingredients_json': ingredientsJson,
       if (stepsJson != null) 'steps_json': stepsJson,
+      if (stepLinksJson != null) 'step_links_json': stepLinksJson,
       if (imagePath != null) 'image_path': imagePath,
       if (answeredBy != null) 'answered_by': answeredBy,
       if (sourceUrl != null) 'source_url': sourceUrl,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (householdId != null) 'household_id': householdId,
+      if (activeMinutes != null) 'active_minutes': activeMinutes,
+      if (totalMinutes != null) 'total_minutes': totalMinutes,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -676,12 +828,15 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     Value<String>? source,
     Value<String>? ingredientsJson,
     Value<String>? stepsJson,
+    Value<String?>? stepLinksJson,
     Value<String?>? imagePath,
     Value<String?>? answeredBy,
     Value<String?>? sourceUrl,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<String?>? householdId,
+    Value<int?>? activeMinutes,
+    Value<int?>? totalMinutes,
     Value<int>? rowid,
   }) {
     return RecipesCompanion(
@@ -692,12 +847,15 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
       source: source ?? this.source,
       ingredientsJson: ingredientsJson ?? this.ingredientsJson,
       stepsJson: stepsJson ?? this.stepsJson,
+      stepLinksJson: stepLinksJson ?? this.stepLinksJson,
       imagePath: imagePath ?? this.imagePath,
       answeredBy: answeredBy ?? this.answeredBy,
       sourceUrl: sourceUrl ?? this.sourceUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       householdId: householdId ?? this.householdId,
+      activeMinutes: activeMinutes ?? this.activeMinutes,
+      totalMinutes: totalMinutes ?? this.totalMinutes,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -726,6 +884,9 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     if (stepsJson.present) {
       map['steps_json'] = Variable<String>(stepsJson.value);
     }
+    if (stepLinksJson.present) {
+      map['step_links_json'] = Variable<String>(stepLinksJson.value);
+    }
     if (imagePath.present) {
       map['image_path'] = Variable<String>(imagePath.value);
     }
@@ -744,6 +905,12 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     if (householdId.present) {
       map['household_id'] = Variable<String>(householdId.value);
     }
+    if (activeMinutes.present) {
+      map['active_minutes'] = Variable<int>(activeMinutes.value);
+    }
+    if (totalMinutes.present) {
+      map['total_minutes'] = Variable<int>(totalMinutes.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -760,12 +927,15 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
           ..write('source: $source, ')
           ..write('ingredientsJson: $ingredientsJson, ')
           ..write('stepsJson: $stepsJson, ')
+          ..write('stepLinksJson: $stepLinksJson, ')
           ..write('imagePath: $imagePath, ')
           ..write('answeredBy: $answeredBy, ')
           ..write('sourceUrl: $sourceUrl, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('householdId: $householdId, ')
+          ..write('activeMinutes: $activeMinutes, ')
+          ..write('totalMinutes: $totalMinutes, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1301,6 +1471,448 @@ class RecipeVersionsCompanion extends UpdateCompanion<RecipeVersionRow> {
           ..write('changedBy: $changedBy, ')
           ..write('createdAt: $createdAt, ')
           ..write('householdId: $householdId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DayTimeBudgetsTable extends DayTimeBudgets
+    with TableInfo<$DayTimeBudgetsTable, DayTimeBudgetRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DayTimeBudgetsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _householdIdMeta = const VerificationMeta(
+    'householdId',
+  );
+  @override
+  late final GeneratedColumn<String> householdId = GeneratedColumn<String>(
+    'household_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _weekdayMeta = const VerificationMeta(
+    'weekday',
+  );
+  @override
+  late final GeneratedColumn<int> weekday = GeneratedColumn<int>(
+    'weekday',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _maxActiveMinutesMeta = const VerificationMeta(
+    'maxActiveMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> maxActiveMinutes = GeneratedColumn<int>(
+    'max_active_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _windowStartMeta = const VerificationMeta(
+    'windowStart',
+  );
+  @override
+  late final GeneratedColumn<int> windowStart = GeneratedColumn<int>(
+    'window_start',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _windowEndMeta = const VerificationMeta(
+    'windowEnd',
+  );
+  @override
+  late final GeneratedColumn<int> windowEnd = GeneratedColumn<int>(
+    'window_end',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    householdId,
+    weekday,
+    maxActiveMinutes,
+    windowStart,
+    windowEnd,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'day_time_budgets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DayTimeBudgetRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('household_id')) {
+      context.handle(
+        _householdIdMeta,
+        householdId.isAcceptableOrUnknown(
+          data['household_id']!,
+          _householdIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weekday')) {
+      context.handle(
+        _weekdayMeta,
+        weekday.isAcceptableOrUnknown(data['weekday']!, _weekdayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_weekdayMeta);
+    }
+    if (data.containsKey('max_active_minutes')) {
+      context.handle(
+        _maxActiveMinutesMeta,
+        maxActiveMinutes.isAcceptableOrUnknown(
+          data['max_active_minutes']!,
+          _maxActiveMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('window_start')) {
+      context.handle(
+        _windowStartMeta,
+        windowStart.isAcceptableOrUnknown(
+          data['window_start']!,
+          _windowStartMeta,
+        ),
+      );
+    }
+    if (data.containsKey('window_end')) {
+      context.handle(
+        _windowEndMeta,
+        windowEnd.isAcceptableOrUnknown(data['window_end']!, _windowEndMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DayTimeBudgetRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DayTimeBudgetRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      householdId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}household_id'],
+      ),
+      weekday: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}weekday'],
+      )!,
+      maxActiveMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}max_active_minutes'],
+      ),
+      windowStart: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}window_start'],
+      ),
+      windowEnd: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}window_end'],
+      ),
+    );
+  }
+
+  @override
+  $DayTimeBudgetsTable createAlias(String alias) {
+    return $DayTimeBudgetsTable(attachedDatabase, alias);
+  }
+}
+
+class DayTimeBudgetRow extends DataClass
+    implements Insertable<DayTimeBudgetRow> {
+  final String id;
+  final String? householdId;
+
+  /// 1 = ponedeljak … 7 = nedelja.
+  final int weekday;
+  final int? maxActiveMinutes;
+
+  /// Prozor za kuvanje u minutima od ponoći.
+  final int? windowStart;
+  final int? windowEnd;
+  const DayTimeBudgetRow({
+    required this.id,
+    this.householdId,
+    required this.weekday,
+    this.maxActiveMinutes,
+    this.windowStart,
+    this.windowEnd,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || householdId != null) {
+      map['household_id'] = Variable<String>(householdId);
+    }
+    map['weekday'] = Variable<int>(weekday);
+    if (!nullToAbsent || maxActiveMinutes != null) {
+      map['max_active_minutes'] = Variable<int>(maxActiveMinutes);
+    }
+    if (!nullToAbsent || windowStart != null) {
+      map['window_start'] = Variable<int>(windowStart);
+    }
+    if (!nullToAbsent || windowEnd != null) {
+      map['window_end'] = Variable<int>(windowEnd);
+    }
+    return map;
+  }
+
+  DayTimeBudgetsCompanion toCompanion(bool nullToAbsent) {
+    return DayTimeBudgetsCompanion(
+      id: Value(id),
+      householdId: householdId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(householdId),
+      weekday: Value(weekday),
+      maxActiveMinutes: maxActiveMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maxActiveMinutes),
+      windowStart: windowStart == null && nullToAbsent
+          ? const Value.absent()
+          : Value(windowStart),
+      windowEnd: windowEnd == null && nullToAbsent
+          ? const Value.absent()
+          : Value(windowEnd),
+    );
+  }
+
+  factory DayTimeBudgetRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DayTimeBudgetRow(
+      id: serializer.fromJson<String>(json['id']),
+      householdId: serializer.fromJson<String?>(json['householdId']),
+      weekday: serializer.fromJson<int>(json['weekday']),
+      maxActiveMinutes: serializer.fromJson<int?>(json['maxActiveMinutes']),
+      windowStart: serializer.fromJson<int?>(json['windowStart']),
+      windowEnd: serializer.fromJson<int?>(json['windowEnd']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'householdId': serializer.toJson<String?>(householdId),
+      'weekday': serializer.toJson<int>(weekday),
+      'maxActiveMinutes': serializer.toJson<int?>(maxActiveMinutes),
+      'windowStart': serializer.toJson<int?>(windowStart),
+      'windowEnd': serializer.toJson<int?>(windowEnd),
+    };
+  }
+
+  DayTimeBudgetRow copyWith({
+    String? id,
+    Value<String?> householdId = const Value.absent(),
+    int? weekday,
+    Value<int?> maxActiveMinutes = const Value.absent(),
+    Value<int?> windowStart = const Value.absent(),
+    Value<int?> windowEnd = const Value.absent(),
+  }) => DayTimeBudgetRow(
+    id: id ?? this.id,
+    householdId: householdId.present ? householdId.value : this.householdId,
+    weekday: weekday ?? this.weekday,
+    maxActiveMinutes: maxActiveMinutes.present
+        ? maxActiveMinutes.value
+        : this.maxActiveMinutes,
+    windowStart: windowStart.present ? windowStart.value : this.windowStart,
+    windowEnd: windowEnd.present ? windowEnd.value : this.windowEnd,
+  );
+  DayTimeBudgetRow copyWithCompanion(DayTimeBudgetsCompanion data) {
+    return DayTimeBudgetRow(
+      id: data.id.present ? data.id.value : this.id,
+      householdId: data.householdId.present
+          ? data.householdId.value
+          : this.householdId,
+      weekday: data.weekday.present ? data.weekday.value : this.weekday,
+      maxActiveMinutes: data.maxActiveMinutes.present
+          ? data.maxActiveMinutes.value
+          : this.maxActiveMinutes,
+      windowStart: data.windowStart.present
+          ? data.windowStart.value
+          : this.windowStart,
+      windowEnd: data.windowEnd.present ? data.windowEnd.value : this.windowEnd,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayTimeBudgetRow(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('weekday: $weekday, ')
+          ..write('maxActiveMinutes: $maxActiveMinutes, ')
+          ..write('windowStart: $windowStart, ')
+          ..write('windowEnd: $windowEnd')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    householdId,
+    weekday,
+    maxActiveMinutes,
+    windowStart,
+    windowEnd,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DayTimeBudgetRow &&
+          other.id == this.id &&
+          other.householdId == this.householdId &&
+          other.weekday == this.weekday &&
+          other.maxActiveMinutes == this.maxActiveMinutes &&
+          other.windowStart == this.windowStart &&
+          other.windowEnd == this.windowEnd);
+}
+
+class DayTimeBudgetsCompanion extends UpdateCompanion<DayTimeBudgetRow> {
+  final Value<String> id;
+  final Value<String?> householdId;
+  final Value<int> weekday;
+  final Value<int?> maxActiveMinutes;
+  final Value<int?> windowStart;
+  final Value<int?> windowEnd;
+  final Value<int> rowid;
+  const DayTimeBudgetsCompanion({
+    this.id = const Value.absent(),
+    this.householdId = const Value.absent(),
+    this.weekday = const Value.absent(),
+    this.maxActiveMinutes = const Value.absent(),
+    this.windowStart = const Value.absent(),
+    this.windowEnd = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DayTimeBudgetsCompanion.insert({
+    required String id,
+    this.householdId = const Value.absent(),
+    required int weekday,
+    this.maxActiveMinutes = const Value.absent(),
+    this.windowStart = const Value.absent(),
+    this.windowEnd = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       weekday = Value(weekday);
+  static Insertable<DayTimeBudgetRow> custom({
+    Expression<String>? id,
+    Expression<String>? householdId,
+    Expression<int>? weekday,
+    Expression<int>? maxActiveMinutes,
+    Expression<int>? windowStart,
+    Expression<int>? windowEnd,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (householdId != null) 'household_id': householdId,
+      if (weekday != null) 'weekday': weekday,
+      if (maxActiveMinutes != null) 'max_active_minutes': maxActiveMinutes,
+      if (windowStart != null) 'window_start': windowStart,
+      if (windowEnd != null) 'window_end': windowEnd,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DayTimeBudgetsCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? householdId,
+    Value<int>? weekday,
+    Value<int?>? maxActiveMinutes,
+    Value<int?>? windowStart,
+    Value<int?>? windowEnd,
+    Value<int>? rowid,
+  }) {
+    return DayTimeBudgetsCompanion(
+      id: id ?? this.id,
+      householdId: householdId ?? this.householdId,
+      weekday: weekday ?? this.weekday,
+      maxActiveMinutes: maxActiveMinutes ?? this.maxActiveMinutes,
+      windowStart: windowStart ?? this.windowStart,
+      windowEnd: windowEnd ?? this.windowEnd,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (householdId.present) {
+      map['household_id'] = Variable<String>(householdId.value);
+    }
+    if (weekday.present) {
+      map['weekday'] = Variable<int>(weekday.value);
+    }
+    if (maxActiveMinutes.present) {
+      map['max_active_minutes'] = Variable<int>(maxActiveMinutes.value);
+    }
+    if (windowStart.present) {
+      map['window_start'] = Variable<int>(windowStart.value);
+    }
+    if (windowEnd.present) {
+      map['window_end'] = Variable<int>(windowEnd.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayTimeBudgetsCompanion(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('weekday: $weekday, ')
+          ..write('maxActiveMinutes: $maxActiveMinutes, ')
+          ..write('windowStart: $windowStart, ')
+          ..write('windowEnd: $windowEnd, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4367,6 +4979,50 @@ class $MealPlanEntriesTable extends MealPlanEntries
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('cook'),
+  );
+  static const VerificationMeta _awayReasonMeta = const VerificationMeta(
+    'awayReason',
+  );
+  @override
+  late final GeneratedColumn<String> awayReason = GeneratedColumn<String>(
+    'away_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _awayNoteMeta = const VerificationMeta(
+    'awayNote',
+  );
+  @override
+  late final GeneratedColumn<String> awayNote = GeneratedColumn<String>(
+    'away_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ruleOverridesJsonMeta = const VerificationMeta(
+    'ruleOverridesJson',
+  );
+  @override
+  late final GeneratedColumn<String> ruleOverridesJson =
+      GeneratedColumn<String>(
+        'rule_overrides_json',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4379,6 +5035,10 @@ class $MealPlanEntriesTable extends MealPlanEntries
     householdId,
     servings,
     recipeSnapshotJson,
+    kind,
+    awayReason,
+    awayNote,
+    ruleOverridesJson,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4463,6 +5123,33 @@ class $MealPlanEntriesTable extends MealPlanEntries
         ),
       );
     }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    }
+    if (data.containsKey('away_reason')) {
+      context.handle(
+        _awayReasonMeta,
+        awayReason.isAcceptableOrUnknown(data['away_reason']!, _awayReasonMeta),
+      );
+    }
+    if (data.containsKey('away_note')) {
+      context.handle(
+        _awayNoteMeta,
+        awayNote.isAcceptableOrUnknown(data['away_note']!, _awayNoteMeta),
+      );
+    }
+    if (data.containsKey('rule_overrides_json')) {
+      context.handle(
+        _ruleOverridesJsonMeta,
+        ruleOverridesJson.isAcceptableOrUnknown(
+          data['rule_overrides_json']!,
+          _ruleOverridesJsonMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -4512,6 +5199,22 @@ class $MealPlanEntriesTable extends MealPlanEntries
         DriftSqlType.string,
         data['${effectivePrefix}recipe_snapshot_json'],
       ),
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      awayReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}away_reason'],
+      ),
+      awayNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}away_note'],
+      ),
+      ruleOverridesJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rule_overrides_json'],
+      ),
     );
   }
 
@@ -4538,6 +5241,16 @@ class MealPlanEntryRow extends DataClass
   /// Odobren recept u trenutku planiranja (RecipeSnapshot JSON, v5). Izmena
   /// recepta u biblioteci ne menja plan.
   final String? recipeSnapshotJson;
+
+  /// `cook` ili `away` (v11): obrok van kuće zauzima mesto bez nabavke.
+  final String kind;
+
+  /// `restaurant`, `visiting` ili `skip` (v11), samo za `away`.
+  final String? awayReason;
+  final String? awayNote;
+
+  /// Id-jevi obaveznih pravila dana dozvoljenih baš za ovaj obrok (v14).
+  final String? ruleOverridesJson;
   const MealPlanEntryRow({
     required this.id,
     required this.planId,
@@ -4549,6 +5262,10 @@ class MealPlanEntryRow extends DataClass
     this.householdId,
     this.servings,
     this.recipeSnapshotJson,
+    required this.kind,
+    this.awayReason,
+    this.awayNote,
+    this.ruleOverridesJson,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4570,6 +5287,16 @@ class MealPlanEntryRow extends DataClass
     }
     if (!nullToAbsent || recipeSnapshotJson != null) {
       map['recipe_snapshot_json'] = Variable<String>(recipeSnapshotJson);
+    }
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || awayReason != null) {
+      map['away_reason'] = Variable<String>(awayReason);
+    }
+    if (!nullToAbsent || awayNote != null) {
+      map['away_note'] = Variable<String>(awayNote);
+    }
+    if (!nullToAbsent || ruleOverridesJson != null) {
+      map['rule_overrides_json'] = Variable<String>(ruleOverridesJson);
     }
     return map;
   }
@@ -4594,6 +5321,16 @@ class MealPlanEntryRow extends DataClass
       recipeSnapshotJson: recipeSnapshotJson == null && nullToAbsent
           ? const Value.absent()
           : Value(recipeSnapshotJson),
+      kind: Value(kind),
+      awayReason: awayReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(awayReason),
+      awayNote: awayNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(awayNote),
+      ruleOverridesJson: ruleOverridesJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ruleOverridesJson),
     );
   }
 
@@ -4615,6 +5352,12 @@ class MealPlanEntryRow extends DataClass
       recipeSnapshotJson: serializer.fromJson<String?>(
         json['recipeSnapshotJson'],
       ),
+      kind: serializer.fromJson<String>(json['kind']),
+      awayReason: serializer.fromJson<String?>(json['awayReason']),
+      awayNote: serializer.fromJson<String?>(json['awayNote']),
+      ruleOverridesJson: serializer.fromJson<String?>(
+        json['ruleOverridesJson'],
+      ),
     );
   }
   @override
@@ -4631,6 +5374,10 @@ class MealPlanEntryRow extends DataClass
       'householdId': serializer.toJson<String?>(householdId),
       'servings': serializer.toJson<int?>(servings),
       'recipeSnapshotJson': serializer.toJson<String?>(recipeSnapshotJson),
+      'kind': serializer.toJson<String>(kind),
+      'awayReason': serializer.toJson<String?>(awayReason),
+      'awayNote': serializer.toJson<String?>(awayNote),
+      'ruleOverridesJson': serializer.toJson<String?>(ruleOverridesJson),
     };
   }
 
@@ -4645,6 +5392,10 @@ class MealPlanEntryRow extends DataClass
     Value<String?> householdId = const Value.absent(),
     Value<int?> servings = const Value.absent(),
     Value<String?> recipeSnapshotJson = const Value.absent(),
+    String? kind,
+    Value<String?> awayReason = const Value.absent(),
+    Value<String?> awayNote = const Value.absent(),
+    Value<String?> ruleOverridesJson = const Value.absent(),
   }) => MealPlanEntryRow(
     id: id ?? this.id,
     planId: planId ?? this.planId,
@@ -4658,6 +5409,12 @@ class MealPlanEntryRow extends DataClass
     recipeSnapshotJson: recipeSnapshotJson.present
         ? recipeSnapshotJson.value
         : this.recipeSnapshotJson,
+    kind: kind ?? this.kind,
+    awayReason: awayReason.present ? awayReason.value : this.awayReason,
+    awayNote: awayNote.present ? awayNote.value : this.awayNote,
+    ruleOverridesJson: ruleOverridesJson.present
+        ? ruleOverridesJson.value
+        : this.ruleOverridesJson,
   );
   MealPlanEntryRow copyWithCompanion(MealPlanEntriesCompanion data) {
     return MealPlanEntryRow(
@@ -4675,6 +5432,14 @@ class MealPlanEntryRow extends DataClass
       recipeSnapshotJson: data.recipeSnapshotJson.present
           ? data.recipeSnapshotJson.value
           : this.recipeSnapshotJson,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      awayReason: data.awayReason.present
+          ? data.awayReason.value
+          : this.awayReason,
+      awayNote: data.awayNote.present ? data.awayNote.value : this.awayNote,
+      ruleOverridesJson: data.ruleOverridesJson.present
+          ? data.ruleOverridesJson.value
+          : this.ruleOverridesJson,
     );
   }
 
@@ -4690,7 +5455,11 @@ class MealPlanEntryRow extends DataClass
           ..write('isCooked: $isCooked, ')
           ..write('householdId: $householdId, ')
           ..write('servings: $servings, ')
-          ..write('recipeSnapshotJson: $recipeSnapshotJson')
+          ..write('recipeSnapshotJson: $recipeSnapshotJson, ')
+          ..write('kind: $kind, ')
+          ..write('awayReason: $awayReason, ')
+          ..write('awayNote: $awayNote, ')
+          ..write('ruleOverridesJson: $ruleOverridesJson')
           ..write(')'))
         .toString();
   }
@@ -4707,6 +5476,10 @@ class MealPlanEntryRow extends DataClass
     householdId,
     servings,
     recipeSnapshotJson,
+    kind,
+    awayReason,
+    awayNote,
+    ruleOverridesJson,
   );
   @override
   bool operator ==(Object other) =>
@@ -4721,7 +5494,11 @@ class MealPlanEntryRow extends DataClass
           other.isCooked == this.isCooked &&
           other.householdId == this.householdId &&
           other.servings == this.servings &&
-          other.recipeSnapshotJson == this.recipeSnapshotJson);
+          other.recipeSnapshotJson == this.recipeSnapshotJson &&
+          other.kind == this.kind &&
+          other.awayReason == this.awayReason &&
+          other.awayNote == this.awayNote &&
+          other.ruleOverridesJson == this.ruleOverridesJson);
 }
 
 class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
@@ -4735,6 +5512,10 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
   final Value<String?> householdId;
   final Value<int?> servings;
   final Value<String?> recipeSnapshotJson;
+  final Value<String> kind;
+  final Value<String?> awayReason;
+  final Value<String?> awayNote;
+  final Value<String?> ruleOverridesJson;
   final Value<int> rowid;
   const MealPlanEntriesCompanion({
     this.id = const Value.absent(),
@@ -4747,6 +5528,10 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     this.householdId = const Value.absent(),
     this.servings = const Value.absent(),
     this.recipeSnapshotJson = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.awayReason = const Value.absent(),
+    this.awayNote = const Value.absent(),
+    this.ruleOverridesJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MealPlanEntriesCompanion.insert({
@@ -4760,6 +5545,10 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     this.householdId = const Value.absent(),
     this.servings = const Value.absent(),
     this.recipeSnapshotJson = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.awayReason = const Value.absent(),
+    this.awayNote = const Value.absent(),
+    this.ruleOverridesJson = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        planId = Value(planId),
@@ -4776,6 +5565,10 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     Expression<String>? householdId,
     Expression<int>? servings,
     Expression<String>? recipeSnapshotJson,
+    Expression<String>? kind,
+    Expression<String>? awayReason,
+    Expression<String>? awayNote,
+    Expression<String>? ruleOverridesJson,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4790,6 +5583,10 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
       if (servings != null) 'servings': servings,
       if (recipeSnapshotJson != null)
         'recipe_snapshot_json': recipeSnapshotJson,
+      if (kind != null) 'kind': kind,
+      if (awayReason != null) 'away_reason': awayReason,
+      if (awayNote != null) 'away_note': awayNote,
+      if (ruleOverridesJson != null) 'rule_overrides_json': ruleOverridesJson,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4805,6 +5602,10 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     Value<String?>? householdId,
     Value<int?>? servings,
     Value<String?>? recipeSnapshotJson,
+    Value<String>? kind,
+    Value<String?>? awayReason,
+    Value<String?>? awayNote,
+    Value<String?>? ruleOverridesJson,
     Value<int>? rowid,
   }) {
     return MealPlanEntriesCompanion(
@@ -4818,6 +5619,10 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
       householdId: householdId ?? this.householdId,
       servings: servings ?? this.servings,
       recipeSnapshotJson: recipeSnapshotJson ?? this.recipeSnapshotJson,
+      kind: kind ?? this.kind,
+      awayReason: awayReason ?? this.awayReason,
+      awayNote: awayNote ?? this.awayNote,
+      ruleOverridesJson: ruleOverridesJson ?? this.ruleOverridesJson,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4855,6 +5660,18 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     if (recipeSnapshotJson.present) {
       map['recipe_snapshot_json'] = Variable<String>(recipeSnapshotJson.value);
     }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (awayReason.present) {
+      map['away_reason'] = Variable<String>(awayReason.value);
+    }
+    if (awayNote.present) {
+      map['away_note'] = Variable<String>(awayNote.value);
+    }
+    if (ruleOverridesJson.present) {
+      map['rule_overrides_json'] = Variable<String>(ruleOverridesJson.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4874,6 +5691,1016 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
           ..write('householdId: $householdId, ')
           ..write('servings: $servings, ')
           ..write('recipeSnapshotJson: $recipeSnapshotJson, ')
+          ..write('kind: $kind, ')
+          ..write('awayReason: $awayReason, ')
+          ..write('awayNote: $awayNote, ')
+          ..write('ruleOverridesJson: $ruleOverridesJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CookSoonItemsTable extends CookSoonItems
+    with TableInfo<$CookSoonItemsTable, CookSoonItemRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CookSoonItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _householdIdMeta = const VerificationMeta(
+    'householdId',
+  );
+  @override
+  late final GeneratedColumn<String> householdId = GeneratedColumn<String>(
+    'household_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _recipeIdMeta = const VerificationMeta(
+    'recipeId',
+  );
+  @override
+  late final GeneratedColumn<String> recipeId = GeneratedColumn<String>(
+    'recipe_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES recipes (id)',
+    ),
+  );
+  static const VerificationMeta _recipeSnapshotJsonMeta =
+      const VerificationMeta('recipeSnapshotJson');
+  @override
+  late final GeneratedColumn<String> recipeSnapshotJson =
+      GeneratedColumn<String>(
+        'recipe_snapshot_json',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _servingsMeta = const VerificationMeta(
+    'servings',
+  );
+  @override
+  late final GeneratedColumn<int> servings = GeneratedColumn<int>(
+    'servings',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    householdId,
+    recipeId,
+    recipeSnapshotJson,
+    servings,
+    position,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cook_soon_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CookSoonItemRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('household_id')) {
+      context.handle(
+        _householdIdMeta,
+        householdId.isAcceptableOrUnknown(
+          data['household_id']!,
+          _householdIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('recipe_id')) {
+      context.handle(
+        _recipeIdMeta,
+        recipeId.isAcceptableOrUnknown(data['recipe_id']!, _recipeIdMeta),
+      );
+    }
+    if (data.containsKey('recipe_snapshot_json')) {
+      context.handle(
+        _recipeSnapshotJsonMeta,
+        recipeSnapshotJson.isAcceptableOrUnknown(
+          data['recipe_snapshot_json']!,
+          _recipeSnapshotJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_recipeSnapshotJsonMeta);
+    }
+    if (data.containsKey('servings')) {
+      context.handle(
+        _servingsMeta,
+        servings.isAcceptableOrUnknown(data['servings']!, _servingsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_servingsMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CookSoonItemRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CookSoonItemRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      householdId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}household_id'],
+      ),
+      recipeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recipe_id'],
+      ),
+      recipeSnapshotJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recipe_snapshot_json'],
+      )!,
+      servings: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}servings'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CookSoonItemsTable createAlias(String alias) {
+    return $CookSoonItemsTable(attachedDatabase, alias);
+  }
+}
+
+class CookSoonItemRow extends DataClass implements Insertable<CookSoonItemRow> {
+  final String id;
+  final String? householdId;
+  final String? recipeId;
+  final String recipeSnapshotJson;
+
+  /// Porcije pri raspoređivanju (1–20).
+  final int servings;
+
+  /// Redosled u redu (manji je pre).
+  final int position;
+  final DateTime createdAt;
+  const CookSoonItemRow({
+    required this.id,
+    this.householdId,
+    this.recipeId,
+    required this.recipeSnapshotJson,
+    required this.servings,
+    required this.position,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || householdId != null) {
+      map['household_id'] = Variable<String>(householdId);
+    }
+    if (!nullToAbsent || recipeId != null) {
+      map['recipe_id'] = Variable<String>(recipeId);
+    }
+    map['recipe_snapshot_json'] = Variable<String>(recipeSnapshotJson);
+    map['servings'] = Variable<int>(servings);
+    map['position'] = Variable<int>(position);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  CookSoonItemsCompanion toCompanion(bool nullToAbsent) {
+    return CookSoonItemsCompanion(
+      id: Value(id),
+      householdId: householdId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(householdId),
+      recipeId: recipeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recipeId),
+      recipeSnapshotJson: Value(recipeSnapshotJson),
+      servings: Value(servings),
+      position: Value(position),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory CookSoonItemRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CookSoonItemRow(
+      id: serializer.fromJson<String>(json['id']),
+      householdId: serializer.fromJson<String?>(json['householdId']),
+      recipeId: serializer.fromJson<String?>(json['recipeId']),
+      recipeSnapshotJson: serializer.fromJson<String>(
+        json['recipeSnapshotJson'],
+      ),
+      servings: serializer.fromJson<int>(json['servings']),
+      position: serializer.fromJson<int>(json['position']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'householdId': serializer.toJson<String?>(householdId),
+      'recipeId': serializer.toJson<String?>(recipeId),
+      'recipeSnapshotJson': serializer.toJson<String>(recipeSnapshotJson),
+      'servings': serializer.toJson<int>(servings),
+      'position': serializer.toJson<int>(position),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  CookSoonItemRow copyWith({
+    String? id,
+    Value<String?> householdId = const Value.absent(),
+    Value<String?> recipeId = const Value.absent(),
+    String? recipeSnapshotJson,
+    int? servings,
+    int? position,
+    DateTime? createdAt,
+  }) => CookSoonItemRow(
+    id: id ?? this.id,
+    householdId: householdId.present ? householdId.value : this.householdId,
+    recipeId: recipeId.present ? recipeId.value : this.recipeId,
+    recipeSnapshotJson: recipeSnapshotJson ?? this.recipeSnapshotJson,
+    servings: servings ?? this.servings,
+    position: position ?? this.position,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  CookSoonItemRow copyWithCompanion(CookSoonItemsCompanion data) {
+    return CookSoonItemRow(
+      id: data.id.present ? data.id.value : this.id,
+      householdId: data.householdId.present
+          ? data.householdId.value
+          : this.householdId,
+      recipeId: data.recipeId.present ? data.recipeId.value : this.recipeId,
+      recipeSnapshotJson: data.recipeSnapshotJson.present
+          ? data.recipeSnapshotJson.value
+          : this.recipeSnapshotJson,
+      servings: data.servings.present ? data.servings.value : this.servings,
+      position: data.position.present ? data.position.value : this.position,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CookSoonItemRow(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('recipeId: $recipeId, ')
+          ..write('recipeSnapshotJson: $recipeSnapshotJson, ')
+          ..write('servings: $servings, ')
+          ..write('position: $position, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    householdId,
+    recipeId,
+    recipeSnapshotJson,
+    servings,
+    position,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CookSoonItemRow &&
+          other.id == this.id &&
+          other.householdId == this.householdId &&
+          other.recipeId == this.recipeId &&
+          other.recipeSnapshotJson == this.recipeSnapshotJson &&
+          other.servings == this.servings &&
+          other.position == this.position &&
+          other.createdAt == this.createdAt);
+}
+
+class CookSoonItemsCompanion extends UpdateCompanion<CookSoonItemRow> {
+  final Value<String> id;
+  final Value<String?> householdId;
+  final Value<String?> recipeId;
+  final Value<String> recipeSnapshotJson;
+  final Value<int> servings;
+  final Value<int> position;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const CookSoonItemsCompanion({
+    this.id = const Value.absent(),
+    this.householdId = const Value.absent(),
+    this.recipeId = const Value.absent(),
+    this.recipeSnapshotJson = const Value.absent(),
+    this.servings = const Value.absent(),
+    this.position = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CookSoonItemsCompanion.insert({
+    required String id,
+    this.householdId = const Value.absent(),
+    this.recipeId = const Value.absent(),
+    required String recipeSnapshotJson,
+    required int servings,
+    required int position,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       recipeSnapshotJson = Value(recipeSnapshotJson),
+       servings = Value(servings),
+       position = Value(position),
+       createdAt = Value(createdAt);
+  static Insertable<CookSoonItemRow> custom({
+    Expression<String>? id,
+    Expression<String>? householdId,
+    Expression<String>? recipeId,
+    Expression<String>? recipeSnapshotJson,
+    Expression<int>? servings,
+    Expression<int>? position,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (householdId != null) 'household_id': householdId,
+      if (recipeId != null) 'recipe_id': recipeId,
+      if (recipeSnapshotJson != null)
+        'recipe_snapshot_json': recipeSnapshotJson,
+      if (servings != null) 'servings': servings,
+      if (position != null) 'position': position,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CookSoonItemsCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? householdId,
+    Value<String?>? recipeId,
+    Value<String>? recipeSnapshotJson,
+    Value<int>? servings,
+    Value<int>? position,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return CookSoonItemsCompanion(
+      id: id ?? this.id,
+      householdId: householdId ?? this.householdId,
+      recipeId: recipeId ?? this.recipeId,
+      recipeSnapshotJson: recipeSnapshotJson ?? this.recipeSnapshotJson,
+      servings: servings ?? this.servings,
+      position: position ?? this.position,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (householdId.present) {
+      map['household_id'] = Variable<String>(householdId.value);
+    }
+    if (recipeId.present) {
+      map['recipe_id'] = Variable<String>(recipeId.value);
+    }
+    if (recipeSnapshotJson.present) {
+      map['recipe_snapshot_json'] = Variable<String>(recipeSnapshotJson.value);
+    }
+    if (servings.present) {
+      map['servings'] = Variable<int>(servings.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CookSoonItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('recipeId: $recipeId, ')
+          ..write('recipeSnapshotJson: $recipeSnapshotJson, ')
+          ..write('servings: $servings, ')
+          ..write('position: $position, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DayRulesTable extends DayRules
+    with TableInfo<$DayRulesTable, DayRuleRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DayRulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _householdIdMeta = const VerificationMeta(
+    'householdId',
+  );
+  @override
+  late final GeneratedColumn<String> householdId = GeneratedColumn<String>(
+    'household_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _weekdayMeta = const VerificationMeta(
+    'weekday',
+  );
+  @override
+  late final GeneratedColumn<int> weekday = GeneratedColumn<int>(
+    'weekday',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mealTypeMeta = const VerificationMeta(
+    'mealType',
+  );
+  @override
+  late final GeneratedColumn<String> mealType = GeneratedColumn<String>(
+    'meal_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _modeMeta = const VerificationMeta('mode');
+  @override
+  late final GeneratedColumn<String> mode = GeneratedColumn<String>(
+    'mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('required'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    householdId,
+    weekday,
+    mealType,
+    kind,
+    value,
+    mode,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'day_rules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DayRuleRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('household_id')) {
+      context.handle(
+        _householdIdMeta,
+        householdId.isAcceptableOrUnknown(
+          data['household_id']!,
+          _householdIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weekday')) {
+      context.handle(
+        _weekdayMeta,
+        weekday.isAcceptableOrUnknown(data['weekday']!, _weekdayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_weekdayMeta);
+    }
+    if (data.containsKey('meal_type')) {
+      context.handle(
+        _mealTypeMeta,
+        mealType.isAcceptableOrUnknown(data['meal_type']!, _mealTypeMeta),
+      );
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    }
+    if (data.containsKey('mode')) {
+      context.handle(
+        _modeMeta,
+        mode.isAcceptableOrUnknown(data['mode']!, _modeMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DayRuleRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DayRuleRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      householdId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}household_id'],
+      ),
+      weekday: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}weekday'],
+      )!,
+      mealType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}meal_type'],
+      ),
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      ),
+      mode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mode'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DayRulesTable createAlias(String alias) {
+    return $DayRulesTable(attachedDatabase, alias);
+  }
+}
+
+class DayRuleRow extends DataClass implements Insertable<DayRuleRow> {
+  final String id;
+  final String? householdId;
+
+  /// 1 = ponedeljak … 7 = nedelja.
+  final int weekday;
+
+  /// MealType.name; null = svi obroci.
+  final String? mealType;
+
+  /// RuleKind.name
+  final String kind;
+  final String? value;
+
+  /// RuleMode.name
+  final String mode;
+  final DateTime createdAt;
+  const DayRuleRow({
+    required this.id,
+    this.householdId,
+    required this.weekday,
+    this.mealType,
+    required this.kind,
+    this.value,
+    required this.mode,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || householdId != null) {
+      map['household_id'] = Variable<String>(householdId);
+    }
+    map['weekday'] = Variable<int>(weekday);
+    if (!nullToAbsent || mealType != null) {
+      map['meal_type'] = Variable<String>(mealType);
+    }
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || value != null) {
+      map['value'] = Variable<String>(value);
+    }
+    map['mode'] = Variable<String>(mode);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  DayRulesCompanion toCompanion(bool nullToAbsent) {
+    return DayRulesCompanion(
+      id: Value(id),
+      householdId: householdId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(householdId),
+      weekday: Value(weekday),
+      mealType: mealType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mealType),
+      kind: Value(kind),
+      value: value == null && nullToAbsent
+          ? const Value.absent()
+          : Value(value),
+      mode: Value(mode),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory DayRuleRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DayRuleRow(
+      id: serializer.fromJson<String>(json['id']),
+      householdId: serializer.fromJson<String?>(json['householdId']),
+      weekday: serializer.fromJson<int>(json['weekday']),
+      mealType: serializer.fromJson<String?>(json['mealType']),
+      kind: serializer.fromJson<String>(json['kind']),
+      value: serializer.fromJson<String?>(json['value']),
+      mode: serializer.fromJson<String>(json['mode']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'householdId': serializer.toJson<String?>(householdId),
+      'weekday': serializer.toJson<int>(weekday),
+      'mealType': serializer.toJson<String?>(mealType),
+      'kind': serializer.toJson<String>(kind),
+      'value': serializer.toJson<String?>(value),
+      'mode': serializer.toJson<String>(mode),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  DayRuleRow copyWith({
+    String? id,
+    Value<String?> householdId = const Value.absent(),
+    int? weekday,
+    Value<String?> mealType = const Value.absent(),
+    String? kind,
+    Value<String?> value = const Value.absent(),
+    String? mode,
+    DateTime? createdAt,
+  }) => DayRuleRow(
+    id: id ?? this.id,
+    householdId: householdId.present ? householdId.value : this.householdId,
+    weekday: weekday ?? this.weekday,
+    mealType: mealType.present ? mealType.value : this.mealType,
+    kind: kind ?? this.kind,
+    value: value.present ? value.value : this.value,
+    mode: mode ?? this.mode,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  DayRuleRow copyWithCompanion(DayRulesCompanion data) {
+    return DayRuleRow(
+      id: data.id.present ? data.id.value : this.id,
+      householdId: data.householdId.present
+          ? data.householdId.value
+          : this.householdId,
+      weekday: data.weekday.present ? data.weekday.value : this.weekday,
+      mealType: data.mealType.present ? data.mealType.value : this.mealType,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      value: data.value.present ? data.value.value : this.value,
+      mode: data.mode.present ? data.mode.value : this.mode,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayRuleRow(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('weekday: $weekday, ')
+          ..write('mealType: $mealType, ')
+          ..write('kind: $kind, ')
+          ..write('value: $value, ')
+          ..write('mode: $mode, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    householdId,
+    weekday,
+    mealType,
+    kind,
+    value,
+    mode,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DayRuleRow &&
+          other.id == this.id &&
+          other.householdId == this.householdId &&
+          other.weekday == this.weekday &&
+          other.mealType == this.mealType &&
+          other.kind == this.kind &&
+          other.value == this.value &&
+          other.mode == this.mode &&
+          other.createdAt == this.createdAt);
+}
+
+class DayRulesCompanion extends UpdateCompanion<DayRuleRow> {
+  final Value<String> id;
+  final Value<String?> householdId;
+  final Value<int> weekday;
+  final Value<String?> mealType;
+  final Value<String> kind;
+  final Value<String?> value;
+  final Value<String> mode;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const DayRulesCompanion({
+    this.id = const Value.absent(),
+    this.householdId = const Value.absent(),
+    this.weekday = const Value.absent(),
+    this.mealType = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.value = const Value.absent(),
+    this.mode = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DayRulesCompanion.insert({
+    required String id,
+    this.householdId = const Value.absent(),
+    required int weekday,
+    this.mealType = const Value.absent(),
+    required String kind,
+    this.value = const Value.absent(),
+    this.mode = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       weekday = Value(weekday),
+       kind = Value(kind),
+       createdAt = Value(createdAt);
+  static Insertable<DayRuleRow> custom({
+    Expression<String>? id,
+    Expression<String>? householdId,
+    Expression<int>? weekday,
+    Expression<String>? mealType,
+    Expression<String>? kind,
+    Expression<String>? value,
+    Expression<String>? mode,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (householdId != null) 'household_id': householdId,
+      if (weekday != null) 'weekday': weekday,
+      if (mealType != null) 'meal_type': mealType,
+      if (kind != null) 'kind': kind,
+      if (value != null) 'value': value,
+      if (mode != null) 'mode': mode,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DayRulesCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? householdId,
+    Value<int>? weekday,
+    Value<String?>? mealType,
+    Value<String>? kind,
+    Value<String?>? value,
+    Value<String>? mode,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return DayRulesCompanion(
+      id: id ?? this.id,
+      householdId: householdId ?? this.householdId,
+      weekday: weekday ?? this.weekday,
+      mealType: mealType ?? this.mealType,
+      kind: kind ?? this.kind,
+      value: value ?? this.value,
+      mode: mode ?? this.mode,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (householdId.present) {
+      map['household_id'] = Variable<String>(householdId.value);
+    }
+    if (weekday.present) {
+      map['weekday'] = Variable<int>(weekday.value);
+    }
+    if (mealType.present) {
+      map['meal_type'] = Variable<String>(mealType.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (mode.present) {
+      map['mode'] = Variable<String>(mode.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayRulesCompanion(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('weekday: $weekday, ')
+          ..write('mealType: $mealType, ')
+          ..write('kind: $kind, ')
+          ..write('value: $value, ')
+          ..write('mode: $mode, ')
+          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -10246,6 +12073,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $RecipesTable recipes = $RecipesTable(this);
   late final $RecipeVersionsTable recipeVersions = $RecipeVersionsTable(this);
+  late final $DayTimeBudgetsTable dayTimeBudgets = $DayTimeBudgetsTable(this);
   late final $PantryItemsTable pantryItems = $PantryItemsTable(this);
   late final $ShoppingListsTable shoppingLists = $ShoppingListsTable(this);
   late final $ShoppingItemsTable shoppingItems = $ShoppingItemsTable(this);
@@ -10254,6 +12082,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MealPlanEntriesTable mealPlanEntries = $MealPlanEntriesTable(
     this,
   );
+  late final $CookSoonItemsTable cookSoonItems = $CookSoonItemsTable(this);
+  late final $DayRulesTable dayRules = $DayRulesTable(this);
   late final $ShoppingSourcesTable shoppingSources = $ShoppingSourcesTable(
     this,
   );
@@ -10301,12 +12131,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     recipes,
     recipeVersions,
+    dayTimeBudgets,
     pantryItems,
     shoppingLists,
     shoppingItems,
     mealPlans,
     weekTemplates,
     mealPlanEntries,
+    cookSoonItems,
+    dayRules,
     shoppingSources,
     shoppingContributions,
     supplyAllocations,
@@ -10335,12 +12168,15 @@ typedef $$RecipesTableCreateCompanionBuilder = RecipesCompanion Function({
   required String source,
   required String ingredientsJson,
   required String stepsJson,
+  Value<String?> stepLinksJson,
   Value<String?> imagePath,
   Value<String?> answeredBy,
   Value<String?> sourceUrl,
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<String?> householdId,
+  Value<int?> activeMinutes,
+  Value<int?> totalMinutes,
   Value<int> rowid,
 });
 typedef $$RecipesTableUpdateCompanionBuilder = RecipesCompanion Function({
@@ -10351,12 +12187,15 @@ typedef $$RecipesTableUpdateCompanionBuilder = RecipesCompanion Function({
   Value<String> source,
   Value<String> ingredientsJson,
   Value<String> stepsJson,
+  Value<String?> stepLinksJson,
   Value<String?> imagePath,
   Value<String?> answeredBy,
   Value<String?> sourceUrl,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<String?> householdId,
+  Value<int?> activeMinutes,
+  Value<int?> totalMinutes,
   Value<int> rowid,
 });
 
@@ -10397,6 +12236,24 @@ final class $$RecipesTableReferences
     final cache = $_typedResult.readTableOrNull(
       _mealPlanEntriesRefsTable($_db),
     );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$CookSoonItemsTable, List<CookSoonItemRow>>
+  _cookSoonItemsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.cookSoonItems,
+    aliasName: 'recipes__id__cook_soon_items__recipe_id',
+  );
+
+  $$CookSoonItemsTableProcessedTableManager get cookSoonItemsRefs {
+    final manager = $$CookSoonItemsTableTableManager(
+      $_db,
+      $_db.cookSoonItems,
+    ).filter((f) => f.recipeId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_cookSoonItemsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -10466,6 +12323,11 @@ class $$RecipesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get stepLinksJson => $composableBuilder(
+    column: $table.stepLinksJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get imagePath => $composableBuilder(
     column: $table.imagePath,
     builder: (column) => ColumnFilters(column),
@@ -10493,6 +12355,16 @@ class $$RecipesTableFilterComposer
 
   ColumnFilters<String> get householdId => $composableBuilder(
     column: $table.householdId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get activeMinutes => $composableBuilder(
+    column: $table.activeMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalMinutes => $composableBuilder(
+    column: $table.totalMinutes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10537,6 +12409,31 @@ class $$RecipesTableFilterComposer
           }) => $$MealPlanEntriesTableFilterComposer(
             $db: $db,
             $table: $db.mealPlanEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> cookSoonItemsRefs(
+    Expression<bool> Function($$CookSoonItemsTableFilterComposer f) f,
+  ) {
+    final $$CookSoonItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.cookSoonItems,
+      getReferencedColumn: (t) => t.recipeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CookSoonItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.cookSoonItems,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -10616,6 +12513,11 @@ class $$RecipesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get stepLinksJson => $composableBuilder(
+    column: $table.stepLinksJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get imagePath => $composableBuilder(
     column: $table.imagePath,
     builder: (column) => ColumnOrderings(column),
@@ -10643,6 +12545,16 @@ class $$RecipesTableOrderingComposer
 
   ColumnOrderings<String> get householdId => $composableBuilder(
     column: $table.householdId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get activeMinutes => $composableBuilder(
+    column: $table.activeMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalMinutes => $composableBuilder(
+    column: $table.totalMinutes,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -10681,6 +12593,11 @@ class $$RecipesTableAnnotationComposer
   GeneratedColumn<String> get stepsJson =>
       $composableBuilder(column: $table.stepsJson, builder: (column) => column);
 
+  GeneratedColumn<String> get stepLinksJson => $composableBuilder(
+    column: $table.stepLinksJson,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get imagePath =>
       $composableBuilder(column: $table.imagePath, builder: (column) => column);
 
@@ -10700,6 +12617,16 @@ class $$RecipesTableAnnotationComposer
 
   GeneratedColumn<String> get householdId => $composableBuilder(
     column: $table.householdId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get activeMinutes => $composableBuilder(
+    column: $table.activeMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalMinutes => $composableBuilder(
+    column: $table.totalMinutes,
     builder: (column) => column,
   );
 
@@ -10753,6 +12680,31 @@ class $$RecipesTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> cookSoonItemsRefs<T extends Object>(
+    Expression<T> Function($$CookSoonItemsTableAnnotationComposer a) f,
+  ) {
+    final $$CookSoonItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.cookSoonItems,
+      getReferencedColumn: (t) => t.recipeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CookSoonItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.cookSoonItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> ratingsRefs<T extends Object>(
     Expression<T> Function($$RatingsTableAnnotationComposer a) f,
   ) {
@@ -10795,6 +12747,7 @@ class $$RecipesTableTableManager
           PrefetchHooks Function({
             bool recipeVersionsRefs,
             bool mealPlanEntriesRefs,
+            bool cookSoonItemsRefs,
             bool ratingsRefs,
           })
         > {
@@ -10818,12 +12771,15 @@ class $$RecipesTableTableManager
                 Value<String> source = const Value.absent(),
                 Value<String> ingredientsJson = const Value.absent(),
                 Value<String> stepsJson = const Value.absent(),
+                Value<String?> stepLinksJson = const Value.absent(),
                 Value<String?> imagePath = const Value.absent(),
                 Value<String?> answeredBy = const Value.absent(),
                 Value<String?> sourceUrl = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<String?> householdId = const Value.absent(),
+                Value<int?> activeMinutes = const Value.absent(),
+                Value<int?> totalMinutes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RecipesCompanion(
                 id: id,
@@ -10833,12 +12789,15 @@ class $$RecipesTableTableManager
                 source: source,
                 ingredientsJson: ingredientsJson,
                 stepsJson: stepsJson,
+                stepLinksJson: stepLinksJson,
                 imagePath: imagePath,
                 answeredBy: answeredBy,
                 sourceUrl: sourceUrl,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 householdId: householdId,
+                activeMinutes: activeMinutes,
+                totalMinutes: totalMinutes,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -10850,12 +12809,15 @@ class $$RecipesTableTableManager
                 required String source,
                 required String ingredientsJson,
                 required String stepsJson,
+                Value<String?> stepLinksJson = const Value.absent(),
                 Value<String?> imagePath = const Value.absent(),
                 Value<String?> answeredBy = const Value.absent(),
                 Value<String?> sourceUrl = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<String?> householdId = const Value.absent(),
+                Value<int?> activeMinutes = const Value.absent(),
+                Value<int?> totalMinutes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RecipesCompanion.insert(
                 id: id,
@@ -10865,12 +12827,15 @@ class $$RecipesTableTableManager
                 source: source,
                 ingredientsJson: ingredientsJson,
                 stepsJson: stepsJson,
+                stepLinksJson: stepLinksJson,
                 imagePath: imagePath,
                 answeredBy: answeredBy,
                 sourceUrl: sourceUrl,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 householdId: householdId,
+                activeMinutes: activeMinutes,
+                totalMinutes: totalMinutes,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -10885,6 +12850,7 @@ class $$RecipesTableTableManager
               ({
                 recipeVersionsRefs = false,
                 mealPlanEntriesRefs = false,
+                cookSoonItemsRefs = false,
                 ratingsRefs = false,
               }) {
                 return PrefetchHooks(
@@ -10892,6 +12858,7 @@ class $$RecipesTableTableManager
                   explicitlyWatchedTables: [
                     if (recipeVersionsRefs) db.recipeVersions,
                     if (mealPlanEntriesRefs) db.mealPlanEntries,
+                    if (cookSoonItemsRefs) db.cookSoonItems,
                     if (ratingsRefs) db.ratings,
                   ],
                   addJoins: null,
@@ -10933,6 +12900,26 @@ class $$RecipesTableTableManager
                                 table,
                                 p0,
                               ).mealPlanEntriesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'recipe_id',
+                          typedResults: items,
+                        ),
+                      if (cookSoonItemsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          RecipeRow,
+                          $RecipesTable,
+                          CookSoonItemRow,
+                          $CookSoonItemsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RecipesTableReferences
+                              ._cookSoonItemsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RecipesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).cookSoonItemsRefs,
                           currentColumn: 'id',
                           referencedColumn: 'recipe_id',
                           typedResults: items,
@@ -10980,6 +12967,7 @@ typedef $$RecipesTableProcessedTableManager =
       PrefetchHooks Function({
         bool recipeVersionsRefs,
         bool mealPlanEntriesRefs,
+        bool cookSoonItemsRefs,
         bool ratingsRefs,
       })
     >;
@@ -11369,6 +13357,246 @@ typedef $$RecipeVersionsTableProcessedTableManager =
       (RecipeVersionRow, $$RecipeVersionsTableReferences),
       RecipeVersionRow,
       PrefetchHooks Function({bool recipeId})
+    >;
+typedef $$DayTimeBudgetsTableCreateCompanionBuilder =
+    DayTimeBudgetsCompanion Function({
+      required String id,
+      Value<String?> householdId,
+      required int weekday,
+      Value<int?> maxActiveMinutes,
+      Value<int?> windowStart,
+      Value<int?> windowEnd,
+      Value<int> rowid,
+    });
+typedef $$DayTimeBudgetsTableUpdateCompanionBuilder =
+    DayTimeBudgetsCompanion Function({
+      Value<String> id,
+      Value<String?> householdId,
+      Value<int> weekday,
+      Value<int?> maxActiveMinutes,
+      Value<int?> windowStart,
+      Value<int?> windowEnd,
+      Value<int> rowid,
+    });
+
+class $$DayTimeBudgetsTableFilterComposer
+    extends Composer<_$AppDatabase, $DayTimeBudgetsTable> {
+  $$DayTimeBudgetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get weekday => $composableBuilder(
+    column: $table.weekday,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get maxActiveMinutes => $composableBuilder(
+    column: $table.maxActiveMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get windowStart => $composableBuilder(
+    column: $table.windowStart,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get windowEnd => $composableBuilder(
+    column: $table.windowEnd,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DayTimeBudgetsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DayTimeBudgetsTable> {
+  $$DayTimeBudgetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get weekday => $composableBuilder(
+    column: $table.weekday,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get maxActiveMinutes => $composableBuilder(
+    column: $table.maxActiveMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get windowStart => $composableBuilder(
+    column: $table.windowStart,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get windowEnd => $composableBuilder(
+    column: $table.windowEnd,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DayTimeBudgetsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DayTimeBudgetsTable> {
+  $$DayTimeBudgetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get weekday =>
+      $composableBuilder(column: $table.weekday, builder: (column) => column);
+
+  GeneratedColumn<int> get maxActiveMinutes => $composableBuilder(
+    column: $table.maxActiveMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get windowStart => $composableBuilder(
+    column: $table.windowStart,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get windowEnd =>
+      $composableBuilder(column: $table.windowEnd, builder: (column) => column);
+}
+
+class $$DayTimeBudgetsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DayTimeBudgetsTable,
+          DayTimeBudgetRow,
+          $$DayTimeBudgetsTableFilterComposer,
+          $$DayTimeBudgetsTableOrderingComposer,
+          $$DayTimeBudgetsTableAnnotationComposer,
+          $$DayTimeBudgetsTableCreateCompanionBuilder,
+          $$DayTimeBudgetsTableUpdateCompanionBuilder,
+          (
+            DayTimeBudgetRow,
+            BaseReferences<
+              _$AppDatabase,
+              $DayTimeBudgetsTable,
+              DayTimeBudgetRow
+            >,
+          ),
+          DayTimeBudgetRow,
+          PrefetchHooks Function()
+        > {
+  $$DayTimeBudgetsTableTableManager(
+    _$AppDatabase db,
+    $DayTimeBudgetsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DayTimeBudgetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DayTimeBudgetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DayTimeBudgetsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> householdId = const Value.absent(),
+                Value<int> weekday = const Value.absent(),
+                Value<int?> maxActiveMinutes = const Value.absent(),
+                Value<int?> windowStart = const Value.absent(),
+                Value<int?> windowEnd = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DayTimeBudgetsCompanion(
+                id: id,
+                householdId: householdId,
+                weekday: weekday,
+                maxActiveMinutes: maxActiveMinutes,
+                windowStart: windowStart,
+                windowEnd: windowEnd,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> householdId = const Value.absent(),
+                required int weekday,
+                Value<int?> maxActiveMinutes = const Value.absent(),
+                Value<int?> windowStart = const Value.absent(),
+                Value<int?> windowEnd = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DayTimeBudgetsCompanion.insert(
+                id: id,
+                householdId: householdId,
+                weekday: weekday,
+                maxActiveMinutes: maxActiveMinutes,
+                windowStart: windowStart,
+                windowEnd: windowEnd,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DayTimeBudgetsTable, DayTimeBudgetRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $DayTimeBudgetsTable,
+                    DayTimeBudgetRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DayTimeBudgetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DayTimeBudgetsTable,
+      DayTimeBudgetRow,
+      $$DayTimeBudgetsTableFilterComposer,
+      $$DayTimeBudgetsTableOrderingComposer,
+      $$DayTimeBudgetsTableAnnotationComposer,
+      $$DayTimeBudgetsTableCreateCompanionBuilder,
+      $$DayTimeBudgetsTableUpdateCompanionBuilder,
+      (
+        DayTimeBudgetRow,
+        BaseReferences<_$AppDatabase, $DayTimeBudgetsTable, DayTimeBudgetRow>,
+      ),
+      DayTimeBudgetRow,
+      PrefetchHooks Function()
     >;
 typedef $$PantryItemsTableCreateCompanionBuilder =
     PantryItemsCompanion Function({
@@ -13355,6 +15583,10 @@ typedef $$MealPlanEntriesTableCreateCompanionBuilder =
       Value<String?> householdId,
       Value<int?> servings,
       Value<String?> recipeSnapshotJson,
+      Value<String> kind,
+      Value<String?> awayReason,
+      Value<String?> awayNote,
+      Value<String?> ruleOverridesJson,
       Value<int> rowid,
     });
 typedef $$MealPlanEntriesTableUpdateCompanionBuilder =
@@ -13369,6 +15601,10 @@ typedef $$MealPlanEntriesTableUpdateCompanionBuilder =
       Value<String?> householdId,
       Value<int?> servings,
       Value<String?> recipeSnapshotJson,
+      Value<String> kind,
+      Value<String?> awayReason,
+      Value<String?> awayNote,
+      Value<String?> ruleOverridesJson,
       Value<int> rowid,
     });
 
@@ -13482,6 +15718,26 @@ class $$MealPlanEntriesTableFilterComposer
 
   ColumnFilters<String> get recipeSnapshotJson => $composableBuilder(
     column: $table.recipeSnapshotJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get awayReason => $composableBuilder(
+    column: $table.awayReason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get awayNote => $composableBuilder(
+    column: $table.awayNote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ruleOverridesJson => $composableBuilder(
+    column: $table.ruleOverridesJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13606,6 +15862,26 @@ class $$MealPlanEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get awayReason => $composableBuilder(
+    column: $table.awayReason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get awayNote => $composableBuilder(
+    column: $table.awayNote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ruleOverridesJson => $composableBuilder(
+    column: $table.ruleOverridesJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$MealPlansTableOrderingComposer get planId {
     final $$MealPlansTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -13687,6 +15963,22 @@ class $$MealPlanEntriesTableAnnotationComposer
 
   GeneratedColumn<String> get recipeSnapshotJson => $composableBuilder(
     column: $table.recipeSnapshotJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get awayReason => $composableBuilder(
+    column: $table.awayReason,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get awayNote =>
+      $composableBuilder(column: $table.awayNote, builder: (column) => column);
+
+  GeneratedColumn<String> get ruleOverridesJson => $composableBuilder(
+    column: $table.ruleOverridesJson,
     builder: (column) => column,
   );
 
@@ -13806,6 +16098,10 @@ class $$MealPlanEntriesTableTableManager
                 Value<String?> householdId = const Value.absent(),
                 Value<int?> servings = const Value.absent(),
                 Value<String?> recipeSnapshotJson = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> awayReason = const Value.absent(),
+                Value<String?> awayNote = const Value.absent(),
+                Value<String?> ruleOverridesJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MealPlanEntriesCompanion(
                 id: id,
@@ -13818,6 +16114,10 @@ class $$MealPlanEntriesTableTableManager
                 householdId: householdId,
                 servings: servings,
                 recipeSnapshotJson: recipeSnapshotJson,
+                kind: kind,
+                awayReason: awayReason,
+                awayNote: awayNote,
+                ruleOverridesJson: ruleOverridesJson,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -13832,6 +16132,10 @@ class $$MealPlanEntriesTableTableManager
                 Value<String?> householdId = const Value.absent(),
                 Value<int?> servings = const Value.absent(),
                 Value<String?> recipeSnapshotJson = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> awayReason = const Value.absent(),
+                Value<String?> awayNote = const Value.absent(),
+                Value<String?> ruleOverridesJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MealPlanEntriesCompanion.insert(
                 id: id,
@@ -13844,6 +16148,10 @@ class $$MealPlanEntriesTableTableManager
                 householdId: householdId,
                 servings: servings,
                 recipeSnapshotJson: recipeSnapshotJson,
+                kind: kind,
+                awayReason: awayReason,
+                awayNote: awayNote,
+                ruleOverridesJson: ruleOverridesJson,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -13953,6 +16261,631 @@ typedef $$MealPlanEntriesTableProcessedTableManager =
         bool recipeId,
         bool shoppingSourcesRefs,
       })
+    >;
+typedef $$CookSoonItemsTableCreateCompanionBuilder =
+    CookSoonItemsCompanion Function({
+      required String id,
+      Value<String?> householdId,
+      Value<String?> recipeId,
+      required String recipeSnapshotJson,
+      required int servings,
+      required int position,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$CookSoonItemsTableUpdateCompanionBuilder =
+    CookSoonItemsCompanion Function({
+      Value<String> id,
+      Value<String?> householdId,
+      Value<String?> recipeId,
+      Value<String> recipeSnapshotJson,
+      Value<int> servings,
+      Value<int> position,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$CookSoonItemsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $CookSoonItemsTable, CookSoonItemRow> {
+  $$CookSoonItemsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $RecipesTable _recipeIdTable(_$AppDatabase db) =>
+      db.recipes.createAlias('cook_soon_items__recipe_id__recipes__id');
+
+  $$RecipesTableProcessedTableManager? get recipeId {
+    final $_column = $_itemColumn<String>('recipe_id');
+    if ($_column == null) return null;
+    final manager = $$RecipesTableTableManager(
+      $_db,
+      $_db.recipes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_recipeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CookSoonItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $CookSoonItemsTable> {
+  $$CookSoonItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recipeSnapshotJson => $composableBuilder(
+    column: $table.recipeSnapshotJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get servings => $composableBuilder(
+    column: $table.servings,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$RecipesTableFilterComposer get recipeId {
+    final $$RecipesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.recipeId,
+      referencedTable: $db.recipes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecipesTableFilterComposer(
+            $db: $db,
+            $table: $db.recipes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CookSoonItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CookSoonItemsTable> {
+  $$CookSoonItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recipeSnapshotJson => $composableBuilder(
+    column: $table.recipeSnapshotJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get servings => $composableBuilder(
+    column: $table.servings,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$RecipesTableOrderingComposer get recipeId {
+    final $$RecipesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.recipeId,
+      referencedTable: $db.recipes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecipesTableOrderingComposer(
+            $db: $db,
+            $table: $db.recipes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CookSoonItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CookSoonItemsTable> {
+  $$CookSoonItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recipeSnapshotJson => $composableBuilder(
+    column: $table.recipeSnapshotJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get servings =>
+      $composableBuilder(column: $table.servings, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$RecipesTableAnnotationComposer get recipeId {
+    final $$RecipesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.recipeId,
+      referencedTable: $db.recipes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecipesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.recipes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CookSoonItemsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CookSoonItemsTable,
+          CookSoonItemRow,
+          $$CookSoonItemsTableFilterComposer,
+          $$CookSoonItemsTableOrderingComposer,
+          $$CookSoonItemsTableAnnotationComposer,
+          $$CookSoonItemsTableCreateCompanionBuilder,
+          $$CookSoonItemsTableUpdateCompanionBuilder,
+          (CookSoonItemRow, $$CookSoonItemsTableReferences),
+          CookSoonItemRow,
+          PrefetchHooks Function({bool recipeId})
+        > {
+  $$CookSoonItemsTableTableManager(_$AppDatabase db, $CookSoonItemsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CookSoonItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CookSoonItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CookSoonItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> householdId = const Value.absent(),
+                Value<String?> recipeId = const Value.absent(),
+                Value<String> recipeSnapshotJson = const Value.absent(),
+                Value<int> servings = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CookSoonItemsCompanion(
+                id: id,
+                householdId: householdId,
+                recipeId: recipeId,
+                recipeSnapshotJson: recipeSnapshotJson,
+                servings: servings,
+                position: position,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> householdId = const Value.absent(),
+                Value<String?> recipeId = const Value.absent(),
+                required String recipeSnapshotJson,
+                required int servings,
+                required int position,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => CookSoonItemsCompanion.insert(
+                id: id,
+                householdId: householdId,
+                recipeId: recipeId,
+                recipeSnapshotJson: recipeSnapshotJson,
+                servings: servings,
+                position: position,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$CookSoonItemsTable, CookSoonItemRow>(table),
+                  $$CookSoonItemsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({recipeId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (recipeId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.recipeId,
+                        referencedTable: $$CookSoonItemsTableReferences
+                            ._recipeIdTable(db),
+                        referencedColumn: $$CookSoonItemsTableReferences
+                            ._recipeIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CookSoonItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CookSoonItemsTable,
+      CookSoonItemRow,
+      $$CookSoonItemsTableFilterComposer,
+      $$CookSoonItemsTableOrderingComposer,
+      $$CookSoonItemsTableAnnotationComposer,
+      $$CookSoonItemsTableCreateCompanionBuilder,
+      $$CookSoonItemsTableUpdateCompanionBuilder,
+      (CookSoonItemRow, $$CookSoonItemsTableReferences),
+      CookSoonItemRow,
+      PrefetchHooks Function({bool recipeId})
+    >;
+typedef $$DayRulesTableCreateCompanionBuilder = DayRulesCompanion Function({
+  required String id,
+  Value<String?> householdId,
+  required int weekday,
+  Value<String?> mealType,
+  required String kind,
+  Value<String?> value,
+  Value<String> mode,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$DayRulesTableUpdateCompanionBuilder = DayRulesCompanion Function({
+  Value<String> id,
+  Value<String?> householdId,
+  Value<int> weekday,
+  Value<String?> mealType,
+  Value<String> kind,
+  Value<String?> value,
+  Value<String> mode,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+class $$DayRulesTableFilterComposer
+    extends Composer<_$AppDatabase, $DayRulesTable> {
+  $$DayRulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get weekday => $composableBuilder(
+    column: $table.weekday,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mealType => $composableBuilder(
+    column: $table.mealType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mode => $composableBuilder(
+    column: $table.mode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DayRulesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DayRulesTable> {
+  $$DayRulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get weekday => $composableBuilder(
+    column: $table.weekday,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mealType => $composableBuilder(
+    column: $table.mealType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mode => $composableBuilder(
+    column: $table.mode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DayRulesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DayRulesTable> {
+  $$DayRulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get weekday =>
+      $composableBuilder(column: $table.weekday, builder: (column) => column);
+
+  GeneratedColumn<String> get mealType =>
+      $composableBuilder(column: $table.mealType, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<String> get mode =>
+      $composableBuilder(column: $table.mode, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$DayRulesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DayRulesTable,
+          DayRuleRow,
+          $$DayRulesTableFilterComposer,
+          $$DayRulesTableOrderingComposer,
+          $$DayRulesTableAnnotationComposer,
+          $$DayRulesTableCreateCompanionBuilder,
+          $$DayRulesTableUpdateCompanionBuilder,
+          (
+            DayRuleRow,
+            BaseReferences<_$AppDatabase, $DayRulesTable, DayRuleRow>,
+          ),
+          DayRuleRow,
+          PrefetchHooks Function()
+        > {
+  $$DayRulesTableTableManager(_$AppDatabase db, $DayRulesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DayRulesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DayRulesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DayRulesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> householdId = const Value.absent(),
+                Value<int> weekday = const Value.absent(),
+                Value<String?> mealType = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> value = const Value.absent(),
+                Value<String> mode = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DayRulesCompanion(
+                id: id,
+                householdId: householdId,
+                weekday: weekday,
+                mealType: mealType,
+                kind: kind,
+                value: value,
+                mode: mode,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> householdId = const Value.absent(),
+                required int weekday,
+                Value<String?> mealType = const Value.absent(),
+                required String kind,
+                Value<String?> value = const Value.absent(),
+                Value<String> mode = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => DayRulesCompanion.insert(
+                id: id,
+                householdId: householdId,
+                weekday: weekday,
+                mealType: mealType,
+                kind: kind,
+                value: value,
+                mode: mode,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DayRulesTable, DayRuleRow>(table),
+                  BaseReferences<_$AppDatabase, $DayRulesTable, DayRuleRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DayRulesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DayRulesTable,
+      DayRuleRow,
+      $$DayRulesTableFilterComposer,
+      $$DayRulesTableOrderingComposer,
+      $$DayRulesTableAnnotationComposer,
+      $$DayRulesTableCreateCompanionBuilder,
+      $$DayRulesTableUpdateCompanionBuilder,
+      (DayRuleRow, BaseReferences<_$AppDatabase, $DayRulesTable, DayRuleRow>),
+      DayRuleRow,
+      PrefetchHooks Function()
     >;
 typedef $$ShoppingSourcesTableCreateCompanionBuilder =
     ShoppingSourcesCompanion Function({
@@ -17647,6 +20580,8 @@ class $AppDatabaseManager {
       $$RecipesTableTableManager(_db, _db.recipes);
   $$RecipeVersionsTableTableManager get recipeVersions =>
       $$RecipeVersionsTableTableManager(_db, _db.recipeVersions);
+  $$DayTimeBudgetsTableTableManager get dayTimeBudgets =>
+      $$DayTimeBudgetsTableTableManager(_db, _db.dayTimeBudgets);
   $$PantryItemsTableTableManager get pantryItems =>
       $$PantryItemsTableTableManager(_db, _db.pantryItems);
   $$ShoppingListsTableTableManager get shoppingLists =>
@@ -17659,6 +20594,10 @@ class $AppDatabaseManager {
       $$WeekTemplatesTableTableManager(_db, _db.weekTemplates);
   $$MealPlanEntriesTableTableManager get mealPlanEntries =>
       $$MealPlanEntriesTableTableManager(_db, _db.mealPlanEntries);
+  $$CookSoonItemsTableTableManager get cookSoonItems =>
+      $$CookSoonItemsTableTableManager(_db, _db.cookSoonItems);
+  $$DayRulesTableTableManager get dayRules =>
+      $$DayRulesTableTableManager(_db, _db.dayRules);
   $$ShoppingSourcesTableTableManager get shoppingSources =>
       $$ShoppingSourcesTableTableManager(_db, _db.shoppingSources);
   $$ShoppingContributionsTableTableManager get shoppingContributions =>

@@ -11,6 +11,7 @@ import '../../domain/recipe.dart';
 import '../../providers.dart';
 import '../settings/ai_error_text.dart';
 import 'ai_preview.dart';
+import 'recipe_form_screen.dart';
 import 'recipe_providers.dart';
 import 'recipe_view.dart';
 
@@ -106,6 +107,22 @@ class _FromPhotoScreenState extends ConsumerState<FromPhotoScreen> {
     _notARecipe = false;
   });
 
+  Future<void> _editIngredient(int index) async {
+    final original = _result;
+    if (original == null || _saving) return;
+    final ingredient = await showRecipeIngredientEditor(
+      context,
+      initial: original.ingredients[index],
+      validateQuantity: true,
+    );
+    if (!mounted || ingredient == null || _result != original) return;
+    setState(
+      () => _result = original.copyWith(
+        ingredients: [...original.ingredients]..[index] = ingredient,
+      ),
+    );
+  }
+
   Future<void> _save(Recipe recipe, Uint8List photo) async {
     setState(() => _saving = true);
     final messenger = ScaffoldMessenger.of(context);
@@ -131,6 +148,7 @@ class _FromPhotoScreenState extends ConsumerState<FromPhotoScreen> {
               recipe: result,
               photoBytes: photo,
               saving: _saving,
+              onEditIngredient: _editIngredient,
               onSave: () => _save(result, photo),
               onRetry: _read,
               onDiscard: _reset,

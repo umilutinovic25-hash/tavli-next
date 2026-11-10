@@ -88,9 +88,12 @@ class RecipeEntity extends SyncEntity<$RecipesTable, RecipeRow> {
     'source': r.source,
     'ingredients': jsonDecode(r.ingredientsJson),
     'steps': jsonDecode(r.stepsJson),
+    'step_links': _decodeOrNull(r.stepLinksJson),
     'image_path': photoFileName(r.imagePath),
     'answered_by': r.answeredBy,
     'source_url': r.sourceUrl,
+    'active_minutes': r.activeMinutes,
+    'total_minutes': r.totalMinutes,
     'created_at': _ts(r.createdAt),
   };
 
@@ -104,12 +107,53 @@ class RecipeEntity extends SyncEntity<$RecipesTable, RecipeRow> {
     source: Value(j['source']! as String),
     ingredientsJson: Value(_json(j['ingredients'])),
     stepsJson: Value(_json(j['steps'])),
+    stepLinksJson: Value(_jsonOrNull(j['step_links'])),
     imagePath: Value(photoLocalPath(j['image_path'] as String?)),
     answeredBy: Value(j['answered_by'] as String?),
     sourceUrl: Value(j['source_url'] as String?),
+    activeMinutes: Value(j['active_minutes'] as int?),
+    totalMinutes: Value(j['total_minutes'] as int?),
     createdAt: Value(_date(j['created_at'])),
     updatedAt: Value(_date(j['updated_at'] ?? j['created_at'])),
   );
+}
+
+class DayTimeBudgetEntity
+    extends SyncEntity<$DayTimeBudgetsTable, DayTimeBudgetRow> {
+  const DayTimeBudgetEntity();
+  @override
+  String get name => 'day_time_budget';
+  @override
+  String get remoteTable => 'day_time_budgets';
+  @override
+  EntityScope get scope => EntityScope.household;
+  @override
+  $DayTimeBudgetsTable table(AppDatabase db) => db.dayTimeBudgets;
+  @override
+  Expression<String> idColumn($DayTimeBudgetsTable t) => t.id;
+  @override
+  GeneratedColumn<String> scopeColumn($DayTimeBudgetsTable t) => t.householdId;
+
+  @override
+  Map<String, Object?> toRemote(DayTimeBudgetRow r) => {
+    'id': r.id,
+    'household_id': r.householdId,
+    'weekday': r.weekday,
+    'max_active_minutes': r.maxActiveMinutes,
+    'window_start': r.windowStart,
+    'window_end': r.windowEnd,
+  };
+
+  @override
+  DayTimeBudgetsCompanion fromRemote(Map<String, Object?> j) =>
+      DayTimeBudgetsCompanion(
+        id: Value(j['id']! as String),
+        householdId: Value(j['household_id'] as String?),
+        weekday: Value(j['weekday']! as int),
+        maxActiveMinutes: Value(j['max_active_minutes'] as int?),
+        windowStart: Value(j['window_start'] as int?),
+        windowEnd: Value(j['window_end'] as int?),
+      );
 }
 
 class RecipeVersionEntity
@@ -411,6 +455,10 @@ class MealPlanEntryEntity
     'is_cooked': r.isCooked,
     'servings': r.servings,
     'recipe_snapshot': _decodeOrNull(r.recipeSnapshotJson),
+    'kind': r.kind,
+    'away_reason': r.awayReason,
+    'away_note': r.awayNote,
+    'rule_overrides': _decodeOrNull(r.ruleOverridesJson),
   };
 
   @override
@@ -426,7 +474,93 @@ class MealPlanEntryEntity
         isCooked: Value(j['is_cooked'] as bool? ?? false),
         servings: Value(j['servings'] as int?),
         recipeSnapshotJson: Value(_jsonOrNull(j['recipe_snapshot'])),
+        kind: Value(j['kind'] as String? ?? 'cook'),
+        awayReason: Value(j['away_reason'] as String?),
+        awayNote: Value(j['away_note'] as String?),
+        ruleOverridesJson: Value(_jsonOrNull(j['rule_overrides'])),
       );
+}
+
+class CookSoonItemEntity
+    extends SyncEntity<$CookSoonItemsTable, CookSoonItemRow> {
+  const CookSoonItemEntity();
+  @override
+  String get name => 'cook_soon_item';
+  @override
+  String get remoteTable => 'cook_soon_items';
+  @override
+  EntityScope get scope => EntityScope.household;
+  @override
+  List<String> get extraParents => const ['recipe'];
+  @override
+  $CookSoonItemsTable table(AppDatabase db) => db.cookSoonItems;
+  @override
+  Expression<String> idColumn($CookSoonItemsTable t) => t.id;
+  @override
+  GeneratedColumn<String> scopeColumn($CookSoonItemsTable t) => t.householdId;
+
+  @override
+  Map<String, Object?> toRemote(CookSoonItemRow r) => {
+    'id': r.id,
+    'household_id': r.householdId,
+    'recipe_id': r.recipeId,
+    'recipe_snapshot': jsonDecode(r.recipeSnapshotJson),
+    'servings': r.servings,
+    'position': r.position,
+    'created_at': _ts(r.createdAt),
+  };
+
+  @override
+  CookSoonItemsCompanion fromRemote(Map<String, Object?> j) =>
+      CookSoonItemsCompanion(
+        id: Value(j['id']! as String),
+        householdId: Value(j['household_id'] as String?),
+        recipeId: Value(j['recipe_id'] as String?),
+        recipeSnapshotJson: Value(_json(j['recipe_snapshot'])),
+        servings: Value(j['servings']! as int),
+        position: Value(j['position'] as int? ?? 0),
+        createdAt: Value(_date(j['created_at'])),
+      );
+}
+
+class DayRuleEntity extends SyncEntity<$DayRulesTable, DayRuleRow> {
+  const DayRuleEntity();
+  @override
+  String get name => 'day_rule';
+  @override
+  String get remoteTable => 'day_rules';
+  @override
+  EntityScope get scope => EntityScope.household;
+  @override
+  $DayRulesTable table(AppDatabase db) => db.dayRules;
+  @override
+  Expression<String> idColumn($DayRulesTable t) => t.id;
+  @override
+  GeneratedColumn<String> scopeColumn($DayRulesTable t) => t.householdId;
+
+  @override
+  Map<String, Object?> toRemote(DayRuleRow r) => {
+    'id': r.id,
+    'household_id': r.householdId,
+    'weekday': r.weekday,
+    'meal_type': r.mealType,
+    'kind': r.kind,
+    'value': r.value,
+    'mode': r.mode,
+    'created_at': _ts(r.createdAt),
+  };
+
+  @override
+  DayRulesCompanion fromRemote(Map<String, Object?> j) => DayRulesCompanion(
+    id: Value(j['id']! as String),
+    householdId: Value(j['household_id'] as String?),
+    weekday: Value(j['weekday']! as int),
+    mealType: Value(j['meal_type'] as String?),
+    kind: Value(j['kind']! as String),
+    value: Value(j['value'] as String?),
+    mode: Value(j['mode'] as String? ?? 'required'),
+    createdAt: Value(_date(j['created_at'])),
+  );
 }
 
 class RatingEntity extends SyncEntity<$RatingsTable, RatingRow> {
@@ -710,9 +844,12 @@ const profileEntity = 'profile';
 const List<SyncEntity<Table, Object?>> syncEntities = [
   RecipeEntity(),
   RecipeVersionEntity(),
+  DayTimeBudgetEntity(),
   MealPlanEntity(),
   WeekTemplateEntity(),
   MealPlanEntryEntity(),
+  CookSoonItemEntity(),
+  DayRuleEntity(),
   ShoppingListEntity(),
   ShoppingItemEntity(),
   PantryItemEntity(),
