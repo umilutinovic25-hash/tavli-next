@@ -37,6 +37,13 @@ class ProfileScreen extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go('/profile/ai-keys'),
           ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: const Text('Politika privatnosti'),
+            subtitle: const Text('Koje podatke čuvamo i zašto'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go('/profile/privacy'),
+          ),
           if (kDebugMode)
             ListTile(
               leading: const Icon(Icons.animation),
