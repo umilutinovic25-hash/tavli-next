@@ -4,7 +4,7 @@ import '../../domain/household.dart';
 import '../../domain/household_role.dart';
 
 /// Radnje vlasnika nad drugim članom.
-enum MemberAction { remove }
+enum MemberAction { remove, transfer }
 
 /// Ime člana kako ga vide ostali.
 String memberName(HouseholdMember m) => m.displayName ?? 'Član bez imena';
@@ -44,6 +44,10 @@ class MemberTile extends StatelessWidget {
             ? PopupMenuButton<MemberAction>(
                 onSelected: onAction,
                 itemBuilder: (_) => const [
+                  PopupMenuItem(
+                    value: MemberAction.transfer,
+                    child: Text('Prenesi vlasništvo'),
+                  ),
                   PopupMenuItem(
                     value: MemberAction.remove,
                     child: Text('Ukloni iz domaćinstva'),

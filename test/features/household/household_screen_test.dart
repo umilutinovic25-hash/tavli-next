@@ -300,4 +300,151 @@ void main() {
       });
     }
   });
+
+  group('napuštanje i prenos', () {
+    FakeBackend anaIsMember() {
+      final backend = FakeBackend();
+      final owner = backend.server.userFor('vlasnik@mail.com');
+      final home = backend.server.households[owner]!;
+      backend.server.householdNames[home] = 'Kod Vlasnika';
+      backend.server.addMember(home, backend.server.userFor(testEmail));
+      return backend;
+    }
+
+    FakeBackend anaOwnsWithMarko() {
+      final backend = FakeBackend();
+      final ana = backend.server.userFor(testEmail);
+      final marko = backend.server.userFor('marko@mail.com');
+      backend.server.profiles[marko]!['display_name'] = 'Marko';
+      backend.server.addMember(backend.server.households[ana]!, marko);
+      return backend;
+    }
+
+    Future<void> confirmIn(WidgetTester tester, String action) async {
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(action),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> openMenu(WidgetTester tester, String name) async {
+      final menu = find.descendant(
+        of: find.ancestor(of: find.text(name), matching: find.byType(ListTile)),
+        matching: find.byType(PopupMenuButton<MemberAction>),
+      );
+      await tester.ensureVisible(menu);
+      await tester.tap(menu);
+      await tester.pumpAndSettle();
+    }
+
+    testTavli('član napušta domaćinstvo i vraća se u svoje', (tester) async {
+      await pumpTavli(
+        tester,
+        location: '/profile/household',
+        backend: anaIsMember(),
+      );
+      expect(find.text('Kod Vlasnika'), findsWidgets);
+
+      await tapButton(tester, 'Napusti domaćinstvo');
+      expect(find.text('Napustiti domaćinstvo?'), findsOneWidget);
+      expect(
+        find.text(
+          'Vratićeš se u svoje domaćinstvo i više nećeš videti ove podatke.',
+        ),
+        findsOneWidget,
+      );
+      await confirmIn(tester, 'Napusti domaćinstvo');
+
+      expect(find.text('Domaćinstvo je napušteno.'), findsOneWidget);
+      expect(find.text('Kod Vlasnika'), findsNothing);
+      expect(find.text('Moje domaćinstvo'), findsWidgets);
+    });
+
+    testTavli('vlasnik sa članovima mora prvo da prenese vlasništvo', (
+      tester,
+    ) async {
+      await pumpTavli(
+        tester,
+        location: '/profile/household',
+        backend: anaOwnsWithMarko(),
+      );
+      expect(button('Napusti domaćinstvo'), findsNothing);
+      expect(
+        find.text('Pre napuštanja prenesi vlasništvo drugom članu.'),
+        findsOneWidget,
+      );
+    });
+
+    testTavli('vlasnik jedinog domaćinstva nema napuštanje ni prenos', (
+      tester,
+    ) async {
+      await pumpTavli(tester, location: '/profile/household');
+      expect(button('Napusti domaćinstvo'), findsNothing);
+      expect(
+        find.text('Pre napuštanja prenesi vlasništvo drugom članu.'),
+        findsNothing,
+      );
+      expect(find.byType(PopupMenuButton<MemberAction>), findsNothing);
+    });
+
+    testTavli('prenos vlasništva menja uloge', (tester) async {
+      await pumpTavli(
+        tester,
+        location: '/profile/household',
+        backend: anaOwnsWithMarko(),
+      );
+      await openMenu(tester, 'Marko');
+      await tester.tap(find.text('Prenesi vlasništvo').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Preneti vlasništvo na Marko?'), findsOneWidget);
+      expect(
+        find.text(
+          'Ti postaješ član i više ne možeš da pozivaš ni uklanjaš članove.',
+        ),
+        findsOneWidget,
+      );
+      await confirmIn(tester, 'Prenesi vlasništvo');
+
+      expect(find.text('Vlasništvo je preneto.'), findsOneWidget);
+      expect(button('Pozovi člana'), findsNothing);
+      expect(find.byType(PopupMenuButton<MemberAction>), findsNothing);
+    });
+
+    testTavli('server odbije jer član više nije u domaćinstvu', (tester) async {
+      final backend = anaOwnsWithMarko();
+      await pumpTavli(tester, location: '/profile/household', backend: backend);
+      await openMenu(tester, 'Marko');
+      await tester.tap(find.text('Prenesi vlasništvo').last);
+      await tester.pumpAndSettle();
+      final ana = backend.server.userFor(testEmail);
+      final marko = backend.server.userFor('marko@mail.com');
+      backend.server.members[backend.server.households[ana]!]!.remove(marko);
+      await confirmIn(tester, 'Prenesi vlasništvo');
+
+      expect(
+        find.text('Taj korisnik više nije član domaćinstva.'),
+        findsOneWidget,
+      );
+      expect(find.text('Marko'), findsNothing);
+    });
+
+    testTavli('telefon, tekst 2×: dijalog napuštanja bez prelivanja', (
+      tester,
+    ) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await pumpTavli(
+        tester,
+        location: '/profile/household',
+        size: const Size(390, 844),
+        backend: anaIsMember(),
+      );
+      await tapButton(tester, 'Napusti domaćinstvo');
+      expect(find.text('Napustiti domaćinstvo?'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
 }

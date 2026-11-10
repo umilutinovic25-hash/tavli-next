@@ -53,10 +53,36 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
           action: 'Ukloni iz domaćinstva',
         );
         if (!ok) return;
-        _show(
-          (await ref.read(householdActionsProvider).removeMember(m)).message,
+        await _finish(await ref.read(householdActionsProvider).removeMember(m));
+      case MemberAction.transfer:
+        final ok = await _confirm(
+          title: 'Preneti vlasništvo na $name?',
+          body:
+              'Ti postaješ član i više ne možeš da pozivaš ni uklanjaš '
+              'članove.',
+          action: 'Prenesi vlasništvo',
+        );
+        if (!ok) return;
+        await _finish(
+          await ref.read(householdActionsProvider).transferOwnership(m),
         );
     }
+  }
+
+  Future<void> _leave() async {
+    final ok = await _confirm(
+      title: 'Napustiti domaćinstvo?',
+      body: 'Vratićeš se u svoje domaćinstvo i više nećeš videti ove podatke.',
+      action: 'Napusti domaćinstvo',
+    );
+    if (!ok) return;
+    await _finish(await ref.read(householdActionsProvider).leave());
+  }
+
+  /// Poruka ishoda; posle odbijanja lista se usklađuje sa serverom.
+  Future<void> _finish(HouseholdOutcome outcome) async {
+    _show(outcome.message);
+    if (outcome is HouseholdFailed) await _refresh();
   }
 
   Future<bool> _confirm({
@@ -127,6 +153,21 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
                     const InvitesSection(),
                     const SizedBox(height: 16),
                   ],
+                  if (account.role != 'owner')
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: OutlinedButton.icon(
+                        onPressed: _leave,
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Napusti domaćinstvo'),
+                      ),
+                    )
+                  else if (members.length > 1)
+                    Text(
+                      'Pre napuštanja prenesi vlasništvo drugom članu.',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  const SizedBox(height: 8),
                   Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: OutlinedButton.icon(
