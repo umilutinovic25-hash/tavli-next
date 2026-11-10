@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:supabase/supabase.dart';
 
+import '../domain/household.dart';
+import '../domain/household_role.dart';
 import 'auth_gateway.dart';
 
 /// Profil i domaćinstvo prijavljene osobe kako ih vidi server.
@@ -15,6 +17,7 @@ class RemoteAccount {
     required this.householdName,
     required this.role,
     this.displayName,
+    this.memberships = const [],
   });
 
   final String userId;
@@ -23,6 +26,10 @@ class RemoteAccount {
   final String householdId;
   final String householdName;
   final String role;
+
+  /// Sva članstva, od poslednjeg pridruživanja ka najstarijem. Polja iznad
+  /// opisuju prvo (poslednje pridruženo) članstvo.
+  final List<Membership> memberships;
 }
 
 /// Zašto brisanje naloga nije uspelo; na uređaju se tada ništa ne briše.
@@ -81,12 +88,11 @@ class SupabaseAccountApi implements AccountApi {
               .limit(1),
           await _client.rest
               .from('household_members')
-              .select('household_id, role, households(name)')
+              .select('household_id, role, joined_at, households(name)')
               .eq('user_id', uid)
               // Posle pozivnice korisnik ima i lično i pridruženo
-              // domaćinstvo; aktivno je ono kome se poslednje pridružio.
-              .order('joined_at', ascending: false)
-              .limit(1),
+              // domaćinstvo; prvo je ono kome se poslednje pridružio.
+              .order('joined_at', ascending: false),
         ),
       );
       if (profiles.isNotEmpty && members.isNotEmpty) {
@@ -100,11 +106,32 @@ class SupabaseAccountApi implements AccountApi {
           householdId: m['household_id'] as String,
           householdName: household?['name'] as String? ?? 'Moje domaćinstvo',
           role: m['role'] as String? ?? 'owner',
+          memberships: [for (final row in members) _membership(row)],
         );
       }
       if (attempt == _attempts) throw const Unavailable();
       await Future<void>.delayed(retryDelay);
     }
+  }
+
+  /// Red članstva; nepoznata uloga znači da server i aplikacija nisu
+  /// usklađeni, pa nalog trenutno nije dostupan.
+  static Membership _membership(Map<String, dynamic> row) {
+    final household = row['households'] as Map<String, dynamic>?;
+    final HouseholdRole role;
+    try {
+      role = HouseholdRole.parse(row['role'] as String? ?? 'owner');
+    } on FormatException {
+      throw const Unavailable();
+    }
+    return Membership(
+      householdId: row['household_id'] as String,
+      householdName: household?['name'] as String? ?? 'Moje domaćinstvo',
+      role: role,
+      joinedAt:
+          DateTime.tryParse(row['joined_at'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+    );
   }
 
   @override

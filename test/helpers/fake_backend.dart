@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:tavli/account/account_api.dart';
 import 'package:tavli/account/auth_gateway.dart';
+import 'package:tavli/domain/household.dart';
+import 'package:tavli/domain/household_role.dart';
 import 'package:tavli/sync/sync_remote.dart';
 
 /// Server u memoriji: nalozi sa domaćinstvom, tabele sa upsert-om po id-ju,
@@ -388,6 +390,14 @@ class FakeAccountApi implements AccountApi {
       householdId: server.households[uid]!,
       householdName: 'Moje domaćinstvo',
       role: 'owner',
+      memberships: [
+        Membership(
+          householdId: server.households[uid]!,
+          householdName: 'Moje domaćinstvo',
+          role: HouseholdRole.owner,
+          joinedAt: DateTime.utc(2026, 11),
+        ),
+      ],
     );
   }
 

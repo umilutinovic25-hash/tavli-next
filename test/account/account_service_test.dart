@@ -16,6 +16,7 @@ import 'package:tavli/ai/ai_models.dart';
 import 'package:tavli/ai/key_store.dart';
 import 'package:tavli/data/database.dart';
 import 'package:tavli/domain/account.dart';
+import 'package:tavli/domain/household_role.dart';
 
 import '../helpers/fake_backend.dart';
 import '../helpers/fake_photo_store.dart';
@@ -53,6 +54,7 @@ void main() {
     final membership = {
       'household_id': 'h1',
       'role': 'owner',
+      'joined_at': '2026-11-01T10:00:00Z',
       'households': {'name': 'Moje domaćinstvo'},
     };
 
@@ -114,6 +116,40 @@ void main() {
       expect(a.householdId, 'h2');
       expect(a.householdName, 'Kod Marka');
       expect(a.role, 'member');
+    });
+
+    test('vraća sva članstva redom sa servera, bez limita', () async {
+      handler = (r) {
+        if (!r.url.path.endsWith('/household_members')) {
+          return jsonResponse([profile]);
+        }
+        return jsonResponse([
+          {
+            'household_id': 'h2',
+            'role': 'member',
+            'joined_at': '2026-11-10T10:00:00Z',
+            'households': {'name': 'Kod Marka'},
+          },
+          {
+            'household_id': 'h1',
+            'role': 'owner',
+            'joined_at': '2026-11-01T10:00:00Z',
+            'households': {'name': 'Moje domaćinstvo'},
+          },
+        ]);
+      };
+      final a = await api().fetch();
+      expect(a.memberships.map((m) => m.householdId), ['h2', 'h1']);
+      expect(a.memberships.first.householdName, 'Kod Marka');
+      expect(a.memberships.first.role, HouseholdRole.member);
+      expect(a.memberships.last.joinedAt, DateTime.utc(2026, 11, 1, 10));
+      expect(a.householdId, 'h2');
+      final m = requests.lastWhere(
+        (r) => r.url.path.endsWith('/household_members'),
+      );
+      expect(m.url.queryParameters['order'], startsWith('joined_at.desc'));
+      expect(m.url.queryParameters.containsKey('limit'), isFalse);
+      expect(m.url.queryParameters['select'], contains('joined_at'));
     });
 
     test('ponavlja dok red iz okidača ne postane vidljiv', () async {
