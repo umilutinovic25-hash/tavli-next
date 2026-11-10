@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase/supabase.dart';
 
@@ -14,6 +16,7 @@ import 'account/supabase_config.dart';
 import 'ai/ai_router.dart';
 import 'ai/chain_config.dart';
 import 'ai/chat_client.dart';
+import 'ai/debug_file_storage.dart';
 import 'ai/key_store.dart';
 import 'ai/meal_plan_ai.dart';
 import 'ai/recipe_ai.dart';
@@ -43,7 +46,13 @@ final localPreviewProvider = Provider<bool>(
 
 final secretStorageProvider = Provider<SecretStorage>(
   (ref) => storageForEnvironment(
-    const KeychainSecretStorage(),
+    debugFileSecretsAllowed(
+          debugMode: kDebugMode,
+          isMacOS: Platform.isMacOS,
+          environment: Platform.environment,
+        )
+        ? DebugFileSecretStorage()
+        : const KeychainSecretStorage(),
     ref.watch(supabaseConfigProvider),
     preview: ref.watch(localPreviewProvider),
   ),
