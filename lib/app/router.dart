@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../account/auth_controller.dart';
 import '../features/account/name_screen.dart';
 import '../features/account/sign_in_screen.dart';
+import '../features/pantry/pantry_edit_screen.dart';
+import '../features/pantry/pantry_form_screen.dart';
+import '../features/pantry/pantry_screen.dart';
 import '../features/planning/plan_preview_screen.dart';
 import '../features/planning/plan_screen.dart';
 import '../features/planning/plan_setup_screen.dart';
@@ -17,9 +20,7 @@ import '../features/settings/animations_gallery_screen.dart';
 import '../features/settings/appearance_screen.dart';
 import '../features/settings/profile_screen.dart';
 import '../features/shopping/shopping_screen.dart';
-import 'animations/empty_fridge.dart';
 import 'home_shell.dart';
-import 'placeholder_screen.dart';
 
 /// Kuda vodi stanje prijave: bez naloga samo "Prijava", bez imena samo
 /// korak sa imenom (FR-001). Tražena adresa se pamti u `from`.
@@ -167,11 +168,18 @@ GoRouter createRouter({
           routes: [
             GoRoute(
               path: '/pantry',
-              builder: (context, state) => const EmptyStateScreen(
-                art: EmptyFridge(),
-                title: 'Još nema unetih namirnica',
-                body: 'Ovde ćeš pratiti namirnice koje imaš kod kuće.',
-              ),
+              builder: (context, state) => const PantryScreen(),
+              routes: [
+                GoRoute(
+                  path: 'new',
+                  builder: (context, state) => const PantryFormScreen(),
+                ),
+                GoRoute(
+                  path: ':id/edit',
+                  builder: (context, state) =>
+                      PantryEditScreen(id: state.pathParameters['id']!),
+                ),
+              ],
             ),
           ],
         ),

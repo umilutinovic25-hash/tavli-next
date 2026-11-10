@@ -683,6 +683,7 @@ void main() {
           db,
           scope: home,
           writer: writer,
+          shopping: shop,
           clock: () => now,
         );
         await plan('p1', mon, mon.addDays(6));

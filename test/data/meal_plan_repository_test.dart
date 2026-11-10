@@ -346,6 +346,8 @@ void main() {
       String name, {
       bool confirmed = true,
       String home = 'home-one',
+      double? quantity,
+      DateTime? expiresAt,
     }) => db
         .into(db.pantryItems)
         .insert(
@@ -356,11 +358,15 @@ void main() {
             addedAt: DateTime.utc(2026),
             householdId: Value(home),
             confirmedAt: Value(confirmed ? DateTime.utc(2026) : null),
+            quantity: Value(quantity),
+            expiresAt: Value(expiresAt),
           ),
         );
     await pantry('a', 'pirinač');
     await pantry('b', 'brašno', confirmed: false);
     await pantry('c', 'šećer', home: 'home-two');
+    await pantry('d', 'potrošeno', quantity: 0);
+    await pantry('e', 'isteklo', quantity: 1, expiresAt: DateTime.utc(2000));
 
     expect(await repo.confirmedPantryNames(), ['pirinač']);
   });
