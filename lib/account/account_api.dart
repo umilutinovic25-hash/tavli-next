@@ -83,6 +83,9 @@ class SupabaseAccountApi implements AccountApi {
               .from('household_members')
               .select('household_id, role, households(name)')
               .eq('user_id', uid)
+              // Posle pozivnice korisnik ima i lično i pridruženo
+              // domaćinstvo; aktivno je ono kome se poslednje pridružio.
+              .order('joined_at', ascending: false)
               .limit(1),
         ),
       );

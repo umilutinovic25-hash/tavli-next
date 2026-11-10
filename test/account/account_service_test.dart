@@ -74,6 +74,48 @@ void main() {
       expect(m.url.queryParameters['user_id'], 'eq.u1');
     });
 
+    test('sa dva članstva bira poslednje pridruženo domaćinstvo', () async {
+      // Lično domaćinstvo je prvo u tabeli; bez `order` Postgres ga vraća
+      // prvo, pa bi korisnik posle pozivnice ostao u pogrešnom domaćinstvu.
+      final rows = [
+        {
+          'household_id': 'h1',
+          'role': 'owner',
+          'joined_at': '2026-11-01T10:00:00Z',
+          'households': {'name': 'Moje domaćinstvo'},
+        },
+        {
+          'household_id': 'h2',
+          'role': 'member',
+          'joined_at': '2026-11-10T10:00:00Z',
+          'households': {'name': 'Kod Marka'},
+        },
+      ];
+      handler = (r) {
+        if (!r.url.path.endsWith('/household_members')) {
+          return jsonResponse([profile]);
+        }
+        final sorted = [...rows];
+        if ((r.url.queryParameters['order'] ?? '').startsWith(
+          'joined_at.desc',
+        )) {
+          sorted.sort(
+            (a, b) => (b['joined_at']! as String).compareTo(
+              a['joined_at']! as String,
+            ),
+          );
+        }
+        final limit = int.tryParse(r.url.queryParameters['limit'] ?? '');
+        return jsonResponse(
+          limit == null ? sorted : sorted.take(limit).toList(),
+        );
+      };
+      final a = await api().fetch();
+      expect(a.householdId, 'h2');
+      expect(a.householdName, 'Kod Marka');
+      expect(a.role, 'member');
+    });
+
     test('ponavlja dok red iz okidača ne postane vidljiv', () async {
       var calls = 0;
       handler = (r) {
