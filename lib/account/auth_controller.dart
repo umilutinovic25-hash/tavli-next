@@ -142,9 +142,9 @@ class AuthController extends Notifier<AuthState> {
   Future<void> restoreSession() async {
     if (!ref.mounted) return;
     final store = _store, gateway = _gateway;
-    final json = await store.read();
-    if (json == null) return;
     try {
+      final json = await store.read();
+      if (json == null) return;
       final session = await gateway.restore(json);
       if (ref.mounted) await store.write(session.json);
       // Članstvo je moglo da se promeni na drugom uređaju (uklanjanje,
@@ -156,6 +156,9 @@ class AuthController extends Notifier<AuthState> {
       // Isto.
     } on AuthFailure catch (f) {
       if (ref.mounted) await sessionExpired(accountGone: f is AccountGone);
+    } on SecretStorageException {
+      // Keychain trenutno ne odgovara (zaključan uređaj, ad-hoc potpis);
+      // ostaje prijavljen iz keša, pokušava se pri sledećem povratku.
     }
   }
 
