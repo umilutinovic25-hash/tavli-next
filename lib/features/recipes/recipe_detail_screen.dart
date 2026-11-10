@@ -8,6 +8,7 @@ import '../planning/planning_providers.dart';
 import 'cooking_screen.dart';
 import 'ingredient_review_sheet.dart';
 import 'keep_screen_on.dart';
+import 'pan_converter_dialog.dart';
 import 'recipe_json_actions.dart';
 import 'recipe_providers.dart';
 import 'recipe_view.dart';
@@ -210,6 +211,18 @@ class _DetailState extends ConsumerState<_Detail> {
                         label: const Text('Proveri sastojke'),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: OutlinedButton.icon(
+                      onPressed: () => showDialog<void>(
+                        context: context,
+                        builder: (_) => PanConverterDialog(recipe: recipe),
+                      ),
+                      icon: const Icon(Icons.calculate_outlined),
+                      label: const Text('Preračunaj kalup'),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   RecipeView(recipe),
