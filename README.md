@@ -1,5 +1,9 @@
 # Tavli
 
+> **Tavli Next — privatni razvojni nastavak.** Originalni Tavli kod i istorija su sačuvani iz [anjahubac/tavli](https://github.com/anjahubac/tavli), commit `1eca2c3`. Ovaj paket dodaje arhitekturu, plan za 90 predloga i proverljive reference iz izvornog koda; ne tvrdi da je tih 90 funkcija implementirano.
+>
+> Počni od [arhitekture](ARCHITECTURE.md), [redosleda realizacije](tasks/plan.md), [detaljnog plana svih 90 funkcija](tasks/FEATURE-PLAN.md), [indeksa zadataka](tasks/todo.md), [istraživanja u šest paketa](research/streams.json) i [YouTube nalaza](research/YOUTUBE.md). [Poreklo i licence](docs/expansion/UPSTREAM.md), [prikupljeni kod](research/REFERENCE-CODE.md). Provera dokumentacionog paketa: `python3 tools/verify_blueprint.py`.
+
 [Srpski](#srpski) | [English](#english)
 
 ## Srpski
