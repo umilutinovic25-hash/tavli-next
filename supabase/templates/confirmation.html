@@ -9,7 +9,7 @@
   <body style="margin:0;padding:0;background:#F8F7F2;">
     <!-- Pregled u listi poruka -->
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-      Potvrdi adresu jednim dodirom i odmah si u aplikaciji. Link važi 10 minuta.
+      Tvoj kod za prijavu je {{ .Token }}. Važi 10 minuta.
     </div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F8F7F2;">
       <tr>
@@ -28,22 +28,19 @@
                   Dobrodošli za sto!
                 </h1>
                 <p style="margin:0 0 24px;font-size:16px;line-height:1.5;color:#5C6660;">
-                  Još samo jedan korak: potvrdi da je ovo tvoja adresa. Otvori poruku na uređaju na kom je Tavli i dodirni dugme — aplikacija će te odmah prijaviti.
+                  Upiši ovaj kod u aplikaciju Tavli da potvrdiš adresu i prijaviš se. Lozinka ti nije potrebna.
                 </p>
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td align="center">
-                      <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#3D7A57;border-radius:12px;padding:16px 28px;font-size:17px;font-weight:700;color:#FFFFFF;text-decoration:none;">Potvrdi adresu</a>
+                    <td align="center" style="background:#E2EFE6;border-radius:12px;padding:20px 12px;">
+                      <span style="font-family:'SF Mono',Menlo,Consolas,'Courier New',monospace;font-size:34px;font-weight:700;letter-spacing:10px;color:#1F4A33;">{{ .Token }}</span>
                     </td>
                   </tr>
                 </table>
                 <p style="margin:16px 0 0;font-size:14px;line-height:1.5;color:#5C6660;text-align:center;">
-                  Link važi 10 minuta i može da se iskoristi samo jednom.
+                  Kod važi 10 minuta i može da se iskoristi samo jednom.
                 </p>
                 <hr style="border:none;border-top:1px solid #E5E3DB;margin:28px 0 20px;" />
-                <p style="margin:0 0 12px;font-size:14px;line-height:1.5;color:#5C6660;">
-                  Otvorio/la si poruku na drugom uređaju? Svejedno dodirni dugme da potvrdiš adresu, pa se vrati u Tavli i izaberi „Već sam potvrdio/la — pošalji mi kod“.
-                </p>
                 <p style="margin:0;font-size:14px;line-height:1.5;color:#5C6660;">
                   Ako nisi ti tražio/la prijavu, slobodno zanemari poruku. Bez potvrde se nalog ne otvara.
                 </p>
