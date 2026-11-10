@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/placeholder_screen.dart';
+import '../../app/section_heading.dart';
 import '../../app/tab_app_bar.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/plan_calendar.dart';
@@ -134,6 +135,14 @@ class _PlanView extends ConsumerWidget {
     final list = ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        if (MediaQuery.textScalerOf(context).scale(16) <= 20) ...[
+          const SectionHeading(
+            eyebrow: 'Plan obroka',
+            title: 'Tvoja nedelja, lakše.',
+            subtitle: 'Sve za sledeći obrok, na jednom mestu.',
+          ),
+          const SizedBox(height: 24),
+        ],
         if (plans.length > 1) ...[
           DropdownButtonFormField<String>(
             initialValue: plan.id,
@@ -167,7 +176,7 @@ class _PlanView extends ConsumerWidget {
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         FilledButton.icon(
           onPressed: () => context.go('/shopping'),
           icon: const Icon(Icons.shopping_basket_outlined),
@@ -232,11 +241,17 @@ class _PlanView extends ConsumerWidget {
             ],
           ),
         for (final day in days) ...[
-          const SizedBox(height: 12),
-          Text(
-            day == today ? '${dayLabel(day)} · danas' : dayLabel(day),
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: day == selected ? theme.colorScheme.primary : null,
+          const SizedBox(height: 20),
+          Semantics(
+            header: true,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                day == today ? '${dayLabel(day)} · danas' : dayLabel(day),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: day == selected ? theme.colorScheme.primary : null,
+                ),
+              ),
             ),
           ),
           for (final slot in plan.slots.where((s) => s.date == day))
@@ -289,10 +304,30 @@ class _PlanView extends ConsumerWidget {
                 Expanded(
                   child: openMeal == null
                       ? Center(
-                          child: Text(
-                            'Izaberi obrok da vidiš recept.',
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                          child: Padding(
+                            padding: const EdgeInsets.all(32),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.restaurant_outlined,
+                                  size: 64,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'Izaberi obrok',
+                                  style: theme.textTheme.headlineSmall,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Izaberi obrok da vidiš recept.',
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         )

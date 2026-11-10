@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/animations/empty_basket.dart';
 import '../../app/placeholder_screen.dart';
+import '../../app/section_heading.dart';
 import '../../app/tab_app_bar.dart';
 import '../../data/database.dart';
 import '../../data/shopping_repository.dart';
@@ -194,6 +195,11 @@ class _PlanPeriod extends ConsumerWidget {
     final all = shopping.value ?? const <PlanShoppingItem>[];
 
     final header = <Widget>[
+      const SectionHeading(
+        title: 'Nabavka',
+        subtitle: 'Od plana do pune korpe.',
+      ),
+      const SizedBox(height: 24),
       if (plans.length > 1) ...[
         DropdownButtonFormField<String>(
           initialValue: plan.id,
@@ -379,6 +385,11 @@ class _RecipeShopping extends ConsumerWidget {
     final preparations = ref.watch(preparationsProvider).value ?? const [];
     return ShoppingItemsList(
       header: [
+        const SectionHeading(
+          title: 'Nabavka',
+          subtitle: 'Od plana do pune korpe.',
+        ),
+        const SizedBox(height: 24),
         if (preparations.isNotEmpty) ...[
           Text(
             'Recepti u nabavci',

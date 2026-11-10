@@ -36,6 +36,7 @@ select is(
     'ratings:delete', 'ratings:insert', 'ratings:select', 'ratings:update',
     'recipe_versions:delete', 'recipe_versions:insert', 'recipe_versions:select', 'recipe_versions:update',
     'recipes:delete', 'recipes:insert', 'recipes:select', 'recipes:update',
+    'saved_recipe_searches:delete', 'saved_recipe_searches:insert', 'saved_recipe_searches:select', 'saved_recipe_searches:update',
     'shopping_contributions:delete', 'shopping_contributions:insert', 'shopping_contributions:select', 'shopping_contributions:update',
     'shopping_items:delete', 'shopping_items:insert', 'shopping_items:select', 'shopping_items:update',
     'shopping_lists:delete', 'shopping_lists:insert', 'shopping_lists:select', 'shopping_lists:update',

@@ -23,6 +23,7 @@ class RecipeSnapshot {
     this.steps = const [],
     this.prepMinutes,
     this.imagePath,
+    this.dictionaryVersion = 0,
   });
 
   factory RecipeSnapshot.fromRecipe(Recipe r) => RecipeSnapshot(
@@ -57,9 +58,11 @@ class RecipeSnapshot {
       steps: [for (final s in steps) s.toString()],
       prepMinutes: json['prepMinutes'] as int?,
       imagePath: json['imagePath'] as String?,
+      dictionaryVersion: json['dictionaryVersion'] as int? ?? 0,
     );
   }
 
+  final int dictionaryVersion;
   final String title;
   final int baseServings;
   final List<Ingredient> ingredients;
@@ -76,12 +79,25 @@ class RecipeSnapshot {
         steps: steps,
         prepMinutes: prepMinutes,
         imagePath: imagePath,
+        dictionaryVersion: dictionaryVersion,
       );
+
+  /// Version is frozen at approval; legacy snapshots are not rewritten.
+  RecipeSnapshot withCurrentDictionary() => RecipeSnapshot(
+    title: title,
+    baseServings: baseServings,
+    ingredients: ingredients,
+    steps: steps,
+    prepMinutes: prepMinutes,
+    imagePath: imagePath,
+    dictionaryVersion: 1,
+  );
 
   /// Isti ključevi kao recept u bazi (`Recipe.toAiJson`) i kao zapis koji
   /// migracija v5 pravi od postojećih obroka.
   Map<String, dynamic> toJson() => {
     'title': title,
+    if (dictionaryVersion != 0) 'dictionaryVersion': dictionaryVersion,
     'servings': baseServings,
     'prepMinutes': prepMinutes,
     'ingredients': [for (final i in ingredients) i.toJson()],

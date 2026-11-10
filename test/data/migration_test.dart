@@ -350,4 +350,56 @@ void main() {
     expect((await again.select(again.shoppingLists).get()).single.id, 'l1');
     expect(await again.select(again.shoppingSources).get(), isEmpty);
   });
+  test(
+    'migracija 5 → 6 čuva postojeće podatke i pravi tabelu pretraga',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('tavli-v6-');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File('${directory.path}/cache.sqlite');
+      final first = AppDatabase(NativeDatabase(file));
+      await first.customStatement(
+        "INSERT INTO app_settings (key, value) VALUES ('theme', 'dark')",
+      );
+      await first.customStatement('DROP TABLE saved_recipe_searches');
+      await first.customStatement('PRAGMA user_version = 5');
+      await first.close();
+      final upgraded = AppDatabase(NativeDatabase(file));
+      addTearDown(upgraded.close);
+      expect(
+        (await upgraded.select(upgraded.appSettings).get()).single.value,
+        'dark',
+      );
+      expect(
+        await upgraded.select(upgraded.savedRecipeSearches).get(),
+        isEmpty,
+      );
+    },
+  );
+  for (final version in [5, 6]) {
+    test('migracija $version → 8 čuva pretrage i uvodi šablone', () async {
+      final dir = await Directory.systemTemp.createTemp('tavli-week-merge-');
+      addTearDown(() => dir.delete(recursive: true));
+      final file = File('${dir.path}/cache.sqlite');
+      final before = AppDatabase(NativeDatabase(file));
+      await before.customStatement(
+        "INSERT INTO app_settings (key, value) VALUES ('theme', 'dark')",
+      );
+      await before.customStatement('DROP TABLE week_templates');
+      if (version == 5) {
+        await before.customStatement('DROP TABLE saved_recipe_searches');
+      } else {
+        await before.customStatement(
+          "INSERT INTO saved_recipe_searches (id, user_id, name, query, include_ingredient, exclude_ingredient) VALUES ('s', 'u', 'Brzo', 'pita', '', '')",
+        );
+      }
+      await before.customStatement('PRAGMA user_version = $version');
+      await before.close();
+      final after = AppDatabase(NativeDatabase(file));
+      addTearDown(after.close);
+      expect(await after.select(after.weekTemplates).get(), isEmpty);
+      final searches = await after.select(after.savedRecipeSearches).get();
+      expect(searches.length, version == 5 ? 0 : 1);
+      if (version == 6) expect(searches.single.name, 'Brzo');
+    });
+  }
 }

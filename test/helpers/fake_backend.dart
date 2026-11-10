@@ -87,6 +87,7 @@ class FakeServer {
     'supply_allocations': 'supply_allocation',
     'ratings': 'rating',
     'taste_profiles': 'taste_profile',
+    'saved_recipe_searches': 'saved_recipe_search',
   };
 
   /// Roditelji po stranim ključevima: dete obrisanog roditelja se preskače.

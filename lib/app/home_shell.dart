@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/account/sync_banner.dart';
 import 'router.dart';
+import 'tavli_brand.dart';
 
 /// Donji tabovi na telefonu, bočni meni na širem ekranu (macOS, tablet).
 class HomeShell extends StatelessWidget {
@@ -22,10 +23,27 @@ class HomeShell extends StatelessWidget {
         body: Row(
           children: [
             NavigationRail(
-              extended: width >= 1000,
-              labelType: width >= 1000
-                  ? NavigationRailLabelType.none
-                  : NavigationRailLabelType.all,
+              extended: true,
+              minExtendedWidth: 216,
+              minWidth: 80,
+              leading: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const TavliBrand(),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tvoja kuhinja',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              groupAlignment: -1,
+              labelType: NavigationRailLabelType.none,
               selectedIndex: shell.currentIndex,
               onDestinationSelected: _select,
               destinations: [
@@ -51,7 +69,7 @@ class HomeShell extends StatelessWidget {
       );
     }
     final navigation = NavigationBar(
-      height: largeText ? 64 : 80,
+      height: largeText ? 64 : 72,
       labelBehavior: largeText
           ? NavigationDestinationLabelBehavior.alwaysHide
           : NavigationDestinationLabelBehavior.alwaysShow,
@@ -73,48 +91,53 @@ class HomeShell extends StatelessWidget {
           Expanded(child: shell),
         ],
       ),
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: Theme.of(context).colorScheme.outlineVariant,
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+              borderRadius: BorderRadius.circular(24),
             ),
+            child: largeText
+                ? ColoredBox(
+                    color: Theme.of(context).colorScheme.surface,
+                    child: SafeArea(
+                      top: false,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          MediaQuery.removePadding(
+                            context: context,
+                            removeBottom: true,
+                            child: navigation,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                            child: ExcludeSemantics(
+                              child: Text(
+                                tabs[shell.currentIndex].label,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : navigation,
           ),
         ),
-        child: largeText
-            ? ColoredBox(
-                color: Theme.of(context).colorScheme.surface,
-                child: SafeArea(
-                  top: false,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      MediaQuery.removePadding(
-                        context: context,
-                        removeBottom: true,
-                        child: navigation,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                        child: ExcludeSemantics(
-                          child: Text(
-                            tabs[shell.currentIndex].label,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.labelLarge
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            : navigation,
       ),
     );
   }

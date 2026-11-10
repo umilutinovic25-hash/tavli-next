@@ -1,0 +1,610 @@
+{
+  "stream": "E",
+  "baseline_commit": "1eca2c3d14fb5dd9b25a42958aa018c8d8dfbb94",
+  "status": "research_complete_implementation_not_started",
+  "features": [
+    {
+      "id": "F008",
+      "title": "Režim kuvanja",
+      "current_state": "lib/features/recipes/recipe_view.dart: RecipeView.build samo ispisuje sastojke i numerisane string korake. lib/features/recipes/recipe_detail_screen.dart: RecipeDetailScreen koristi KeepScreenOnScope; lib/features/recipes/keep_screen_on.dart: KeepScreenOn čuva izbor u AppSettings. lib/features/planning/meal_entry_detail.dart: MealEntryDetail prikazuje odobreni snapshot; nema cooking session modela u lib/data/database.dart.",
+      "proposed_changes": [
+        "CookingSession {id,userId,householdId,recipeId?,mealEntryId?,recipeSnapshot,servings,status,currentStepId,checkedIngredientIds,completedStepIds,startedAt,finishedAt?}; snapshot je nepromenljiv tokom sesije. Sesija je lična; referencirani recept ostaje kućni.",
+        "Novi cooking controller koristi postojeće RecipeView/formatere, route i ScreenWakeLock interfejs; dugmad Dalje, Nazad, Završi kuvanje; završetak eksplicitno nudi setCooked, čekiranje ništa ne troši iz ostave."
+      ],
+      "dependencies": [
+        "G-SYNC",
+        "G-STEP",
+        "G-LIFECYCLE"
+      ],
+      "phase": "P1",
+      "scope_slices": [
+        "Legacy snapshot adapter i state machine sa testovima; jedna sesija iz recepta bez upisa u plan.",
+        "Persistirana lična sesija sa checklistom i nastavkom offline; ekran telefon/rail.",
+        "Ulaz iz MealEntryDetail i eksplicitni završetak kroz postojeći MealPlanRepository.setCooked; lifecycle i wakelock regresija."
+      ],
+      "acceptance_criteria": [
+        "Čekiranje koraka/sastojka ne menja Recipe, PantryItems ni ShoppingContributions.",
+        "Izmena biblioteke tokom kuvanja ne menja snapshot sesije; ponovni start daje novu sesiju.",
+        "Izlazak/odjava oslobađaju wake lock; povratak ga traži samo ako je izbor uključen i cooking ekran vidljiv."
+      ],
+      "verification": [
+        "Widget test 390x844 i 1280x800: čekiraj, izađi, nastavi; uporedi recept i ostavu pre/posle.",
+        "Fake repository: dvostruki tap Završi pravi jedan završetak; plan nije skuvan pre potvrde.",
+        "Proširiti test/features/recipes/keep_screen_on_test.dart; uređaj: background/resume, OS odbijanje lock-a, navigacija i reduced motion."
+      ]
+    },
+    {
+      "id": "F009",
+      "title": "Više imenovanih tajmera",
+      "current_state": "lib/app/animations/egg_timer.dart: EggTimer je vizuelna komponenta; demo odbrojavanje je u lib/features/settings/animations_gallery_screen.dart. Nema domena ni persistiranih kuhinjskih tajmera u lib/data/database.dart. lib/app/app.dart: _onResume obnavlja auth i sync, ne tajmere.",
+      "proposed_changes": [
+        "CookingTimer {id,sessionId,stepId?,label,durationMs,remainingAtCheckpointMs,state,generation,ownerDeviceId}; operacije start/pause/resume/cancel/acknowledge su idempotentne i po ID-u.",
+        "TimerClock vraća continuous monotonic elapsed + boot identity; TimerNotificationAdapter raspoređuje lokalni alarm sa timerId/generation. UTC checkpoint služi oporavku i prikazu, ne odbrojavanju u istoj boot sesiji."
+      ],
+      "dependencies": [
+        "F008",
+        "G-LIFECYCLE",
+        "G-SYNC"
+      ],
+      "phase": "P1",
+      "scope_slices": [
+        "Dva nezavisna foreground tajmera i fake monotonic clock.",
+        "Checkpoint, pauza, nastavak posle process death u istoj boot sesiji; OS alarm adapter i provera dozvola.",
+        "Boot/clock-discontinuity stanje i prikaz ograničenja; real device zaključavanje, Doze, force stop i reboot matrica."
+      ],
+      "acceptance_criteria": [
+        "Za A=60 s i B=90 s, posle 20 s A=40/B=70; otkazivanje A ostavlja B=70.",
+        "Promena zidnog sata +2 h u istoj boot sesiji ne menja preostalo vreme.",
+        "Ponovljen resume i zakašnjeli callback stare generation ne emituju dupli alarm; nijedan UI tick nije izvor istine.",
+        "Bez dozvole prikazati Obaveštenja nisu dostupna; nakon reboot-a bez pouzdanog kontinualnog vremena prikazati Proveri tajmer umesto izmišljene tačnosti."
+      ],
+      "verification": [
+        "Domain test sa fake continuous clock: sleep +30 s, wall jump, pause/resume, istovremeni rokovi, negativno vreme clamp na nulu.",
+        "Device test Android/iOS: lock, background, kill, force stop, reboot, ugašene notifikacije; izmeriti odstupanje i zabeležiti model/OS.",
+        "Dva naloga/uređaja: sync checkpoint ne zakazuje drugi lokalni alarm; odjava uklanja pending zahteve."
+      ]
+    },
+    {
+      "id": "F016",
+      "title": "Glasovni unos nabavke na srpskom",
+      "current_state": "lib/features/shopping/shopping_list_view.dart je postojeći UI nabavke; lib/data/shopping_repository.dart: ShoppingRepository.addManual(listId,name,quantity,unit,category) već piše stavku i outbox atomarno. pubspec.yaml nema speech adapter.",
+      "proposed_changes": [
+        "SpeechInput.probe(locale) -> SpeechCapability {requestedLocale,resolvedLocale,recognitionAvailable,onDeviceAvailable,permission,reason}; transcribe vraća transcript/final bez čuvanja audio snimka.",
+        "ShoppingVoiceDraft {transcript,name,quantity?,unit?,unresolvedTokens}; deterministički parser srpskih brojeva/jedinica, pregled i izmena pre jednog poziva addManual. Nejasno ne pretvarati u potvrđenu količinu.",
+        "F002 je opciona normalizacija potvrđenih sinonima; osnovni voice draft ne čeka taj rečnik."
+      ],
+      "dependencies": [
+        "G-SPEECH",
+        "G-SYNC"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Parser tekstualnog transkripta i draft pregled koriste isti addManual kao kucanje.",
+        "Android capability + mikrofon + push-to-talk; fallback na tekst.",
+        "iOS/macOS probe i stvarni srpski corpus; objaviti samo platforme/locale kombinacije koje prođu."
+      ],
+      "acceptance_criteria": [
+        "Dodaj dva litra mleka daje draft mleko,2,l; bez Potvrdi nema reda/outbox-a.",
+        "Isti final callback dva puta + jedan tap potvrde daju jednu stavku; partial rezultat ne upisuje.",
+        "Odbijena dozvola/nepodržan srpski/offline bez lokalnog modela ostavljaju kucanje upotrebljivim i pokazuju razlog."
+      ],
+      "verification": [
+        "Parser fixtures: dva litra, 1,5 kg, pola kilograma, bez količine i dvosmislene reči; porediti sa unapred navedenim draftom.",
+        "Fake speech stream partial/final/error/cancel + repository call count.",
+        "Fizički uređaji sr-RS/sr-Latn-RS kako ih platforma vrati, airplane mode i odbijene dozvole; ne pretpostaviti srpsku podršku."
+      ]
+    },
+    {
+      "id": "F028",
+      "title": "Veze sastojaka i koraka",
+      "current_state": "lib/domain/recipe.dart: Ingredient nema id, Recipe.steps je List<String>. lib/domain/shopping_source.dart: RecipeSnapshot.fromJson takođe čita string korake. lib/data/recipe_repository.dart: _toCompanion/_fromRow serijalizuju JSON; lib/sync/entities.dart: RecipeEntity prenosi ingredients/steps. Pozicioni indeksi nisu bezbedni pri reorder-u.",
+      "proposed_changes": [
+        "Proširiti postojeći Recipe/RecipeSnapshot sa verzionisanim RecipeStep {id,text,ingredientUses,timerSuggestions?,ovenSetting?}; Ingredient dobija stabilan lokalni UUID u receptu. IngredientUse {ingredientId,amount?,unit?,usageNote?} referencira postojeći sastojak.",
+        "Legacy string liste čitati preko adaptera; ID-jeve jednom dodeliti i persistirati pri migraciji, nikad nasumično pri svakom renderu. Ne uvesti drugu biblioteku recepata. Nepovezan korak prikazuje pun spisak; automatske veze samo predlog za potvrdu.",
+        "F022/F084 su partneri za koordinaciju formata i validatora, ne preduslovi koji blokiraju ručno povezivanje. Minimalni G-STEP adapter ne zahteva kompletnu F028 funkciju."
+      ],
+      "dependencies": [
+        "G-SYNC",
+        "G-STEP",
+        "G-FORMAT-COORDINATION"
+      ],
+      "phase": "P2; G-STEP minimalni adapter potreban u P1",
+      "scope_slices": [
+        "Definisati v2 JSON i kompatibilan legacy reader za recipe/version/plan/preparation snapshot; round-trip fixture.",
+        "Editor ručnih veza i prikaz količine uz korak; reorder/delete/undo.",
+        "AI/import/export adapteri i rolling-client guard; potvrđeni snapshotovi ne menjaju se retroaktivno."
+      ],
+      "acceptance_criteria": [
+        "Reorder sastojaka/koraka čuva veze po ID-u; uklanjanje daje vidljiv unresolved link i zahteva potvrdu.",
+        "Brašno 500 g podeljeno 300+200 g prikazuje obe upotrebe; 600 g ukupno se označava kao konflikt, ne menja tiho recept.",
+        "Recept v1 ostaje čitljiv sa identičnim tekstom i količinama; nepoznata raspodela ne izmišlja se."
+      ],
+      "verification": [
+        "Round-trip svi serializer-i: Recipe.toJson/fromJson, RecipeSnapshot, prethodne verzije, drift i SyncEntity.",
+        "Fixtures sa duplim nazivima, ponovljenim korakom, reorder, brisanjem i restore; veze ne prelaze na drugi sastojak.",
+        "Dva klijenta različitih schema: stariji ne sme upisom string liste obrisati v2 metapodatke; testirati zabranu pisanja ili server verzioni gate."
+      ]
+    },
+    {
+      "id": "F029",
+      "title": "Mediji uz korak",
+      "current_state": "Recipe.imagePath u lib/domain/recipe.dart predstavlja jednu sliku; lib/features/recipes/recipe_photo.dart: RecipePhoto i lib/data/recipe_photo_store.dart rade sa fotografijom recepta. lib/sync/photo_sync.dart i lib/sync/entities.dart: photoLocalPath koriste recipe_photos; nema per-step video ugovora.",
+      "proposed_changes": [
+        "StepMedia {id,stepId,kind,storageKey?,externalUrl?,caption,altText,provenance,rights,contentHash,mime,byteLength,durationMs?}; odvojiti dish/document/step u media contract-u sa streamom F.",
+        "Prvo sopstvena fotografija u privatnom storage-u i offline cache; potom kratak video uz vidljiv download/veličinu. Spoljni video je link sa izvorom, ne kopirani fajl; nema automatskog preuzimanja."
+      ],
+      "dependencies": [
+        "F028",
+        "F023",
+        "F065",
+        "G-SYNC"
+      ],
+      "phase": "P3",
+      "scope_slices": [
+        "Step photo upload + preview + lokalni thumbnail bez menjanja recipe image.",
+        "Privatne politike, retry/outbox i brisanje bez orphan fajlova.",
+        "Video capability/codec probe, ograničenje trajanja/veličine u spec-u i opcioni predownload."
+      ],
+      "acceptance_criteria": [
+        "Offline korak ostaje čitljiv kada medij nije preuzet; objašnjenje Medij nije dostupan.",
+        "Drugi nalog van domaćinstva ne može preuzeti privatni fajl; promena recepta ne prevezuje medij na drugi step.",
+        "Nema autoplay zvuka; alt tekst i caption su dostupni; otkazivanje upload-a ne ostavlja referencu na nepostojeći fajl."
+      ],
+      "verification": [
+        "Fake PhotoRemote: prekid veze, dupli upload retry, uklanjanje i ponovni download.",
+        "Lokalni Supabase pgTAP/storage test sa dva naloga i pripadnošću; provera media ownership pri promeni step-a.",
+        "Widget slow/missing cache, video unsupported codec, telefon/wide; real device memorija i lifecycle player dispose."
+      ]
+    },
+    {
+      "id": "F047",
+      "title": "Dnevnik kuvanja",
+      "current_state": "lib/data/database.dart: Ratings ima recipeId,stars,isComfortFood,comment,cookedAt,userId, ali nema cooking snapshot/result/photo. RecipeVersion u lib/domain/recipe_version.dart je stanje pre izmene, ograničeno na 30 verzija u RecipeRepository.maxVersions; nije dnevnik.",
+      "proposed_changes": [
+        "CookingLog {id,userId,householdId,sessionId?,recipeId?,mealEntryId?,recipeSnapshot,servings,cookedAt,result,note,photoRefs,timingSummary?}; lični vlasnik, read/write samo vlasniku u prvoj verziji.",
+        "Ratings ne duplirati: dodati optional cookingLogId uz postojeće polje ocene i definisati jedan autoritativni rezultat. Stare ocene ostaju ocene; ne predstavljati ih kao potpuno dokumentovano kuvanje. Brisanje recepta ne briše lični log bez eksplicitne odluke korisnika."
+      ],
+      "dependencies": [
+        "G-SYNC",
+        "F008"
+      ],
+      "phase": "P1",
+      "scope_slices": [
+        "Ručni log bez sesije i slika: datum, rezultat, napomena, snapshot.",
+        "Završetak sesije pravi najviše jedan log; optional veza na postojeću ocenu i plan.",
+        "Privatna fotografija i uredan delete/export; legacy rating prikaz sa jasnim poreklom."
+      ],
+      "acceptance_criteria": [
+        "Dva kuvanja istog recepta daju dva zapisa sa sopstvenim datumima; edit/restore recepta ne menja log.",
+        "Offline save plus retry čuva jedan ID; novi uređaj preuzima isti zapis.",
+        "Lična beleška nije vidljiva drugom članu po default-u; ne troši se ostava prilikom save-a."
+      ],
+      "verification": [
+        "Repository fake clock i outbox rollback; dupli completion, stara ocena bez sessionId, obrisan recept.",
+        "Dva naloga + household peer RLS test: privatnost i grantovi.",
+        "UI ručni unos/prošlost, photo failure, offline restart; regression RecipeRepository.delete i setCooked."
+      ]
+    },
+    {
+      "id": "F051",
+      "title": "Temperature i režim rerne",
+      "current_state": "lib/domain/recipe.dart: Recipe.steps je tekst; nema strukturisanog oven mode ili jedinice temperature. RecipeView prikazuje tekst bez konverzije. lib/domain/shopping_demand.dart normalizuje mere sastojaka, nije temperaturni model.",
+      "proposed_changes": [
+        "OvenSetting {sourceValue,sourceUnit,celsius,mode:static|fan|grill|unknown,confirmedByUser}; izvorna vrednost ostaje očuvana. Čista funkcija temperature conversion; režim nije isto što i jedinica.",
+        "UI prikazuje izvor i opcionu konverziju; ventilator/statički režim se ne preračunava bez eksplicitnog izbora i prikaza promene. Parsiranje teksta daje samo draft."
+      ],
+      "dependencies": [
+        "G-STEP"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Pure conversion + value validation i prikaz uz tekst legacy koraka.",
+        "Ručno strukturisanje oven setting-a i source provenance.",
+        "Predlog iz parsera uz potvrdu i ugovor za F078."
+      ],
+      "acceptance_criteria": [
+        "180 °C prikazuje 356 °F; 350 °F = 176.666… °C, prikaz 177 °C uz očuvan original.",
+        "Prelaz °C/°F ne menja fan/static; nepoznat režim ostaje Nije naveden.",
+        "Negativna/ne-finite temperatura ili van opsega izabranog uređaja ne može se poslati."
+      ],
+      "verification": [
+        "Unit test 0/32,100/212,180/356 i round-trip tolerancija 1e-9; zaokružiti samo UI.",
+        "Parser fixtures 180°C ventilator, 350 F, broj bez jedinice i grill bez temperature.",
+        "Widget potvrda izmene, očuvan original u snapshot-u i export round-trip."
+      ]
+    },
+    {
+      "id": "F053",
+      "title": "Glasovno vođenje kuvanja",
+      "current_state": "RecipeView nema aktivni korak ni govor. pubspec.yaml nema speech/TTS zavisnost. lib/features/recipes/keep_screen_on.dart je postojeći screen-only wake lock; ne održava mikrofon ili background izvršavanje.",
+      "proposed_changes": [
+        "CookingSpeechController koristi isti SpeechInput kao F016, ali zasebnu gramatiku Command {next,previous,repeat,startTimer,pauseListening}; SpeechOutput.probe(sr) proverava TTS voice odvojeno od ASR.",
+        "Push-to-talk, vidljiv indikator slušanja i ručna dugmad; TTS pauzira ASR da sopstveni glas ne postane komanda. Start timer bez jasnog trajanja/koraka otvara potvrdu; glas nikad ne šalje komande rerni."
+      ],
+      "dependencies": [
+        "F008",
+        "F009",
+        "F016",
+        "G-SPEECH"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Tekstualne command fixtures i controller nad cooking state machine.",
+        "Srpski TTS capability + ponovi; nezavisni fallback bez TTS.",
+        "Push-to-talk ASR, echo suppression, dupli callback i lifecycle otkazivanje."
+      ],
+      "acceptance_criteria": [
+        "Sledeći korak pomera tačno jedan korak; ponovi ne menja stanje.",
+        "Pokreni tajmer uz dve moguće vrednosti pita koju; final callback replay ne pravi dva tajmera.",
+        "Odlazak u background zaustavlja snimanje; ručna navigacija radi bez dozvola i bez mreže."
+      ],
+      "verification": [
+        "Fake speech/TTS loopback: dok se čita nema prijema komandi; generation/session token odbacuje stari rezultat.",
+        "Corpus komandi: dijakritici, buka, prekid, nepoznata komanda, poslednji korak i nedostajući timer duration.",
+        "Android/iOS/macOS probe na uređaju: locale/voice, audio interruption i hands busy; bez tvrdnje o stalnom slušanju u pozadini."
+      ]
+    },
+    {
+      "id": "F054",
+      "title": "Lično stvarno vreme pripreme",
+      "current_state": "Recipe.prepMinutes u lib/domain/recipe.dart je jedan opcioni broj; RecipeSnapshot ga kopira. Nema aktivnih intervala ili ličnih agregata u lib/data/database.dart. Ratings.cookedAt je datum, ne trajanje rada.",
+      "proposed_changes": [
+        "CookingActivityInterval {id,sessionId,startElapsed,endElapsed?,kind:active|paused|unclassified,bootId}; zbir aktivnih intervala odvojiti od ukupnog trajanja i vremena čekanja.",
+        "PersonalTimingSummary grupisati po userId + recipe fingerprint + servings band + equipment; tek od 3 potvrđene uporedive sesije prikazati min/max i N. Background interval je unclassified dok ga korisnik ne razvrsta."
+      ],
+      "dependencies": [
+        "F008",
+        "F047",
+        "F009"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Ručno Počni rad/Pauza i monotonic interval tests.",
+        "Resume review neklasifikovanih intervala i čuvanje uz log.",
+        "Agregat 3+ potvrđene sesije, raspon i izuzimanje nepotpunih."
+      ],
+      "acceptance_criteria": [
+        "Rad 10 min, pauza 5, rad 7 daje aktivno 17 i ukupno 22 min.",
+        "Potvrđene sesije 17,20,25 min prikazuju 17–25 min (3 kuvanja); sa 2 nema ličnog raspona.",
+        "Reboot/neklasifikovan background ne ulazi u aktivno vreme; promenjene porcije/oprema ostaju zasebna grupa."
+      ],
+      "verification": [
+        "Fake continuous clock sa wall-clock skokom i preklapanjem intervala; nijedan interval se ne broji dvaput.",
+        "Query fixtures različitih users/fingerprints/servings i delete log invalidation.",
+        "Device background/resume/process death + ekran za potvrdu intervala; ne porediti vreme UI tick-ova."
+      ]
+    },
+    {
+      "id": "F055",
+      "title": "Pomoć o tekućem koraku",
+      "current_state": "lib/ai/recipe_ai.dart: RecipeAI.refine pravi novi Recipe; lib/features/recipes/recipe_chat_screen.dart je uređivanje recepta, ne privremena cooking pomoć. lib/ai/ai_router.dart: AIRouter.run već obezbeđuje fallback i JSON parse/retry.",
+      "proposed_changes": [
+        "CookingHelpAI.ask({snapshot,currentStepId,confirmedConstraints,question}) -> StepHelp {answerSr,clarification?,limits}; koristiti AIRouter i strict JSON parser koji baca FormatException.",
+        "Odgovor ostaje u sesiji; nema RecipeRepository.update, promene ograničenja ili device komandi. Budući trajni izmeni tok mora zasebno kroz postojeći preview/refine. Šalju se samo potrebni podaci, bez BLE identifikatora/audio/log fotografija."
+      ],
+      "dependencies": [
+        "F008",
+        "F028",
+        "G-AI"
+      ],
+      "phase": "P3",
+      "scope_slices": [
+        "Context builder + JSON parsing tests i fake router.",
+        "Pitanje/odgovor u cooking ekranu bez trajne izmene.",
+        "Error/retry/cancel kada se promeni sesija ili korak; prikaz originalnog koraka uz odgovor."
+      ],
+      "acceptance_criteria": [
+        "Prompt sadrži tačan snapshot i tekući korak, ne kasnije izmenjen recept biblioteke.",
+        "Nijedan uspeh/greška help-a ne pravi recipe version, outbox izmenu ili device write.",
+        "Offline/pružalac nedostupan prikazuje Pomoć trenutno nije dostupna; cooking navigation/timers nastavljaju."
+      ],
+      "verification": [
+        "Fake ChatClient hvata kontekst; malformiran JSON, fallback exhaustion i format retry.",
+        "Spy RecipeRepository/oven adapter potvrđuje nula write poziva.",
+        "Late response za korak A posle prelaska u B označiti odgovor za A ili odbaciti; odjava briše transient context."
+      ]
+    },
+    {
+      "id": "F076",
+      "title": "Kompatibilna Bluetooth vaga",
+      "current_state": "pubspec.yaml nema BLE/scale zavisnost; lib/domain/shopping_demand.dart ima normalizeUnit/toMicros i kompatibilne grupe količina. Nema device adapters u lib/. Acaia MainActivity.onWeightEvent pokazuje masu i jedinicu, a pravi SDK je app/libs/acaiaSDKAndroid-release.aar sa custom licencom.",
+      "proposed_changes": [
+        "ScaleAdapter.probe/connect/read/disconnect -> DeviceCapabilities i WeightReading {value,unit,receivedElapsed,deviceKey,stable:bool?,sequence?}; preciznost/stabilnost mogu biti unknown. Normalizovati samo potvrđenu masu u grams/micros.",
+        "Manuelni target/reading rade bez BLE; potvrda koristi reading tek kada je fresh. Tare je zasebna dostupna komanda sa potvrdom; nije automatski subtraction iz F074. Acaia implementacija je pravni/SDK gate, bez dekodiranja AAR-a."
+      ],
+      "dependencies": [
+        "G-DEVICE",
+        "G-ACAIA-LICENSE",
+        "F028",
+        "F074"
+      ],
+      "phase": "P3 conditional",
+      "scope_slices": [
+        "Fake/manual adapter i poređenje target-a sa masom sastojka.",
+        "Proveriti aktuelnu SDK licencu, dozvole i test uređaj/model/firmware; Android bridge samo nakon gate-a.",
+        "Fizička validacija, disconnect/stale/reconnect i iOS/macOS feasibility posebno."
+      ],
+      "acceptance_criteria": [
+        "Target 500 g, reading 0.4 kg daje nedostaje 100 g; 1 oz = 28.349523125 g; zapremina l ne poredi se sa masom bez potvrđene gustine.",
+        "Nepoznat unit, disconnected ili staro očitavanje ne dobija status dostignut cilj.",
+        "Nepodržan model i odbijena dozvola otvaraju ručni unos; nijedna vaga nije podržana samo zato što BLE scan vidi ime."
+      ],
+      "verification": [
+        "Adapter contract fixtures: g/kg/oz, negativna masa, overload, NaN, out-of-order i stable unknown; freshness fake clock.",
+        "Fizički model/firmware i poznati tegovi; meriti odstupanje i zakasnela očitavanja bez opšteg obećanja tačnosti.",
+        "Lifecycle scan timeout, reconnect, Bluetooth off, odjava i dispose release; testirati moderni Android permission flow nezavisno od starog primera."
+      ]
+    },
+    {
+      "id": "F077",
+      "title": "Kompatibilni termometar",
+      "current_state": "Nema BLE thermometer ili temperature reading modela u Tavli. Combustion Android DeviceManager.probeFlow/connect i ProbeTemperatures.coreTemperatureCelsius razlikuju fizičke/virtuelne senzore; iOS Device.updateDeviceStale koristi 15 s timeout. To nije dokaz podrške Flutter/macOS aplikacije.",
+      "proposed_changes": [
+        "ThermometerAdapter -> TemperatureReading {celsius,sensorRole,probeKey,receivedElapsed,sequence?,quality}; DeviceCapabilities navodi readCore/readAmbient/stream, model i firmware. Biranje sonde i role pre alarma.",
+        "TemperatureTarget {id,sessionId,probeKey,role,thresholdC,direction,hysteresisC,armed}; alarm na prelasku svežih uzoraka, dedupe; prekid očitavanja prikazati kao Veza prekinuta, ne kao nastavak merenja.",
+        "Prvi adapter samo očitavanje potvrđenog Combustion modela; nema automatskog kuvanja, procene bezbednosti hrane ili upravljanja drugim uređajem."
+      ],
+      "dependencies": [
+        "G-DEVICE",
+        "F009",
+        "F051"
+      ],
+      "phase": "P3 conditional",
+      "scope_slices": [
+        "Manual/fake očitavanje + target crossing i stale state.",
+        "Android native SDK bridge sa lifecycle ownership i senzor role mapping.",
+        "iOS bridge i fizički background alarm test; macOS ostaje unavailable dok se posebno ne potvrdi."
+      ],
+      "acceptance_criteria": [
+        "Target 75 °C; 74,75,76 emituje jedan alarm; ponovljena sekvenca i 75.1 ne stvaraju nove.",
+        "Staro očitavanje i pogrešna sonda/ambient senzor ne aktiviraju core target.",
+        "Nestanak novih uzoraka prelazi u stale najkasnije 15 s + jedan UI tick u prvoj politici; manual entry je jasno označen."
+      ],
+      "verification": [
+        "Fake streams: 8 senzora i promena virtualCoreSensor, nevalidni paketi, out-of-order, disconnect/reconnect, reset alarm.",
+        "Known temperature reference/test probe simulator bez pokretanja upstream app-a u ovoj fazi; implementacija kasnije potvrđuje real hardware.",
+        "Real Android/iOS lock/background/permission revoked/Bluetooth off; u stanju bez background stream-a ne obećavati obaveštenje."
+      ]
+    },
+    {
+      "id": "F078",
+      "title": "Slanje postavki pametnoj rerni",
+      "current_state": "Tavli nema oven network adapter, autorizaciju proizvođača ili strukturisane oven settings; steps su tekst. SmartThings javni capability API opisuje komande, ali dostupnost konkretne rerne/regiona i remote-enable nije utvrđena.",
+      "proposed_changes": [
+        "OvenAdapter.probe(deviceId) -> capabilities {setTemperature,setMode,temperatureUnit,range,supportedModes,remoteEnabled,reachable,reason}; prepare(setting) -> CommandPreview; send(preview,userConfirmation) -> CommandReceipt {requestId,acceptedAt,observedState?,status}.",
+        "Ručno podešavanje ostaje osnovni tok. Samo aktuelna potvrda uređaja/režima/temperature šalje komandu; timeout je unknown, ne uspeh. Bez auto-retry van online sesije; nijedna komanda kroz Supabase outbox, voice ili AI. Prva verzija ne uključuje remote start/preheat."
+      ],
+      "dependencies": [
+        "G-DEVICE",
+        "G-OVEN-API",
+        "F050",
+        "F051"
+      ],
+      "phase": "P3 conditional",
+      "scope_slices": [
+        "Manual preview koji prikazuje uređaj, režim, temperaturu i source; fake adapter.",
+        "Sandbox zvaničnog API-ja i eligibility/OAuth/token isolation provera bez pravih ključeva u istraživanju.",
+        "Jedan potvrđeni model/region sa command/readback i eksplicitnim klikom; ostalo unsupported."
+      ],
+      "acceptance_criteria": [
+        "Bez supportedModes ili temperature range nema slanja; fan nije tiho mapiran na static.",
+        "Otkazivanje potvrde daje nula komandi; retry posle timeout-a zahteva novu proveru stanja i novi klik.",
+        "API accepted nije isto što i uređaj postavljen: prikaz Poslato / Potvrđeno / Ishod nepoznat odvojeno.",
+        "Offline/revoked/remote-disabled prikazuje ručna uputstva; reconnect ne izvršava staru komandu."
+      ],
+      "verification": [
+        "Fake API: 401,403,429,timeout, accepted bez readback-a, različit unit, zastareo preview, dupli tap.",
+        "Contract test official capabilities + allowed modes/ranges; lokalna fiktivna OAuth stanja, bez produkcije.",
+        "Fizička rerna samo u implementacionom pilotu sa potvrdom; zabeležiti model/firmware/region i remote-enable ponašanje."
+      ]
+    },
+    {
+      "id": "F081",
+      "title": "Put učenja kuvanja",
+      "current_state": "lib/domain/recipe.dart sadrži Recipe/Ingredient, lib/data/database.dart nema skill/curriculum/progress tabelu. RecipeView i budući cooking log daju moguću osnovu praktičnog zadatka; nema dokaza o isporučenom učenju.",
+      "proposed_changes": [
+        "Curated Skill {id,revision,titleSr,prerequisiteIds,lessonSr,taskSr,rubric,glossaryIds,recipeSuggestions}; SkillAttempt {id,userId,skillId,skillRevision,cookingLogId?,evidenceNote,criterionChecks,result,completedAt?}.",
+        "Sopstveni urednički sadržaj; napredak znači korisnik potvrđene kriterijume, ne sertifikat ili dokaz stručnosti. Kurikulum radi offline; reference na spoljne škole samo link, bez kopiranja njihovog sadržaja."
+      ],
+      "dependencies": [
+        "F047",
+        "F082",
+        "G-SYNC"
+      ],
+      "phase": "P3",
+      "scope_slices": [
+        "Jedna sopstvena lekcija + proverljiv zadatak/rubrika i ručni pokušaj.",
+        "Verzionisano lokalno izdanje sadržaja i lični progress/outbox.",
+        "Preduslovi i povezivanje sa cooking log-om; opcione recipe suggestions bez preusmeravanja aktivne sesije."
+      ],
+      "acceptance_criteria": [
+        "Za zadatak ravnomerno iseckati 10 komada korisnik proverava objavljenu rubriku; samo završavanje recepta ne označava veštinu kao stečenu.",
+        "Promena revizije lekcije čuva pokušaj stare revizije; reset pokušaja ne briše cooking log.",
+        "Drugi nalog ne vidi lični napredak; offline završetak jednom se sinhronizuje."
+      ],
+      "verification": [
+        "DAG fixtures: ciklus se odbija; nedostajući prerequisite ne otključava naredni nivo.",
+        "Repository migration, user-scope RLS i dva naloga; idempotentni completion.",
+        "Widget offline lekcija, dostupnost teksta/tastature i rubrika; urednička provera originalnog srpskog sadržaja."
+      ]
+    },
+    {
+      "id": "F082",
+      "title": "Kulinarski rečnik",
+      "current_state": "RecipeView u lib/features/recipes/recipe_view.dart koristi Text(step), nema definicije/linkove pojmova. Postojeći ingredientKey/normalizeUnit u lib/domain/shopping_demand.dart rešavaju identitet namirnice i mere, ne stručne kulinarske pojmove.",
+      "proposed_changes": [
+        "GlossaryEntry {id,revision,termSr,aliases,definitionSr,exampleSr,relatedIds,provenance,rights}; kuriran verzionisan lokalni asset, ne AI odgovor.",
+        "Deterministički matcher Unicode/case/word-boundary + najduža fraza; označava poznate pojmove u koraku i otvara accessible sheet bez izmene teksta. Ručna pretraga uvek dostupna; višeznačne termine izabrati, ne nagađati."
+      ],
+      "dependencies": [
+        "G-CONTENT"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Sopstvene definicije za deglazirati/blanširati i offline search.",
+        "Text span matcher i sheet u RecipeView/cooking ekranu uz accessibility.",
+        "Verzionisanje/urednička kontrola aliases i povezivanje sa F081."
+      ],
+      "acceptance_criteria": [
+        "Deglazirati otvara tačan srpski opis i primer bez mreže; close vraća isti korak/scroll/timer.",
+        "Termini ne hvataju podniz unutar druge reči; duža fraza ima prednost i nema preklapajućih linkova.",
+        "Izvor/rights postoje za svaki unos; nema kopiranja školskog/proprietary teksta."
+      ],
+      "verification": [
+        "Matcher fixtures dijakritici, različito veliko slovo, interpunkcija, duža fraza, višeznačni alias i nepodudaranje.",
+        "Widget semantics/tastatura/screen reader, 200% text scale, narrow/wide i active timer bez reset-a.",
+        "Urednički pregled definicija i sadržaja; integritet glossary ID veza i revizija offline asset-a."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "repo_url": "https://github.com/kitshn-app/kitshn",
+      "commit": "e971bb1e00eaa593b570e9512dee08968b6f70a3",
+      "license_spdx_or_unknown": "unknown",
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "symbol": "GNU GENERAL PUBLIC LICENSE Version 3",
+          "finding": "Copyleft; no source copied in this pass."
+        },
+        {
+          "path": "shared/src/commonMain/kotlin/de/kitshn/api/tandoor/model/TandoorStep.kt",
+          "symbol": "TandoorStep; instructionsWithTemplating; getRawIngredientById",
+          "finding": "Step carries ingredient list, time and optional file; templating scales quantities but addresses ingredients by index."
+        },
+        {
+          "path": "shared/src/commonMain/kotlin/de/kitshn/api/tandoor/model/TandoorIngredient.kt",
+          "symbol": "TandoorIngredient; toString; tickedOff",
+          "finding": "Ingredient has ID and transient UI check state; scale parameter affects formatted amount."
+        },
+        {
+          "path": "shared/src/commonMain/kotlin/de/kitshn/ui/route/recipe/cook/page/RecipeStep.kt",
+          "symbol": "RouteRecipeCookPageStep; StepBody",
+          "finding": "Step screen combines IngredientsList, rich text with timer detection and capability check before launching timer."
+        }
+      ],
+      "reuse_decision": "Study behavior only. Independent Dart contracts and implementation; no GPL source, snippets or assets copied.",
+      "license_details": "Root LICENSE contains GNU GPL version 3. Repository-wide -only versus -or-later declaration was not established; treated as GPL/no-copy for this pass."
+    },
+    {
+      "repo_url": "https://github.com/acaia/acaia_sdk_android",
+      "commit": "8dc977e8123eb5e13b5370b3f357e6af082c79e0",
+      "license_spdx_or_unknown": "LicenseRef-Acaia-Custom",
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "symbol": "permission text",
+          "finding": "Binary unmodified use only; reverse engineering forbidden; examples reusable with restrictions; no sublicensing/selling files and paid/subscription attribution/notification conditions."
+        },
+        {
+          "path": "app/src/main/java/co/acaia/android/acaiasdksampleapp/MainActivity.java",
+          "symbol": "scanDevice; connectDevice; onWeightEvent; btn_tare onClick",
+          "finding": "Scan/service readiness gate; explicit device selection; WeightEvent value + unit; SEND_TARE command. Name-based PEARLS capacity branch is sample behavior, not robust capability proof."
+        },
+        {
+          "path": "app/src/main/java/co/acaia/android/acaiasdksampleapp/AcaiaSDKSampleApp.java",
+          "symbol": "initAcaiaBt; registerUpdateReceiver; updateReceiver.onReceive",
+          "finding": "Service initialization and broadcasts mapped to WeightEvent; source itself flags missing unregister."
+        },
+        {
+          "path": "app/libs/acaiaSDKAndroid-release.aar",
+          "symbol": "binary presence only",
+          "finding": "Implementation is binary. Not executed, unpacked, decompiled or copied."
+        }
+      ],
+      "reuse_decision": "No code or binary copied. Custom license is a release gate; Android sample is architecture evidence only and modern permission/lifecycle behavior requires fresh implementation validation."
+    },
+    {
+      "repo_url": "https://github.com/combustion-inc/combustion-android-ble",
+      "commit": "3ad9b5a8b698e8177c3f9d9ee9026f860784b3a2",
+      "license_spdx_or_unknown": "MIT",
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "symbol": "MIT grant",
+          "finding": "2021 Combustion copyright; per-file notices also present."
+        },
+        {
+          "path": "combustion-android-ble/src/main/java/inc/combustion/framework/service/DeviceManager.kt",
+          "symbol": "initialize; startCombustionService; bindCombustionService; unbindCombustionService; startScanningForDevices; probeFlow; connect; disconnect",
+          "finding": "Service-bound lifecycle and flows; ownership/release explicit; not a Flutter adapter."
+        },
+        {
+          "path": "combustion-android-ble/src/main/java/inc/combustion/framework/service/ProbeTemperatures.kt",
+          "symbol": "coreTemperatureCelsius; ambientTemperatureCelsius; fromRawData",
+          "finding": "8 Celsius readings; sensor-role selection separate from packet conversion. Guard packet length before decoding in adapter."
+        },
+        {
+          "path": "combustion-android-ble/src/main/java/inc/combustion/framework/service/SensorTemperature.kt",
+          "symbol": "fromRawDataStart; fromRawDataEnd; toRawDataStart; toRawDataEnd",
+          "finding": "13-bit sensor encoding uses 0.1 scale and -20 offset; distinct from multi-sensor 0.05 encoding; do not conflate."
+        },
+        {
+          "path": "combustion-android-ble/src/main/java/inc/combustion/framework/service/DeviceTemperature.kt",
+          "symbol": "DeviceTemperature",
+          "finding": "Marker interface shared by reading types."
+        }
+      ],
+      "reuse_decision": "MIT eligible but no Android source copied: bridge/dependencies need separate review; use SDK through explicit adapter after pilot. Conversion model informed by inspected symbols."
+    },
+    {
+      "repo_url": "https://github.com/combustion-inc/combustion-ios-ble",
+      "commit": "797416a7944b8f652c7a602981c004703b29c620",
+      "license_spdx_or_unknown": "MIT",
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "symbol": "MIT grant",
+          "finding": "Full notice retained next to copied complete utility."
+        },
+        {
+          "path": "Sources/CombustionBLE/TemperatureUtilities.swift",
+          "symbol": "fahrenheit(celsius:); celsius(fahrenheit:)",
+          "finding": "Small complete utility, Foundation-only import; useful F051 conversion reference."
+        },
+        {
+          "path": "Sources/CombustionBLE/DeviceManager.swift",
+          "symbol": "initBluetooth; connectToDevice; disconnectFromDevice",
+          "finding": "Manager controls connection and recurring stale checks."
+        },
+        {
+          "path": "Sources/CombustionBLE/Devices/Device.swift",
+          "symbol": "updateDeviceStale; Constants.STALE_TIMEOUT",
+          "finding": "Date-based stale check at 15 seconds; Tavli proposes continuous monotonic freshness instead."
+        },
+        {
+          "path": "Package.swift",
+          "symbol": "Package platforms/dependencies",
+          "finding": "Declares iOS 13 only; Swift Collections and Nordic DFU dependencies. macOS support is not established."
+        }
+      ],
+      "reuse_decision": "Copied TemperatureUtilities.swift and LICENSE verbatim; no whole SDK vendoring, runtime linking, build or execution. Other device behavior is evidence only."
+    }
+  ],
+  "copied_files": [
+    {
+      "local_path": "research/reference-code/E/combustion-ios/LICENSE",
+      "upstream_path": "LICENSE",
+      "sha256": "a84ccd0d957a5c48c966a7a5638ca517cdd31a14a56a295f6fec8287396b166e",
+      "source_url": "https://github.com/combustion-inc/combustion-ios-ble/blob/797416a7944b8f652c7a602981c004703b29c620/LICENSE",
+      "license_path": "research/reference-code/E/combustion-ios/LICENSE"
+    },
+    {
+      "local_path": "research/reference-code/E/combustion-ios/TemperatureUtilities.swift",
+      "upstream_path": "Sources/CombustionBLE/TemperatureUtilities.swift",
+      "sha256": "ce069c8441c383fe12becf6df4669f5720d714f48dae104408ad7ef11d610df2",
+      "source_url": "https://github.com/combustion-inc/combustion-ios-ble/blob/797416a7944b8f652c7a602981c004703b29c620/Sources/CombustionBLE/TemperatureUtilities.swift",
+      "license_path": "research/reference-code/E/combustion-ios/LICENSE"
+    }
+  ],
+  "unknowns": [
+    "Serbian ASR/TTS availability and offline behavior by actual Android/iOS/macOS model/OS/installed engine are unmeasured; probe and corpus testing required.",
+    "Acaia current commercial eligibility, updated platform SDK terms, supported firmware/model list and iOS/macOS feasibility are unresolved; no binary inspection performed.",
+    "Combustion Flutter bridge, current firmware compatibility, background delivery, battery behavior and macOS support are not verified on devices.",
+    "SmartThings or another oven provider: app registration, OAuth eligibility, regional/model capability exposure and remote-enable restrictions need a separate authorized pilot; no production API used.",
+    "Cross-device timer control policy: proposal is owner-device alarms only; handoff requires explicit transfer and cancellation acknowledgment before enabling another alarm owner.",
+    "Shared schema v2 ownership with streams A/F must be agreed before implementation; old-client write gate needed to prevent silent metadata loss.",
+    "Media upload limits/codec matrix, recipe deletion log retention UX, curriculum content authorship and release acceptance for timing accuracy require feature specs."
+  ]
+}
