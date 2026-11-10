@@ -336,6 +336,49 @@ void main() {
     });
     tearDown(() => db.close());
 
+    test(
+      'brisanje naloga uklanja lokalne fotografije nabavke i one u redu',
+      () async {
+        await db
+            .into(db.shoppingLists)
+            .insert(
+              ShoppingListsCompanion.insert(
+                id: 'l',
+                name: 'Lista',
+                createdAt: DateTime.utc(2026),
+                householdId: Value(a.householdId),
+              ),
+            );
+        await db
+            .into(db.shoppingItems)
+            .insert(
+              ShoppingItemsCompanion.insert(
+                id: 'i',
+                listId: 'l',
+                name: 'Mleko',
+                category: 'ostalo',
+                householdId: Value(a.householdId),
+                photoPath: const Value('recipe_photos/item.jpg'),
+              ),
+            );
+        photos.saved['recipe_photos/item.jpg'] = Uint8List(1);
+        photos.saved['recipe_photos/pending.jpg'] = Uint8List(1);
+        await db
+            .into(db.syncOutbox)
+            .insert(
+              SyncOutboxCompanion.insert(
+                accountId: a.userId,
+                entity: 'photo',
+                recordId: 'recipe_photos/pending.jpg',
+                op: 'photoDelete',
+                createdAt: DateTime.utc(2026),
+              ),
+            );
+        await service.wipeLocal(a.userId);
+        expect(photos.saved.keys, ['recipe_photos/tudja.jpg']);
+      },
+    );
+
     test('posle uspeha na serveru briše sve od naloga na uređaju', () async {
       await service.deleteAccount(a);
 

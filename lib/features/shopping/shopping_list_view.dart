@@ -10,6 +10,8 @@ import '../../domain/recipe_format.dart';
 import '../../domain/shopping_source.dart';
 import '../../providers.dart';
 import '../planning/plan_format.dart';
+import '../recipes/recipe_providers.dart';
+import 'shopping_details.dart';
 import 'shopping_providers.dart';
 
 /// "1,5 kg", "2 kom"; null kad količina nije poznata.
@@ -205,6 +207,8 @@ class ShoppingItemTile extends ConsumerWidget {
         amount
       else if (!item.isManual && !item.isBought)
         'Proveri količinu',
+      ?item.brand,
+      ?item.note,
       if (received) 'U ostavi',
     ].join(' · ');
     void toggle() => unawaited(
@@ -221,15 +225,7 @@ class ShoppingItemTile extends ConsumerWidget {
             content: Text('Obrisano: ${item.name}'),
             action: SnackBarAction(
               label: 'Vrati',
-              onPressed: () => unawaited(
-                repo.addManual(
-                  item.listId,
-                  item.name,
-                  quantity: item.quantity,
-                  unit: item.unit,
-                  category: item.category,
-                ),
-              ),
+              onPressed: () => unawaited(repo.restoreManual(item)),
             ),
           ),
         );
@@ -242,29 +238,69 @@ class ShoppingItemTile extends ConsumerWidget {
         value: item.isBought,
         onChanged: received ? null : (_) => toggle(),
       ),
-      title: Text(
-        item.name,
-        style: item.isBought
-            ? TextStyle(
-                decoration: TextDecoration.lineThrough,
-                color: theme.colorScheme.onSurfaceVariant,
-              )
-            : null,
+      title: Row(
+        children: [
+          if (item.photoPath case final path?) ...[
+            Consumer(
+              builder: (context, ref, _) {
+                final file = ref.watch(recipePhotoFileProvider(path)).value;
+                return file == null
+                    ? const SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Icon(Icons.photo_outlined),
+                      )
+                    : Image.file(
+                        file,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                        semanticLabel: 'Fotografija proizvoda',
+                        errorBuilder: (_, _, _) =>
+                            const Icon(Icons.broken_image_outlined),
+                      );
+              },
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: Text(
+              item.name,
+              style: item.isBought
+                  ? TextStyle(
+                      decoration: TextDecoration.lineThrough,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    )
+                  : null,
+            ),
+          ),
+        ],
       ),
       subtitle: subtitle.isEmpty ? null : Text(subtitle),
-      trailing: item.isManual
-          ? (item.isBought
-                ? null
-                : IconButton(
-                    tooltip: 'Obriši',
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () => unawaited(delete()),
-                  ))
-          : IconButton(
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: 'Detalji stavke',
+            icon: Icon(
+              item.photoPath == null ? Icons.edit_note : Icons.photo_outlined,
+            ),
+            onPressed: () => unawaited(showShoppingDetails(context, item)),
+          ),
+          if (item.isManual && !item.isBought)
+            IconButton(
+              tooltip: 'Obriši',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => unawaited(delete()),
+            )
+          else if (!item.isManual)
+            IconButton(
               tooltip: 'Za koje obroke',
               icon: const Icon(Icons.info_outline),
               onPressed: () => unawaited(showItemSources(context, ref, item)),
             ),
+        ],
+      ),
       onTap: received ? null : toggle,
     );
   }

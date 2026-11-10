@@ -231,6 +231,9 @@ class ShoppingItemEntity
     'is_manual': r.isManual,
     'from_recipe_ids': jsonDecode(r.fromRecipeIdsJson),
     'purchase_provenance': _decodeOrNull(r.purchaseProvenanceJson),
+    'brand': r.brand,
+    'note': r.note,
+    'photo_path': photoFileName(r.photoPath),
   };
 
   @override
@@ -247,6 +250,9 @@ class ShoppingItemEntity
         isManual: Value(j['is_manual'] as bool? ?? false),
         fromRecipeIdsJson: Value(_json(j['from_recipe_ids'] ?? const [])),
         purchaseProvenanceJson: Value(_jsonOrNull(j['purchase_provenance'])),
+        brand: Value(j['brand'] as String?),
+        note: Value(j['note'] as String?),
+        photoPath: Value(photoLocalPath(j['photo_path'] as String?)),
       );
 }
 

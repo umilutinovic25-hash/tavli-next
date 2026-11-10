@@ -9,7 +9,7 @@ import '../helpers/v3_schema.dart';
 import '../helpers/v4_schema.dart';
 
 void main() {
-  test('migracija 5 → 8 čuva podatke i pravi tabelu šablona', () async {
+  test('migracija 5 → 9 čuva podatke i pravi tabelu šablona', () async {
     final directory = await Directory.systemTemp.createTemp(
       'tavli-v5-template-',
     );
@@ -180,7 +180,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 8);
+    expect(db.schemaVersion, 9);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -395,7 +395,7 @@ void main() {
   );
   for (final version in [5, 6]) {
     test(
-      'migracija $version → 8 čuva pretrage i dodaje izvor recepta',
+      'migracija $version → 9 čuva pretrage i dodaje izvor recepta',
       () async {
         final dir = await Directory.systemTemp.createTemp('tavli-url-merge-');
         addTearDown(() => dir.delete(recursive: true));
@@ -429,7 +429,7 @@ void main() {
     );
   }
   for (final version in [5, 6]) {
-    test('migracija $version → 8 čuva pretrage i uvodi šablone', () async {
+    test('migracija $version → 9 čuva pretrage i uvodi šablone', () async {
       final dir = await Directory.systemTemp.createTemp('tavli-week-merge-');
       addTearDown(() => dir.delete(recursive: true));
       final file = File('${dir.path}/cache.sqlite');
@@ -455,4 +455,34 @@ void main() {
       if (version == 6) expect(searches.single.name, 'Brzo');
     });
   }
+  test('v5 migracija čuva stavke i dodaje prazne detalje', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v9-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      "INSERT INTO shopping_lists (id, name, created_at, household_id) VALUES ('l', 'Lista', 1, 'h')",
+    );
+    await before.customStatement(
+      "INSERT INTO shopping_items (id, list_id, name, quantity, unit, category, household_id) VALUES ('i', 'l', 'Mleko', 2, 'l', 'ostalo', 'h')",
+    );
+    await before.customStatement(
+      'ALTER TABLE shopping_items DROP COLUMN brand',
+    );
+    await before.customStatement('ALTER TABLE shopping_items DROP COLUMN note');
+    await before.customStatement(
+      'ALTER TABLE shopping_items DROP COLUMN photo_path',
+    );
+    await before.customStatement('PRAGMA user_version = 5');
+    await before.close();
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final item = (await after.select(after.shoppingItems).get()).single;
+    expect(item.name, 'Mleko');
+    expect(item.quantity, 2);
+    expect(item.unit, 'l');
+    expect(item.brand, isNull);
+    expect(item.note, isNull);
+    expect(item.photoPath, isNull);
+  });
 }

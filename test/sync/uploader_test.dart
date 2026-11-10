@@ -223,6 +223,29 @@ void main() {
     expect(backend.server.photos.keys, ['${scope.householdId}/p0.jpg']);
   });
 
+  test('odbijena stavka odlaže brisanje stare slike', () async {
+    backend.server.photos['${scope.householdId}/old.jpg'] = Uint8List(1);
+    await db
+        .into(db.syncOutbox)
+        .insert(
+          SyncOutboxCompanion.insert(
+            accountId: scope.userId,
+            entity: 'shopping_item',
+            recordId: 'i',
+            op: OutboxOp.upsert,
+            state: const Value(OutboxState.rejected),
+            createdAt: now,
+          ),
+        );
+    await writer.photoDelete('recipe_photos/old.jpg');
+    await uploader.run();
+    expect(
+      backend.server.photos.keys,
+      contains('${scope.householdId}/old.jpg'),
+    );
+    expect((await outbox()).any((e) => e.op == OutboxOp.photoDelete), isTrue);
+  });
+
   test('brisanje slike briše objekat', () async {
     backend.server.photos['${scope.householdId}/x.jpg'] = Uint8List(1);
     await writer.photoDelete('recipe_photos/x.jpg');
