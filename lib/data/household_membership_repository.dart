@@ -58,16 +58,22 @@ class HouseholdMembershipRepository {
 
   final SupabaseClient _client;
 
-  /// Vlasnik uklanja člana. Uklonjena osoba dobija novo, prazno domaćinstvo.
-  Future<void> removeMember(String userId) =>
-      _call('remove_household_member', {'p_user': userId});
+  /// Vlasnik [householdId] uklanja člana. Uklonjena osoba dobija novo, prazno
+  /// domaćinstvo, ako nema nijedno drugo.
+  Future<void> removeMember(String householdId, String userId) => _call(
+    'remove_household_member',
+    {'p_household_id': householdId, 'p_user': userId},
+  );
 
-  /// Član napušta domaćinstvo; vlasnik prvo mora da prenese vlasništvo.
-  Future<void> leave() => _call('leave_household', const {});
+  /// Član napušta [householdId]; vlasnik prvo mora da prenese vlasništvo.
+  Future<void> leave(String householdId) =>
+      _call('leave_household', {'p_household_id': householdId});
 
-  /// Vlasnik prenosi vlasništvo članu istog domaćinstva; on postaje član.
-  Future<void> transferOwnership(String userId) =>
-      _call('transfer_household_ownership', {'p_user': userId});
+  /// Vlasnik [householdId] prenosi vlasništvo članu; on postaje član.
+  Future<void> transferOwnership(String householdId, String userId) => _call(
+    'transfer_household_ownership',
+    {'p_household_id': householdId, 'p_user': userId},
+  );
 
   Future<void> _call(String function, Map<String, Object?> params) async {
     try {
