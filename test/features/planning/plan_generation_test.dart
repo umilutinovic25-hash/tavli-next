@@ -83,6 +83,19 @@ void main() {
 
       expect(location(tester), '/plan');
       expect(find.text('Plan je sačuvan.'), findsOneWidget);
+      if (size.width < 1000) {
+        // Naslov i kontrole ostaju čitljivi; do prvog obroka se skroluje.
+        await tester.scrollUntilVisible(
+          find.text('Jelo 1'),
+          160,
+          scrollable: find
+              .descendant(
+                of: find.byType(ListView),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
+      }
       expect(find.text('Jelo 1'), findsOneWidget);
       expect(find.text('Otvori nabavku'), findsOneWidget);
       expect(await app.db.select(app.db.mealPlans).get(), hasLength(1));
