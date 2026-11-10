@@ -30,6 +30,7 @@ import 'sync/downloader.dart';
 import 'sync/legacy_mover.dart';
 import 'sync/photo_sync.dart';
 import 'sync/sync_engine.dart';
+import 'sync/sync_epoch.dart';
 import 'sync/sync_remote.dart';
 import 'sync/synced_writer.dart';
 import 'sync/uploader.dart';
@@ -88,6 +89,9 @@ final accountApiProvider = Provider<AccountApi>((ref) {
 });
 
 /// Nalog na uređaju: keš profila i domaćinstva, ime, brisanje.
+/// Zajednički brojač pozicija preuzimanja (nalog ↔ preuzimanje).
+final syncEpochProvider = Provider<SyncEpoch>((ref) => SyncEpoch());
+
 final accountServiceProvider = Provider<AccountService>(
   (ref) => AccountService(
     ref.watch(databaseProvider),
@@ -95,6 +99,8 @@ final accountServiceProvider = Provider<AccountService>(
     photos: ref.watch(recipePhotoStoreProvider),
     keys: ref.watch(keyStoreProvider),
     onChange: () => ref.read(syncEngineProvider)?.kick(),
+    epoch: ref.watch(syncEpochProvider),
+    onMembershipsChanged: () => unawaited(ref.read(syncEngineProvider)?.pull()),
   ),
 );
 
@@ -164,6 +170,7 @@ final syncEngineProvider = Provider<SyncEngine?>((ref) {
       remote: remote,
       scope: scope,
       photoStore: ref.watch(recipePhotoStoreProvider),
+      epoch: ref.watch(syncEpochProvider),
     ),
     photoSync: PhotoSync(
       db: db,

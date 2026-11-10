@@ -16,6 +16,12 @@ sealed class SyncError implements Exception {
   String toString() => '$runtimeType($code)';
 }
 
+/// Preuzimanje je prekinuto jer su se pozicije u međuvremenu obrisale
+/// (promena članstva); novo preuzimanje kreće od početka.
+class CancelledSyncError extends SyncError {
+  const CancelledSyncError() : super('cancelled');
+}
+
 /// Nema mreže, istek vremena, 5xx ili 429: pokušava se ponovo kasnije.
 class TransientSyncError extends SyncError {
   const TransientSyncError(super.code);

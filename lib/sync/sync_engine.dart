@@ -167,11 +167,17 @@ class SyncEngine {
   )..where((t) => t.userId.equals(_scope.userId))).getSingleOrNull();
 
   var _pulling = false;
+  var _pullAgain = false;
 
   /// Preuzima izmene sa servera (prvi put sve, uz traku "Preuzimam…").
+  /// Poziv dok preuzimanje traje pokreće još jedno posle njega.
   Future<void> pull() async {
     final downloader = _downloader;
-    if (_stopped || downloader == null || _pulling) return;
+    if (_stopped || downloader == null) return;
+    if (_pulling) {
+      _pullAgain = true;
+      return;
+    }
     _pulling = true;
     try {
       final first = !((await _account())?.initialDownloadDone ?? false);
@@ -203,6 +209,10 @@ class SyncEngine {
     } finally {
       _pulling = false;
       if (!_stopped) await refreshStatus();
+    }
+    if (_pullAgain && !_stopped) {
+      _pullAgain = false;
+      await pull();
     }
   }
 

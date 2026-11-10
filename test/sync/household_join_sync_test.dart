@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,6 +7,9 @@ import 'package:tavli/account/account_service.dart';
 import 'package:tavli/account/auth_controller.dart';
 import 'package:tavli/data/database.dart';
 import 'package:tavli/sync/downloader.dart';
+import 'package:tavli/sync/sync_engine.dart';
+import 'package:tavli/sync/sync_epoch.dart';
+import 'package:tavli/sync/sync_remote.dart';
 import 'package:tavli/sync/synced_writer.dart';
 import 'package:tavli/sync/uploader.dart';
 
@@ -13,6 +18,52 @@ import '../helpers/fake_photo_store.dart';
 
 /// Posle pridruživanja zajednički podaci mogu biti stariji od pozicije
 /// preuzimanja; osvežavanje naloga mora da vrati preuzimanje na početak.
+/// Lažni server sa kukom pre svakog čitanja (za preplitanje u testu).
+class _HookRemote implements SyncRemote {
+  _HookRemote(this._inner, this.beforeFetch);
+
+  final SyncRemote _inner;
+  final Future<void> Function(String table) beforeFetch;
+
+  @override
+  Future<void> upsert(
+    String table,
+    List<Map<String, Object?>> rows, {
+    String onConflict = 'id',
+  }) => _inner.upsert(table, rows, onConflict: onConflict);
+
+  @override
+  Future<void> delete(
+    String table,
+    List<String> ids, {
+    String idColumn = 'id',
+  }) => _inner.delete(table, ids, idColumn: idColumn);
+
+  @override
+  Future<void> updateProfileName(String userId, String name) =>
+      _inner.updateProfileName(userId, name);
+
+  @override
+  Future<List<Map<String, Object?>>> fetchSince(
+    String table, {
+    required int limit,
+    String? since,
+    String? afterId,
+    String timeColumn = 'updated_at',
+    String idColumn = 'id',
+  }) async {
+    await beforeFetch(table);
+    return _inner.fetchSince(
+      table,
+      limit: limit,
+      since: since,
+      afterId: afterId,
+      timeColumn: timeColumn,
+      idColumn: idColumn,
+    );
+  }
+}
+
 void main() {
   late AppDatabase db;
   late FakeBackend backend;
@@ -123,5 +174,85 @@ void main() {
     ).run();
 
     expect(backend.server.rows('recipes').single['household_id'], own);
+  });
+
+  test('osvežavanje usred preuzimanja ne vraća stari kursor', () async {
+    backend = FakeBackend();
+    final ana = await backend.auth.verifyCode('ana@mail.com', FakeServer.code);
+    final own = backend.server.households[ana.userId]!;
+    backend.server.upsert('recipes', [recipe('r1', own)], 'id');
+    backend.server.upsert('recipes', [recipe('r2', own)], 'id');
+    final owner = backend.server.userFor('vlasnik@mail.com');
+    final epoch = SyncEpoch();
+    final service = AccountService(db, backend.accounts, epoch: epoch);
+    await service.loadOrFetch(ana);
+
+    var recipeFetches = 0;
+    final remote = _HookRemote(backend.sync, (table) async {
+      // Posle prve stranice recepata stiže novo članstvo (drugi uređaj).
+      if (table == 'recipes' && ++recipeFetches == 2) {
+        backend.server.addMember(backend.server.households[owner]!, ana.userId);
+        await service.refresh();
+      }
+    });
+    final pull = Downloader(
+      db: db,
+      remote: remote,
+      scope: AccountScope(userId: ana.userId, householdId: own),
+      pageSize: 1,
+      epoch: epoch,
+    );
+
+    await expectLater(pull.run(), throwsA(isA<CancelledSyncError>()));
+    expect(await db.select(db.syncCursors).get(), isEmpty);
+  });
+
+  test('promena članstava pokreće preuzimanje, i dok jedno traje', () async {
+    backend = FakeBackend();
+    final ana = await backend.auth.verifyCode('ana@mail.com', FakeServer.code);
+    final own = backend.server.households[ana.userId]!;
+    final scope = AccountScope(userId: ana.userId, householdId: own);
+    var profileFetches = 0;
+    final gate = Completer<void>();
+    final remote = _HookRemote(backend.sync, (table) async {
+      if (table == 'profiles' && ++profileFetches == 1) await gate.future;
+    });
+    final engine = SyncEngine(
+      db: db,
+      scope: scope,
+      uploader: Uploader(
+        db: db,
+        remote: backend.sync,
+        photos: backend.photos,
+        photoStore: FakePhotoStore(),
+        scope: scope,
+        refreshSession: () async => true,
+      ),
+      downloader: Downloader(db: db, remote: remote, scope: scope),
+    );
+    addTearDown(engine.stop);
+    var changes = 0;
+    final service = AccountService(
+      db,
+      backend.accounts,
+      onMembershipsChanged: () {
+        changes++;
+        unawaited(engine.pull());
+      },
+    );
+    await service.loadOrFetch(ana);
+    changes = 0;
+
+    final first = engine.pull();
+    await pumpEventQueue();
+    backend.server.addMember('drugi-dom', ana.userId);
+    await service.refresh();
+    await service.refresh();
+    expect(changes, 1);
+    gate.complete();
+    await first;
+    await pumpEventQueue();
+
+    expect(profileFetches, 2);
   });
 }

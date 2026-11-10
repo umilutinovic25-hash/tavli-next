@@ -4,6 +4,7 @@ import '../account/auth_controller.dart';
 import '../data/database.dart';
 import '../data/recipe_photo_store.dart';
 import 'entities.dart';
+import 'sync_epoch.dart';
 import 'sync_remote.dart';
 import 'synced_writer.dart';
 
@@ -17,6 +18,7 @@ class Downloader {
     required this._db,
     required this._remote,
     required this._scope,
+    this.epoch,
     this.pageSize = 500,
     this.overlap = const Duration(seconds: 60),
     this.photoStore,
@@ -25,6 +27,10 @@ class Downloader {
   final AppDatabase _db;
   final SyncRemote _remote;
   final AccountScope _scope;
+
+  /// Ako se promeni dok preuzimanje traje, stranica se ne upisuje.
+  final SyncEpoch? epoch;
+  int? _startEpoch;
   final RecipePhotoStore? photoStore;
   final _staleShoppingPhotos = <String>{};
   final int pageSize;
@@ -34,6 +40,7 @@ class Downloader {
 
   /// Baca [SyncError] (nastavlja se sledeći put od sačuvane pozicije).
   Future<void> run() async {
+    _startEpoch = epoch?.value;
     await _pull(key: profileEntity, table: 'profiles', apply: _applyProfile);
     for (final e in syncEntities) {
       await _pull(
@@ -82,6 +89,11 @@ class Downloader {
       afterId = last[idColumn]! as String;
       try {
         await _db.transaction(() async {
+          // Transakcije su redom: osvežavanje naloga koje je obrisalo
+          // pozicije je ili pre ove (vidi se nova epoha) ili posle nje.
+          if (epoch != null && epoch!.value != _startEpoch) {
+            throw const CancelledSyncError();
+          }
           for (final r in rows) {
             await apply(r);
           }

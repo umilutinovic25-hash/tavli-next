@@ -9,6 +9,7 @@ import '../domain/account.dart';
 import '../domain/household.dart';
 import '../domain/household_role.dart';
 import '../sync/entities.dart';
+import '../sync/sync_epoch.dart';
 import '../sync/synced_writer.dart';
 import 'account_api.dart';
 import 'auth_gateway.dart';
@@ -23,7 +24,15 @@ class AccountService {
     this._keys,
     DateTime Function()? clock,
     this._onChange,
+    this.epoch,
+    this.onMembershipsChanged,
   }) : _clock = clock ?? DateTime.now;
+
+  /// Povećava se kad se pozicije preuzimanja obrišu (vidi [refresh]).
+  final SyncEpoch? epoch;
+
+  /// Posle promene skupa članstava (preuzimanje treba pokrenuti odmah).
+  final void Function()? onMembershipsChanged;
 
   final AppDatabase _db;
   final AccountApi _api;
@@ -66,6 +75,7 @@ class AccountService {
             ),
           ];
     final photos = <String>{};
+    var notify = false;
     await _db.transaction(() async {
       final existing = await (_db.select(
         _db.accounts,
@@ -125,6 +135,8 @@ class AccountService {
           await (_db.delete(
             _db.syncCursors,
           )..where((t) => t.accountId.equals(userId))).go();
+          epoch?.bump();
+          notify = true;
         }
       }
       await (_db.delete(
@@ -147,6 +159,7 @@ class AccountService {
     for (final p in photos) {
       await _photos?.delete(p);
     }
+    if (notify) onMembershipsChanged?.call();
     return (await cached(userId))!;
   }
 
