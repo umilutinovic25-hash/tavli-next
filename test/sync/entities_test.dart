@@ -108,6 +108,50 @@ void main() {
     );
   });
 
+  test('recept sa potvrđenim vremenom i vreme po danu', () async {
+    await roundTrip(
+      const RecipeEntity(),
+      RecipesCompanion.insert(
+        id: 'r3',
+        title: 'Pasulj',
+        servings: 4,
+        prepMinutes: const Value(15),
+        source: 'manual',
+        ingredientsJson: '[]',
+        stepsJson: '[]',
+        activeMinutes: const Value(15),
+        totalMinutes: const Value(60),
+        createdAt: t,
+        updatedAt: t,
+        householdId: const Value('h1'),
+      ),
+      'r3',
+      (r) {
+        expect(r['prep_minutes'], 15);
+        expect(r['active_minutes'], 15);
+        expect(r['total_minutes'], 60);
+      },
+    );
+    await roundTrip(
+      const DayTimeBudgetEntity(),
+      DayTimeBudgetsCompanion.insert(
+        id: 'h1-2',
+        householdId: const Value('h1'),
+        weekday: 2,
+        maxActiveMinutes: const Value(20),
+        windowStart: const Value(1080),
+        windowEnd: const Value(1125),
+      ),
+      'h1-2',
+      (r) {
+        expect(r['weekday'], 2);
+        expect(r['max_active_minutes'], 20);
+        expect(r['window_start'], 1080);
+        expect(r['window_end'], 1125);
+      },
+    );
+  });
+
   test('verzija recepta', () async {
     await roundTrip(
       const RecipeVersionEntity(),
@@ -315,7 +359,7 @@ void main() {
         );
       }
     }
-    expect(names, hasLength(15));
+    expect(names, hasLength(16));
     expect(const SupplyAllocationEntity().parents, [
       'shopping_contribution',
       'pantry_item',

@@ -68,6 +68,7 @@ class RecipeAI {
             system: recipeSystemPrompt,
             prompt: refineRecipePrompt(current, instruction),
           ),
+          // Potvrđeno vreme ostaje; AI ga ne menja.
           (json) {
             final next = Recipe.fromAiJson(
               json,
@@ -88,6 +89,8 @@ class RecipeAI {
                 current.stepUses,
                 next.steps,
               ),
+              activeMinutes: current.activeMinutes,
+              totalMinutes: current.totalMinutes,
             );
           },
         )
@@ -117,6 +120,8 @@ class RecipeAI {
         ingredients: v.ingredients,
         steps: v.steps,
         stepUses: v.stepUses,
+        activeMinutes: v.activeMinutes,
+        totalMinutes: v.totalMinutes,
         source: v.source,
         imagePath: v.imagePath,
         sourceUrl: v.sourceUrl,

@@ -19,6 +19,7 @@ import 'plan_calendar.dart';
 import 'plan_format.dart';
 import 'plan_generation.dart';
 import 'planning_providers.dart';
+import 'time_check_note.dart';
 import 'week_templates.dart';
 
 /// Širina od koje Plan prikazuje kalendar i recept jedan pored drugog.
@@ -96,6 +97,7 @@ class _PlanView extends ConsumerWidget {
     final selected = selectedDate(plan, view, today);
     final meals = ref.watch(plannedMealsProvider(plan.id)).value ?? const [];
     final bySlot = {for (final m in meals) m.slot: m};
+    final budgets = ref.watch(dayBudgetsProvider).value ?? const [];
     final wide = MediaQuery.sizeOf(context).width >= planWideWidth;
     final week = weekOf(selected);
     final days = [
@@ -268,6 +270,11 @@ class _PlanView extends ConsumerWidget {
               onTap: () => open(bySlot[slot]!),
               onEmptyTap: () =>
                   chooseAway(context, ref, plan: plan, slot: slot),
+              timeCheck: mealTimeCheck(
+                bySlot[slot]?.snapshot,
+                slot.date,
+                budgets,
+              ),
             ),
         ],
         const SizedBox(height: 24),
@@ -295,6 +302,11 @@ class _PlanView extends ConsumerWidget {
               onPressed: () => context.go('/plan/new'),
               icon: const Icon(Icons.add),
               label: const Text('Napravi novi plan'),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => context.go('/plan/time'),
+              icon: const Icon(Icons.timer_outlined),
+              label: const Text('Vreme po danu'),
             ),
           ],
         ),

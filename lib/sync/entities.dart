@@ -92,6 +92,8 @@ class RecipeEntity extends SyncEntity<$RecipesTable, RecipeRow> {
     'image_path': photoFileName(r.imagePath),
     'answered_by': r.answeredBy,
     'source_url': r.sourceUrl,
+    'active_minutes': r.activeMinutes,
+    'total_minutes': r.totalMinutes,
     'created_at': _ts(r.createdAt),
   };
 
@@ -109,9 +111,49 @@ class RecipeEntity extends SyncEntity<$RecipesTable, RecipeRow> {
     imagePath: Value(photoLocalPath(j['image_path'] as String?)),
     answeredBy: Value(j['answered_by'] as String?),
     sourceUrl: Value(j['source_url'] as String?),
+    activeMinutes: Value(j['active_minutes'] as int?),
+    totalMinutes: Value(j['total_minutes'] as int?),
     createdAt: Value(_date(j['created_at'])),
     updatedAt: Value(_date(j['updated_at'] ?? j['created_at'])),
   );
+}
+
+class DayTimeBudgetEntity
+    extends SyncEntity<$DayTimeBudgetsTable, DayTimeBudgetRow> {
+  const DayTimeBudgetEntity();
+  @override
+  String get name => 'day_time_budget';
+  @override
+  String get remoteTable => 'day_time_budgets';
+  @override
+  EntityScope get scope => EntityScope.household;
+  @override
+  $DayTimeBudgetsTable table(AppDatabase db) => db.dayTimeBudgets;
+  @override
+  Expression<String> idColumn($DayTimeBudgetsTable t) => t.id;
+  @override
+  GeneratedColumn<String> scopeColumn($DayTimeBudgetsTable t) => t.householdId;
+
+  @override
+  Map<String, Object?> toRemote(DayTimeBudgetRow r) => {
+    'id': r.id,
+    'household_id': r.householdId,
+    'weekday': r.weekday,
+    'max_active_minutes': r.maxActiveMinutes,
+    'window_start': r.windowStart,
+    'window_end': r.windowEnd,
+  };
+
+  @override
+  DayTimeBudgetsCompanion fromRemote(Map<String, Object?> j) =>
+      DayTimeBudgetsCompanion(
+        id: Value(j['id']! as String),
+        householdId: Value(j['household_id'] as String?),
+        weekday: Value(j['weekday']! as int),
+        maxActiveMinutes: Value(j['max_active_minutes'] as int?),
+        windowStart: Value(j['window_start'] as int?),
+        windowEnd: Value(j['window_end'] as int?),
+      );
 }
 
 class RecipeVersionEntity
@@ -760,6 +802,7 @@ const profileEntity = 'profile';
 const List<SyncEntity<Table, Object?>> syncEntities = [
   RecipeEntity(),
   RecipeVersionEntity(),
+  DayTimeBudgetEntity(),
   MealPlanEntity(),
   WeekTemplateEntity(),
   MealPlanEntryEntity(),

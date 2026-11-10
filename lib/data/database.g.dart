@@ -156,6 +156,28 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _activeMinutesMeta = const VerificationMeta(
+    'activeMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> activeMinutes = GeneratedColumn<int>(
+    'active_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _totalMinutesMeta = const VerificationMeta(
+    'totalMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> totalMinutes = GeneratedColumn<int>(
+    'total_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -172,6 +194,8 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
     createdAt,
     updatedAt,
     householdId,
+    activeMinutes,
+    totalMinutes,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -294,6 +318,24 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
         ),
       );
     }
+    if (data.containsKey('active_minutes')) {
+      context.handle(
+        _activeMinutesMeta,
+        activeMinutes.isAcceptableOrUnknown(
+          data['active_minutes']!,
+          _activeMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('total_minutes')) {
+      context.handle(
+        _totalMinutesMeta,
+        totalMinutes.isAcceptableOrUnknown(
+          data['total_minutes']!,
+          _totalMinutesMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -359,6 +401,14 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
         DriftSqlType.string,
         data['${effectivePrefix}household_id'],
       ),
+      activeMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}active_minutes'],
+      ),
+      totalMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_minutes'],
+      ),
     );
   }
 
@@ -385,6 +435,10 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? householdId;
+
+  /// Potvrđeno aktivno i ukupno vreme u minutima (v13).
+  final int? activeMinutes;
+  final int? totalMinutes;
   const RecipeRow({
     required this.id,
     required this.title,
@@ -400,6 +454,8 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     required this.createdAt,
     required this.updatedAt,
     this.householdId,
+    this.activeMinutes,
+    this.totalMinutes,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -429,6 +485,12 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || householdId != null) {
       map['household_id'] = Variable<String>(householdId);
+    }
+    if (!nullToAbsent || activeMinutes != null) {
+      map['active_minutes'] = Variable<int>(activeMinutes);
+    }
+    if (!nullToAbsent || totalMinutes != null) {
+      map['total_minutes'] = Variable<int>(totalMinutes);
     }
     return map;
   }
@@ -461,6 +523,12 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       householdId: householdId == null && nullToAbsent
           ? const Value.absent()
           : Value(householdId),
+      activeMinutes: activeMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(activeMinutes),
+      totalMinutes: totalMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(totalMinutes),
     );
   }
 
@@ -484,6 +552,8 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       householdId: serializer.fromJson<String?>(json['householdId']),
+      activeMinutes: serializer.fromJson<int?>(json['activeMinutes']),
+      totalMinutes: serializer.fromJson<int?>(json['totalMinutes']),
     );
   }
   @override
@@ -504,6 +574,8 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'householdId': serializer.toJson<String?>(householdId),
+      'activeMinutes': serializer.toJson<int?>(activeMinutes),
+      'totalMinutes': serializer.toJson<int?>(totalMinutes),
     };
   }
 
@@ -522,6 +594,8 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<String?> householdId = const Value.absent(),
+    Value<int?> activeMinutes = const Value.absent(),
+    Value<int?> totalMinutes = const Value.absent(),
   }) => RecipeRow(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -539,6 +613,10 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     householdId: householdId.present ? householdId.value : this.householdId,
+    activeMinutes: activeMinutes.present
+        ? activeMinutes.value
+        : this.activeMinutes,
+    totalMinutes: totalMinutes.present ? totalMinutes.value : this.totalMinutes,
   );
   RecipeRow copyWithCompanion(RecipesCompanion data) {
     return RecipeRow(
@@ -566,6 +644,12 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       householdId: data.householdId.present
           ? data.householdId.value
           : this.householdId,
+      activeMinutes: data.activeMinutes.present
+          ? data.activeMinutes.value
+          : this.activeMinutes,
+      totalMinutes: data.totalMinutes.present
+          ? data.totalMinutes.value
+          : this.totalMinutes,
     );
   }
 
@@ -585,7 +669,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
           ..write('sourceUrl: $sourceUrl, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('householdId: $householdId')
+          ..write('householdId: $householdId, ')
+          ..write('activeMinutes: $activeMinutes, ')
+          ..write('totalMinutes: $totalMinutes')
           ..write(')'))
         .toString();
   }
@@ -606,6 +692,8 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     createdAt,
     updatedAt,
     householdId,
+    activeMinutes,
+    totalMinutes,
   );
   @override
   bool operator ==(Object other) =>
@@ -624,7 +712,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
           other.sourceUrl == this.sourceUrl &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.householdId == this.householdId);
+          other.householdId == this.householdId &&
+          other.activeMinutes == this.activeMinutes &&
+          other.totalMinutes == this.totalMinutes);
 }
 
 class RecipesCompanion extends UpdateCompanion<RecipeRow> {
@@ -642,6 +732,8 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String?> householdId;
+  final Value<int?> activeMinutes;
+  final Value<int?> totalMinutes;
   final Value<int> rowid;
   const RecipesCompanion({
     this.id = const Value.absent(),
@@ -658,6 +750,8 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.householdId = const Value.absent(),
+    this.activeMinutes = const Value.absent(),
+    this.totalMinutes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   RecipesCompanion.insert({
@@ -675,6 +769,8 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.householdId = const Value.absent(),
+    this.activeMinutes = const Value.absent(),
+    this.totalMinutes = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        title = Value(title),
@@ -699,6 +795,8 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String>? householdId,
+    Expression<int>? activeMinutes,
+    Expression<int>? totalMinutes,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -716,6 +814,8 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (householdId != null) 'household_id': householdId,
+      if (activeMinutes != null) 'active_minutes': activeMinutes,
+      if (totalMinutes != null) 'total_minutes': totalMinutes,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -735,6 +835,8 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<String?>? householdId,
+    Value<int?>? activeMinutes,
+    Value<int?>? totalMinutes,
     Value<int>? rowid,
   }) {
     return RecipesCompanion(
@@ -752,6 +854,8 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       householdId: householdId ?? this.householdId,
+      activeMinutes: activeMinutes ?? this.activeMinutes,
+      totalMinutes: totalMinutes ?? this.totalMinutes,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -801,6 +905,12 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     if (householdId.present) {
       map['household_id'] = Variable<String>(householdId.value);
     }
+    if (activeMinutes.present) {
+      map['active_minutes'] = Variable<int>(activeMinutes.value);
+    }
+    if (totalMinutes.present) {
+      map['total_minutes'] = Variable<int>(totalMinutes.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -824,6 +934,8 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('householdId: $householdId, ')
+          ..write('activeMinutes: $activeMinutes, ')
+          ..write('totalMinutes: $totalMinutes, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1359,6 +1471,448 @@ class RecipeVersionsCompanion extends UpdateCompanion<RecipeVersionRow> {
           ..write('changedBy: $changedBy, ')
           ..write('createdAt: $createdAt, ')
           ..write('householdId: $householdId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DayTimeBudgetsTable extends DayTimeBudgets
+    with TableInfo<$DayTimeBudgetsTable, DayTimeBudgetRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DayTimeBudgetsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _householdIdMeta = const VerificationMeta(
+    'householdId',
+  );
+  @override
+  late final GeneratedColumn<String> householdId = GeneratedColumn<String>(
+    'household_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _weekdayMeta = const VerificationMeta(
+    'weekday',
+  );
+  @override
+  late final GeneratedColumn<int> weekday = GeneratedColumn<int>(
+    'weekday',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _maxActiveMinutesMeta = const VerificationMeta(
+    'maxActiveMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> maxActiveMinutes = GeneratedColumn<int>(
+    'max_active_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _windowStartMeta = const VerificationMeta(
+    'windowStart',
+  );
+  @override
+  late final GeneratedColumn<int> windowStart = GeneratedColumn<int>(
+    'window_start',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _windowEndMeta = const VerificationMeta(
+    'windowEnd',
+  );
+  @override
+  late final GeneratedColumn<int> windowEnd = GeneratedColumn<int>(
+    'window_end',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    householdId,
+    weekday,
+    maxActiveMinutes,
+    windowStart,
+    windowEnd,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'day_time_budgets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DayTimeBudgetRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('household_id')) {
+      context.handle(
+        _householdIdMeta,
+        householdId.isAcceptableOrUnknown(
+          data['household_id']!,
+          _householdIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weekday')) {
+      context.handle(
+        _weekdayMeta,
+        weekday.isAcceptableOrUnknown(data['weekday']!, _weekdayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_weekdayMeta);
+    }
+    if (data.containsKey('max_active_minutes')) {
+      context.handle(
+        _maxActiveMinutesMeta,
+        maxActiveMinutes.isAcceptableOrUnknown(
+          data['max_active_minutes']!,
+          _maxActiveMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('window_start')) {
+      context.handle(
+        _windowStartMeta,
+        windowStart.isAcceptableOrUnknown(
+          data['window_start']!,
+          _windowStartMeta,
+        ),
+      );
+    }
+    if (data.containsKey('window_end')) {
+      context.handle(
+        _windowEndMeta,
+        windowEnd.isAcceptableOrUnknown(data['window_end']!, _windowEndMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DayTimeBudgetRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DayTimeBudgetRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      householdId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}household_id'],
+      ),
+      weekday: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}weekday'],
+      )!,
+      maxActiveMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}max_active_minutes'],
+      ),
+      windowStart: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}window_start'],
+      ),
+      windowEnd: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}window_end'],
+      ),
+    );
+  }
+
+  @override
+  $DayTimeBudgetsTable createAlias(String alias) {
+    return $DayTimeBudgetsTable(attachedDatabase, alias);
+  }
+}
+
+class DayTimeBudgetRow extends DataClass
+    implements Insertable<DayTimeBudgetRow> {
+  final String id;
+  final String? householdId;
+
+  /// 1 = ponedeljak … 7 = nedelja.
+  final int weekday;
+  final int? maxActiveMinutes;
+
+  /// Prozor za kuvanje u minutima od ponoći.
+  final int? windowStart;
+  final int? windowEnd;
+  const DayTimeBudgetRow({
+    required this.id,
+    this.householdId,
+    required this.weekday,
+    this.maxActiveMinutes,
+    this.windowStart,
+    this.windowEnd,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || householdId != null) {
+      map['household_id'] = Variable<String>(householdId);
+    }
+    map['weekday'] = Variable<int>(weekday);
+    if (!nullToAbsent || maxActiveMinutes != null) {
+      map['max_active_minutes'] = Variable<int>(maxActiveMinutes);
+    }
+    if (!nullToAbsent || windowStart != null) {
+      map['window_start'] = Variable<int>(windowStart);
+    }
+    if (!nullToAbsent || windowEnd != null) {
+      map['window_end'] = Variable<int>(windowEnd);
+    }
+    return map;
+  }
+
+  DayTimeBudgetsCompanion toCompanion(bool nullToAbsent) {
+    return DayTimeBudgetsCompanion(
+      id: Value(id),
+      householdId: householdId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(householdId),
+      weekday: Value(weekday),
+      maxActiveMinutes: maxActiveMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maxActiveMinutes),
+      windowStart: windowStart == null && nullToAbsent
+          ? const Value.absent()
+          : Value(windowStart),
+      windowEnd: windowEnd == null && nullToAbsent
+          ? const Value.absent()
+          : Value(windowEnd),
+    );
+  }
+
+  factory DayTimeBudgetRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DayTimeBudgetRow(
+      id: serializer.fromJson<String>(json['id']),
+      householdId: serializer.fromJson<String?>(json['householdId']),
+      weekday: serializer.fromJson<int>(json['weekday']),
+      maxActiveMinutes: serializer.fromJson<int?>(json['maxActiveMinutes']),
+      windowStart: serializer.fromJson<int?>(json['windowStart']),
+      windowEnd: serializer.fromJson<int?>(json['windowEnd']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'householdId': serializer.toJson<String?>(householdId),
+      'weekday': serializer.toJson<int>(weekday),
+      'maxActiveMinutes': serializer.toJson<int?>(maxActiveMinutes),
+      'windowStart': serializer.toJson<int?>(windowStart),
+      'windowEnd': serializer.toJson<int?>(windowEnd),
+    };
+  }
+
+  DayTimeBudgetRow copyWith({
+    String? id,
+    Value<String?> householdId = const Value.absent(),
+    int? weekday,
+    Value<int?> maxActiveMinutes = const Value.absent(),
+    Value<int?> windowStart = const Value.absent(),
+    Value<int?> windowEnd = const Value.absent(),
+  }) => DayTimeBudgetRow(
+    id: id ?? this.id,
+    householdId: householdId.present ? householdId.value : this.householdId,
+    weekday: weekday ?? this.weekday,
+    maxActiveMinutes: maxActiveMinutes.present
+        ? maxActiveMinutes.value
+        : this.maxActiveMinutes,
+    windowStart: windowStart.present ? windowStart.value : this.windowStart,
+    windowEnd: windowEnd.present ? windowEnd.value : this.windowEnd,
+  );
+  DayTimeBudgetRow copyWithCompanion(DayTimeBudgetsCompanion data) {
+    return DayTimeBudgetRow(
+      id: data.id.present ? data.id.value : this.id,
+      householdId: data.householdId.present
+          ? data.householdId.value
+          : this.householdId,
+      weekday: data.weekday.present ? data.weekday.value : this.weekday,
+      maxActiveMinutes: data.maxActiveMinutes.present
+          ? data.maxActiveMinutes.value
+          : this.maxActiveMinutes,
+      windowStart: data.windowStart.present
+          ? data.windowStart.value
+          : this.windowStart,
+      windowEnd: data.windowEnd.present ? data.windowEnd.value : this.windowEnd,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayTimeBudgetRow(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('weekday: $weekday, ')
+          ..write('maxActiveMinutes: $maxActiveMinutes, ')
+          ..write('windowStart: $windowStart, ')
+          ..write('windowEnd: $windowEnd')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    householdId,
+    weekday,
+    maxActiveMinutes,
+    windowStart,
+    windowEnd,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DayTimeBudgetRow &&
+          other.id == this.id &&
+          other.householdId == this.householdId &&
+          other.weekday == this.weekday &&
+          other.maxActiveMinutes == this.maxActiveMinutes &&
+          other.windowStart == this.windowStart &&
+          other.windowEnd == this.windowEnd);
+}
+
+class DayTimeBudgetsCompanion extends UpdateCompanion<DayTimeBudgetRow> {
+  final Value<String> id;
+  final Value<String?> householdId;
+  final Value<int> weekday;
+  final Value<int?> maxActiveMinutes;
+  final Value<int?> windowStart;
+  final Value<int?> windowEnd;
+  final Value<int> rowid;
+  const DayTimeBudgetsCompanion({
+    this.id = const Value.absent(),
+    this.householdId = const Value.absent(),
+    this.weekday = const Value.absent(),
+    this.maxActiveMinutes = const Value.absent(),
+    this.windowStart = const Value.absent(),
+    this.windowEnd = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DayTimeBudgetsCompanion.insert({
+    required String id,
+    this.householdId = const Value.absent(),
+    required int weekday,
+    this.maxActiveMinutes = const Value.absent(),
+    this.windowStart = const Value.absent(),
+    this.windowEnd = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       weekday = Value(weekday);
+  static Insertable<DayTimeBudgetRow> custom({
+    Expression<String>? id,
+    Expression<String>? householdId,
+    Expression<int>? weekday,
+    Expression<int>? maxActiveMinutes,
+    Expression<int>? windowStart,
+    Expression<int>? windowEnd,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (householdId != null) 'household_id': householdId,
+      if (weekday != null) 'weekday': weekday,
+      if (maxActiveMinutes != null) 'max_active_minutes': maxActiveMinutes,
+      if (windowStart != null) 'window_start': windowStart,
+      if (windowEnd != null) 'window_end': windowEnd,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DayTimeBudgetsCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? householdId,
+    Value<int>? weekday,
+    Value<int?>? maxActiveMinutes,
+    Value<int?>? windowStart,
+    Value<int?>? windowEnd,
+    Value<int>? rowid,
+  }) {
+    return DayTimeBudgetsCompanion(
+      id: id ?? this.id,
+      householdId: householdId ?? this.householdId,
+      weekday: weekday ?? this.weekday,
+      maxActiveMinutes: maxActiveMinutes ?? this.maxActiveMinutes,
+      windowStart: windowStart ?? this.windowStart,
+      windowEnd: windowEnd ?? this.windowEnd,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (householdId.present) {
+      map['household_id'] = Variable<String>(householdId.value);
+    }
+    if (weekday.present) {
+      map['weekday'] = Variable<int>(weekday.value);
+    }
+    if (maxActiveMinutes.present) {
+      map['max_active_minutes'] = Variable<int>(maxActiveMinutes.value);
+    }
+    if (windowStart.present) {
+      map['window_start'] = Variable<int>(windowStart.value);
+    }
+    if (windowEnd.present) {
+      map['window_end'] = Variable<int>(windowEnd.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayTimeBudgetsCompanion(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('weekday: $weekday, ')
+          ..write('maxActiveMinutes: $maxActiveMinutes, ')
+          ..write('windowStart: $windowStart, ')
+          ..write('windowEnd: $windowEnd, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -10938,6 +11492,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $RecipesTable recipes = $RecipesTable(this);
   late final $RecipeVersionsTable recipeVersions = $RecipeVersionsTable(this);
+  late final $DayTimeBudgetsTable dayTimeBudgets = $DayTimeBudgetsTable(this);
   late final $PantryItemsTable pantryItems = $PantryItemsTable(this);
   late final $ShoppingListsTable shoppingLists = $ShoppingListsTable(this);
   late final $ShoppingItemsTable shoppingItems = $ShoppingItemsTable(this);
@@ -10994,6 +11549,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     recipes,
     recipeVersions,
+    dayTimeBudgets,
     pantryItems,
     shoppingLists,
     shoppingItems,
@@ -11036,6 +11592,8 @@ typedef $$RecipesTableCreateCompanionBuilder = RecipesCompanion Function({
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<String?> householdId,
+  Value<int?> activeMinutes,
+  Value<int?> totalMinutes,
   Value<int> rowid,
 });
 typedef $$RecipesTableUpdateCompanionBuilder = RecipesCompanion Function({
@@ -11053,6 +11611,8 @@ typedef $$RecipesTableUpdateCompanionBuilder = RecipesCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<String?> householdId,
+  Value<int?> activeMinutes,
+  Value<int?> totalMinutes,
   Value<int> rowid,
 });
 
@@ -11212,6 +11772,16 @@ class $$RecipesTableFilterComposer
 
   ColumnFilters<String> get householdId => $composableBuilder(
     column: $table.householdId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get activeMinutes => $composableBuilder(
+    column: $table.activeMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalMinutes => $composableBuilder(
+    column: $table.totalMinutes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11394,6 +11964,16 @@ class $$RecipesTableOrderingComposer
     column: $table.householdId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get activeMinutes => $composableBuilder(
+    column: $table.activeMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalMinutes => $composableBuilder(
+    column: $table.totalMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$RecipesTableAnnotationComposer
@@ -11454,6 +12034,16 @@ class $$RecipesTableAnnotationComposer
 
   GeneratedColumn<String> get householdId => $composableBuilder(
     column: $table.householdId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get activeMinutes => $composableBuilder(
+    column: $table.activeMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalMinutes => $composableBuilder(
+    column: $table.totalMinutes,
     builder: (column) => column,
   );
 
@@ -11605,6 +12195,8 @@ class $$RecipesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<String?> householdId = const Value.absent(),
+                Value<int?> activeMinutes = const Value.absent(),
+                Value<int?> totalMinutes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RecipesCompanion(
                 id: id,
@@ -11621,6 +12213,8 @@ class $$RecipesTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 householdId: householdId,
+                activeMinutes: activeMinutes,
+                totalMinutes: totalMinutes,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -11639,6 +12233,8 @@ class $$RecipesTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<String?> householdId = const Value.absent(),
+                Value<int?> activeMinutes = const Value.absent(),
+                Value<int?> totalMinutes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RecipesCompanion.insert(
                 id: id,
@@ -11655,6 +12251,8 @@ class $$RecipesTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 householdId: householdId,
+                activeMinutes: activeMinutes,
+                totalMinutes: totalMinutes,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -12176,6 +12774,246 @@ typedef $$RecipeVersionsTableProcessedTableManager =
       (RecipeVersionRow, $$RecipeVersionsTableReferences),
       RecipeVersionRow,
       PrefetchHooks Function({bool recipeId})
+    >;
+typedef $$DayTimeBudgetsTableCreateCompanionBuilder =
+    DayTimeBudgetsCompanion Function({
+      required String id,
+      Value<String?> householdId,
+      required int weekday,
+      Value<int?> maxActiveMinutes,
+      Value<int?> windowStart,
+      Value<int?> windowEnd,
+      Value<int> rowid,
+    });
+typedef $$DayTimeBudgetsTableUpdateCompanionBuilder =
+    DayTimeBudgetsCompanion Function({
+      Value<String> id,
+      Value<String?> householdId,
+      Value<int> weekday,
+      Value<int?> maxActiveMinutes,
+      Value<int?> windowStart,
+      Value<int?> windowEnd,
+      Value<int> rowid,
+    });
+
+class $$DayTimeBudgetsTableFilterComposer
+    extends Composer<_$AppDatabase, $DayTimeBudgetsTable> {
+  $$DayTimeBudgetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get weekday => $composableBuilder(
+    column: $table.weekday,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get maxActiveMinutes => $composableBuilder(
+    column: $table.maxActiveMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get windowStart => $composableBuilder(
+    column: $table.windowStart,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get windowEnd => $composableBuilder(
+    column: $table.windowEnd,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DayTimeBudgetsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DayTimeBudgetsTable> {
+  $$DayTimeBudgetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get weekday => $composableBuilder(
+    column: $table.weekday,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get maxActiveMinutes => $composableBuilder(
+    column: $table.maxActiveMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get windowStart => $composableBuilder(
+    column: $table.windowStart,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get windowEnd => $composableBuilder(
+    column: $table.windowEnd,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DayTimeBudgetsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DayTimeBudgetsTable> {
+  $$DayTimeBudgetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get weekday =>
+      $composableBuilder(column: $table.weekday, builder: (column) => column);
+
+  GeneratedColumn<int> get maxActiveMinutes => $composableBuilder(
+    column: $table.maxActiveMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get windowStart => $composableBuilder(
+    column: $table.windowStart,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get windowEnd =>
+      $composableBuilder(column: $table.windowEnd, builder: (column) => column);
+}
+
+class $$DayTimeBudgetsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DayTimeBudgetsTable,
+          DayTimeBudgetRow,
+          $$DayTimeBudgetsTableFilterComposer,
+          $$DayTimeBudgetsTableOrderingComposer,
+          $$DayTimeBudgetsTableAnnotationComposer,
+          $$DayTimeBudgetsTableCreateCompanionBuilder,
+          $$DayTimeBudgetsTableUpdateCompanionBuilder,
+          (
+            DayTimeBudgetRow,
+            BaseReferences<
+              _$AppDatabase,
+              $DayTimeBudgetsTable,
+              DayTimeBudgetRow
+            >,
+          ),
+          DayTimeBudgetRow,
+          PrefetchHooks Function()
+        > {
+  $$DayTimeBudgetsTableTableManager(
+    _$AppDatabase db,
+    $DayTimeBudgetsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DayTimeBudgetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DayTimeBudgetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DayTimeBudgetsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> householdId = const Value.absent(),
+                Value<int> weekday = const Value.absent(),
+                Value<int?> maxActiveMinutes = const Value.absent(),
+                Value<int?> windowStart = const Value.absent(),
+                Value<int?> windowEnd = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DayTimeBudgetsCompanion(
+                id: id,
+                householdId: householdId,
+                weekday: weekday,
+                maxActiveMinutes: maxActiveMinutes,
+                windowStart: windowStart,
+                windowEnd: windowEnd,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> householdId = const Value.absent(),
+                required int weekday,
+                Value<int?> maxActiveMinutes = const Value.absent(),
+                Value<int?> windowStart = const Value.absent(),
+                Value<int?> windowEnd = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DayTimeBudgetsCompanion.insert(
+                id: id,
+                householdId: householdId,
+                weekday: weekday,
+                maxActiveMinutes: maxActiveMinutes,
+                windowStart: windowStart,
+                windowEnd: windowEnd,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DayTimeBudgetsTable, DayTimeBudgetRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $DayTimeBudgetsTable,
+                    DayTimeBudgetRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DayTimeBudgetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DayTimeBudgetsTable,
+      DayTimeBudgetRow,
+      $$DayTimeBudgetsTableFilterComposer,
+      $$DayTimeBudgetsTableOrderingComposer,
+      $$DayTimeBudgetsTableAnnotationComposer,
+      $$DayTimeBudgetsTableCreateCompanionBuilder,
+      $$DayTimeBudgetsTableUpdateCompanionBuilder,
+      (
+        DayTimeBudgetRow,
+        BaseReferences<_$AppDatabase, $DayTimeBudgetsTable, DayTimeBudgetRow>,
+      ),
+      DayTimeBudgetRow,
+      PrefetchHooks Function()
     >;
 typedef $$PantryItemsTableCreateCompanionBuilder =
     PantryItemsCompanion Function({
@@ -18875,6 +19713,8 @@ class $AppDatabaseManager {
       $$RecipesTableTableManager(_db, _db.recipes);
   $$RecipeVersionsTableTableManager get recipeVersions =>
       $$RecipeVersionsTableTableManager(_db, _db.recipeVersions);
+  $$DayTimeBudgetsTableTableManager get dayTimeBudgets =>
+      $$DayTimeBudgetsTableTableManager(_db, _db.dayTimeBudgets);
   $$PantryItemsTableTableManager get pantryItems =>
       $$PantryItemsTableTableManager(_db, _db.pantryItems);
   $$ShoppingListsTableTableManager get shoppingLists =>

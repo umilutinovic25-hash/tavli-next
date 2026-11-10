@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../account/auth_controller.dart';
 import '../../data/cook_soon_repository.dart';
 import '../../data/meal_plan_repository.dart';
+import '../../data/time_budget_repository.dart';
 import '../../domain/cook_soon.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/plan_calendar.dart';
+import '../../domain/time_budget.dart';
 import '../../providers.dart';
 import '../recipes/recipe_providers.dart';
 
@@ -37,6 +39,19 @@ final cookSoonRepositoryProvider = Provider<CookSoonRepository>(
 
 final cookSoonItemsProvider = StreamProvider.autoDispose<List<CookSoonItem>>(
   (ref) => ref.watch(cookSoonRepositoryProvider).watchAll(),
+);
+
+/// Raspoloživo vreme po danu u nedelji (domaćinstvo).
+final timeBudgetRepositoryProvider = Provider<TimeBudgetRepository>(
+  (ref) => TimeBudgetRepository(
+    ref.watch(databaseProvider),
+    scope: ref.watch(accountScopeProvider) ?? noAccountScope,
+    writer: ref.watch(syncedWriterProvider),
+  ),
+);
+
+final dayBudgetsProvider = StreamProvider.autoDispose<List<DayBudget>>(
+  (ref) => ref.watch(timeBudgetRepositoryProvider).watchAll(),
 );
 
 /// Svi sačuvani planovi, noviji prvi.

@@ -210,6 +210,7 @@ void main() {
       'fetch:profiles',
       'fetch:recipes',
       'fetch:recipe_versions',
+      'fetch:day_time_budgets',
       'fetch:meal_plans',
       'fetch:week_templates',
       'fetch:meal_plan_entries',

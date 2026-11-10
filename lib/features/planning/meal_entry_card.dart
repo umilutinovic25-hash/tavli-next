@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../domain/meal_plan.dart';
 import '../../domain/recipe_format.dart';
+import '../../domain/time_budget.dart';
+import 'time_check_note.dart';
 
 /// Jedno mesto u planu: vrsta obroka, jelo, vreme, porcije i oznake
 /// Zaključano/Skuvano (tekstom, ne samo bojom).
@@ -13,6 +15,7 @@ class MealEntryCard extends StatelessWidget {
     this.selected = false,
     this.onTap,
     this.onEmptyTap,
+    this.timeCheck,
   });
 
   final MealSlot slot;
@@ -22,6 +25,10 @@ class MealEntryCard extends StatelessWidget {
 
   /// Prazno mesto (npr. izbor obroka van kuće).
   final VoidCallback? onEmptyTap;
+
+  /// Provera vremena za taj dan (prikazuje se samo prekoračenje i
+  /// nepoznato).
+  final TimeCheck? timeCheck;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +73,7 @@ class MealEntryCard extends StatelessWidget {
                     color: meal == null ? colors.onSurfaceVariant : null,
                   ),
                 ),
+                TimeCheckNote(timeCheck),
                 if (details.isNotEmpty || meal != null) ...[
                   const SizedBox(height: 8),
                   Wrap(

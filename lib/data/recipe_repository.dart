@@ -340,6 +340,8 @@ class RecipeRepository {
     imagePath: Value(r.imagePath),
     answeredBy: Value(r.answeredBy),
     sourceUrl: Value(r.sourceUrl),
+    activeMinutes: Value(r.activeMinutes),
+    totalMinutes: Value(r.totalMinutes),
     createdAt: r.createdAt,
     updatedAt: _clock(),
     householdId: Value(_scope.householdId),
@@ -369,6 +371,8 @@ class RecipeRepository {
       answeredBy: row.answeredBy,
       sourceUrl: row.sourceUrl,
       createdAt: row.createdAt,
+      activeMinutes: row.activeMinutes,
+      totalMinutes: row.totalMinutes,
     );
   }
 

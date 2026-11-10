@@ -6,12 +6,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../domain/meal_plan.dart';
 import '../../domain/recipe_format.dart';
+import '../../domain/time_budget.dart';
 import '../recipes/ai_preview.dart';
 import '../recipes/recipe_view.dart';
 import 'meal_actions.dart';
 import 'plan_format.dart';
 import 'plan_generation.dart';
 import 'planning_providers.dart';
+import 'time_check_note.dart';
 
 /// Drugi i treći korak: napredak, predlog po danima i odobrenje. Ništa se
 /// ne čuva dok osoba ne izabere "Sačuvaj plan" (ili izričito nepotpun plan).
@@ -187,6 +189,11 @@ class PlanPreviewScreen extends ConsumerWidget {
                   _SlotTile(
                     draft: draft,
                     slot: slot,
+                    timeCheck: mealTimeCheck(
+                      draft.snapshotFor(slot),
+                      slot.date,
+                      ref.watch(dayBudgetsProvider).value ?? const [],
+                    ),
                     previous: current[slot]?.snapshot?.title,
                     replacing: state.replacing == slot,
                     onReplace: state.busy
@@ -308,8 +315,10 @@ class _SlotTile extends StatelessWidget {
     this.replacing = false,
     this.onReplace,
     this.onCancelReplace,
+    this.timeCheck,
   });
 
+  final TimeCheck? timeCheck;
   final PlanDraft draft;
   final MealSlot slot;
 
@@ -383,7 +392,13 @@ class _SlotTile extends StatelessWidget {
     return ExpansionTile(
       tilePadding: EdgeInsets.zero,
       title: label,
-      subtitle: Text('${proposal.title}\n$origin', style: muted),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('${proposal.title}\n$origin', style: muted),
+          TimeCheckNote(timeCheck),
+        ],
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [replace, const Icon(Icons.expand_more)],
