@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../domain/recipe.dart';
 import '../../domain/shopping_source.dart';
+import '../planning/planning_providers.dart';
 import 'cooking_screen.dart';
 import 'ingredient_review_sheet.dart';
 import 'keep_screen_on.dart';
@@ -12,7 +13,7 @@ import 'recipe_providers.dart';
 import 'recipe_view.dart';
 import 'versions_sheet.dart';
 
-enum _MenuAction { undo, versions, export, delete }
+enum _MenuAction { cookSoon, undo, versions, export, delete }
 
 /// Detalji recepta. [embedded] je desni deo podeljenog prikaza (bez "nazad").
 class RecipeDetailScreen extends ConsumerWidget {
@@ -113,6 +114,20 @@ class _DetailState extends ConsumerState<_Detail> {
       ..showSnackBar(const SnackBar(content: Text('Recept je obrisan.')));
   }
 
+  Future<void> _addToCookSoon(BuildContext context, WidgetRef ref) async {
+    final recipe = widget.recipe;
+    final messenger = ScaffoldMessenger.of(context);
+    var text = 'Dodato u „Uskoro kuvam“. Rasporedi ga u Planu.';
+    try {
+      await ref.read(cookSoonRepositoryProvider).add(recipe);
+    } on Exception {
+      text = 'Recept nije dodat. Pokušaj ponovo.';
+    }
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
+  }
+
   @override
   Widget build(BuildContext context) {
     final recipe = widget.recipe;
@@ -138,12 +153,17 @@ class _DetailState extends ConsumerState<_Detail> {
           PopupMenuButton<_MenuAction>(
             tooltip: 'Još opcija',
             onSelected: (action) => switch (action) {
+              _MenuAction.cookSoon => _addToCookSoon(context, ref),
               _MenuAction.undo => undoLastChange(context, ref, recipe.id),
               _MenuAction.versions => showVersionsSheet(context, recipe.id),
               _MenuAction.export => exportRecipeJson(context, ref, recipe),
               _MenuAction.delete => _delete(context, ref),
             },
             itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: _MenuAction.cookSoon,
+                child: Text('Dodaj u „Uskoro kuvam“'),
+              ),
               PopupMenuItem(
                 value: _MenuAction.undo,
                 enabled: hasVersions,

@@ -11,6 +11,7 @@ import '../../domain/meal_plan.dart';
 import '../../domain/plan_calendar.dart';
 import '../../domain/recipe_format.dart';
 import '../recipes/recipe_providers.dart';
+import 'cook_soon_section.dart';
 import 'meal_entry_card.dart';
 import 'meal_entry_detail.dart';
 import 'plan_calendar.dart';
@@ -43,6 +44,7 @@ class PlanScreen extends ConsumerWidget {
         final view = ref.watch(planViewProvider);
         final plan = selectedPlan(list, view, ref.watch(clockProvider)());
         if (plan == null) {
+          final queued = ref.watch(cookSoonItemsProvider).value?.length ?? 0;
           return EmptyStateScreen(
             art: Icon(
               Icons.calendar_month_outlined,
@@ -52,7 +54,9 @@ class PlanScreen extends ConsumerWidget {
             title: 'Još nemaš plan',
             body:
                 'Izaberi nedelju ili mesec i obroke; predlog pregledaš '
-                'pre čuvanja.',
+                'pre čuvanja.'
+                '${queued == 0 ? '' : '\n\nU redu „Uskoro kuvam“ čeka '
+                          '${recipesCount(queued)}; rasporedićeš ih u planu.'}',
             action: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -182,6 +186,7 @@ class _PlanView extends ConsumerWidget {
           icon: const Icon(Icons.shopping_basket_outlined),
           label: const Text('Otvori nabavku'),
         ),
+        CookSoonSection(plan: plan, meals: meals),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,

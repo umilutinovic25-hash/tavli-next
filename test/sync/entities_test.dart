@@ -175,6 +175,33 @@ void main() {
     );
   });
 
+  test('stavka reda „Uskoro kuvam“: snimak kao objekat', () async {
+    await roundTrip(
+      const CookSoonItemEntity(),
+      CookSoonItemsCompanion.insert(
+        id: 'q1',
+        householdId: const Value('h1'),
+        recipeSnapshotJson: '{"title":"Sarma","servings":4,"ingredients":[]}',
+        servings: 4,
+        position: 2,
+        createdAt: t,
+      ),
+      'q1',
+      (r) {
+        expect(r['household_id'], 'h1');
+        expect(r['recipe_id'], isNull);
+        expect(r['recipe_snapshot'], {
+          'title': 'Sarma',
+          'servings': 4,
+          'ingredients': <Object>[],
+        });
+        expect(r['servings'], 4);
+        expect(r['position'], 2);
+        expect(r['created_at'], '2026-10-30T10:05:07.000Z');
+      },
+    );
+  });
+
   test('ocena i profil ukusa pripadaju osobi', () async {
     await roundTrip(
       const RatingEntity(),
@@ -253,7 +280,7 @@ void main() {
         );
       }
     }
-    expect(names, hasLength(14));
+    expect(names, hasLength(15));
     expect(const SupplyAllocationEntity().parents, [
       'shopping_contribution',
       'pantry_item',

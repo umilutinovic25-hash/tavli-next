@@ -213,6 +213,7 @@ void main() {
       'fetch:meal_plans',
       'fetch:week_templates',
       'fetch:meal_plan_entries',
+      'fetch:cook_soon_items',
       'fetch:shopping_lists',
       'fetch:shopping_items',
       'fetch:pantry_items',

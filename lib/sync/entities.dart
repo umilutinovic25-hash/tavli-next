@@ -429,6 +429,48 @@ class MealPlanEntryEntity
       );
 }
 
+class CookSoonItemEntity
+    extends SyncEntity<$CookSoonItemsTable, CookSoonItemRow> {
+  const CookSoonItemEntity();
+  @override
+  String get name => 'cook_soon_item';
+  @override
+  String get remoteTable => 'cook_soon_items';
+  @override
+  EntityScope get scope => EntityScope.household;
+  @override
+  List<String> get extraParents => const ['recipe'];
+  @override
+  $CookSoonItemsTable table(AppDatabase db) => db.cookSoonItems;
+  @override
+  Expression<String> idColumn($CookSoonItemsTable t) => t.id;
+  @override
+  GeneratedColumn<String> scopeColumn($CookSoonItemsTable t) => t.householdId;
+
+  @override
+  Map<String, Object?> toRemote(CookSoonItemRow r) => {
+    'id': r.id,
+    'household_id': r.householdId,
+    'recipe_id': r.recipeId,
+    'recipe_snapshot': jsonDecode(r.recipeSnapshotJson),
+    'servings': r.servings,
+    'position': r.position,
+    'created_at': _ts(r.createdAt),
+  };
+
+  @override
+  CookSoonItemsCompanion fromRemote(Map<String, Object?> j) =>
+      CookSoonItemsCompanion(
+        id: Value(j['id']! as String),
+        householdId: Value(j['household_id'] as String?),
+        recipeId: Value(j['recipe_id'] as String?),
+        recipeSnapshotJson: Value(_json(j['recipe_snapshot'])),
+        servings: Value(j['servings']! as int),
+        position: Value(j['position'] as int? ?? 0),
+        createdAt: Value(_date(j['created_at'])),
+      );
+}
+
 class RatingEntity extends SyncEntity<$RatingsTable, RatingRow> {
   const RatingEntity();
   @override
@@ -713,6 +755,7 @@ const List<SyncEntity<Table, Object?>> syncEntities = [
   MealPlanEntity(),
   WeekTemplateEntity(),
   MealPlanEntryEntity(),
+  CookSoonItemEntity(),
   ShoppingListEntity(),
   ShoppingItemEntity(),
   PantryItemEntity(),
