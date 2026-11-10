@@ -286,3 +286,88 @@ Deno.test("tekst recepta dekodira HTML entitete i sažima razmake", () => {
     steps: ["Umesi & ispeci."],
   });
 });
+
+Deno.test("transport: zakasnela TCP veza se zatvara bez slanja zahteva", async () => {
+  const original = Deno.connect;
+  let writes = 0, closes = 0;
+  let resolveConnect!: (conn: Deno.TcpConn) => void;
+  const pending = new Promise<Deno.TcpConn>((resolve) =>
+    resolveConnect = resolve
+  );
+  const fake = {
+    write: async (data: Uint8Array) => {
+      writes++;
+      return data.length;
+    },
+    read: async () => null,
+    close: () => {
+      closes++;
+    },
+  } as unknown as Deno.TcpConn;
+  Object.defineProperty(Deno, "connect", {
+    configurable: true,
+    value: () => pending,
+  });
+  try {
+    await assertRejects(() =>
+      requestPage(new URL("http://example.com/"), "93.184.216.34", 5)
+    );
+    resolveConnect(fake);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    assertEquals(writes, 0);
+    assertEquals(closes, 1);
+  } finally {
+    Object.defineProperty(Deno, "connect", {
+      configurable: true,
+      value: original,
+    });
+  }
+});
+
+Deno.test("transport: zakasneli TLS se zatvara bez slanja zahteva", async () => {
+  const originalConnect = Deno.connect, originalTls = Deno.startTls;
+  let writes = 0, tcpCloses = 0, tlsCloses = 0;
+  let resolveTls!: (conn: Deno.TlsConn) => void;
+  const pending = new Promise<Deno.TlsConn>((resolve) => resolveTls = resolve);
+  const tcp = {
+    close: () => {
+      tcpCloses++;
+    },
+  } as unknown as Deno.TcpConn;
+  const tls = {
+    write: async (data: Uint8Array) => {
+      writes++;
+      return data.length;
+    },
+    read: async () => null,
+    close: () => {
+      tlsCloses++;
+    },
+  } as unknown as Deno.TlsConn;
+  Object.defineProperty(Deno, "connect", {
+    configurable: true,
+    value: async () => tcp,
+  });
+  Object.defineProperty(Deno, "startTls", {
+    configurable: true,
+    value: () => pending,
+  });
+  try {
+    await assertRejects(() =>
+      requestPage(new URL("https://example.com/"), "93.184.216.34", 5)
+    );
+    resolveTls(tls);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    assertEquals([writes, tlsCloses], [0, 1]);
+    assertEquals(tcpCloses >= 1, true);
+  } finally {
+    Object.defineProperty(Deno, "connect", {
+      configurable: true,
+      value: originalConnect,
+    });
+    Object.defineProperty(Deno, "startTls", {
+      configurable: true,
+      value: originalTls,
+    });
+  }
+});

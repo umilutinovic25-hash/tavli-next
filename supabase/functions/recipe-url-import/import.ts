@@ -187,9 +187,11 @@ export async function requestPage(
 ): Promise<PageResponse> {
   const port = Number(url.port || (url.protocol === "https:" ? 443 : 80));
   let conn: Deno.Conn | undefined;
+  let expired = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const deadline = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
+      expired = true;
       try {
         conn?.close();
       } catch {
@@ -203,11 +205,22 @@ export async function requestPage(
       deadline,
       (async () => {
         const tcp = await Deno.connect({ hostname: ip, port });
+        if (expired) {
+          tcp.close();
+          throw new Error("timeout");
+        }
         conn = tcp;
         if (url.protocol === "https:") {
-          conn = await Deno.startTls(tcp, {
+          const tls = await Deno.startTls(tcp, {
             hostname: url.hostname.replace(/^\[|\]$/g, ""),
           });
+          if (expired) {
+            try {
+              tls.close();
+            } catch { /* timeout je već zatvorio vezu */ }
+            throw new Error("timeout");
+          }
+          conn = tls;
         }
         await writeAll(
           conn,
