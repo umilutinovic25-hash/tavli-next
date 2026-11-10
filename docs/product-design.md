@@ -184,8 +184,10 @@ rezultat. Vizuelni pregled i automatski testovi ne zamenjuju ovu proveru.
 ## 9. Granice i redosled
 
 010 je povezana funkcionalnost **plan → nabavka**, sa osnovnim radnjama nad
-ostavom, preferencama, receptima i kuvanjem. Pozivanje članova ostaje 008,
-realtime i napredno rešavanje istovremenih izmena 009. Planiranje počinje na
+ostavom, preferencama, receptima i kuvanjem. Pozivanje članova (008) je
+isporučeno kao 034: kod pozivnice, članovi i uloge, napuštanje, prenos
+vlasništva i izbor aktivnog domaćinstva; link i QR za pozivanje još nisu
+urađeni. Realtime i napredno rešavanje istovremenih izmena ostaju 009. Planiranje počinje na
 postojećem ličnom domaćinstvu, sa istim modelom deljenih podataka.
 
 Obavezni nalog, čuvanje na serveru i offline keš ostaju pravilo. Istorijske
