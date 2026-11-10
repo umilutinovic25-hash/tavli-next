@@ -1,0 +1,104 @@
+# Tavli Next — indeks 90 funkcija
+
+Sve stavke ostaju planirane. Detaljni kriterijumi, zavisnosti, mali koraci i provere nalaze se u manifestu i izveštaju odgovarajućeg stream-a. Ovaj indeks ne zamenjuje Spec Kit plan jedne implementacione grane.
+
+Pre prve funkcije proći G0–G6 iz [plana](plan.md). Originalni otvoreni zadaci 010 ostaju u izvornom specs direktorijumu.
+
+- [ ] F001 — Uvoz recepta sa URL-a, sa poreklom i pregledom pre čuvanja. Prvo strukturisani podaci stranice; AI samo kao rezervni način. ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F002 — Rečnik potvrđenih sinonima sastojaka i jedinica, npr. beli luk / češnjak. ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F003 — Sačuvane kombinovane pretrage: do 30 minuta, sa piletinom, bez određenog sastojka. ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F004 — „Mogu danas da skuvam”: recepti za koje postoje potvrđene količine, uz zaseban prikaz „nedostaje 1–2 sastojka”. ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F005 — „Potroši prvo”: prioritet receptima koji koriste namirnice pred istekom. ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F006 — Minimalna zaliha za redovne namirnice i predlog dopune kad padne ispod praga. ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F007 — Šabloni nedelje: sačuvaj uspešan plan, primeni na nove datume i prilagodi porcije. ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F008 — Režim kuvanja sa ček-listom sastojaka i koraka. ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F009 — Više imenovanih tajmera vezanih za korake, npr. „pirinač” i „riba”. ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F010 — Fotografija, brend i napomena uz stavku nabavke da član domaćinstva kupi pravi proizvod. ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F011 — Zajednička lista sa brzim ažuriranjima između članova i jasnim stanjem sinhronizacije. ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F012 — Povezani ostaci: večera za četiri osobe postaje dva ručka narednog dana, bez ponovne kupovine sastojaka. ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F013 — Zamrznuti gotovi obroci: porcije, datum zamrzavanja i podsetnik za pripremu/odmrzavanje. ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F014 — Grupe od 3–5 jela koja zajedno potroše kupljena pakovanja namirnica. ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F015 — Podsetnici za pripremu pre obroka, npr. potapanje pasulja ili mariniranje. ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F016 — Glasovni unos nabavke na srpskom: „dodaj dva litra mleka”, sa pregledom pre upisa. ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F017 — Barkod dopunjava naziv i pakovanje proizvoda, uz ručni unos ako proizvod ne postoji. ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F018 — Cene sa prodavnicom, datumom i dokazom iz računa/etikete; istorija i procena pokrivenosti korpe. ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F019 — Uvoz recepta iz PDF-a ili nalepljenog teksta u isti postojeći pregled pre čuvanja. ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F020 — Prevod uvezenog recepta na srpski uz očuvan original. ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F021 — Izvoz odabranih recepata u porodični PDF kuvar. ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F022 — Prenosivi recepti u schema.org/Recipe JSON formatu i povratni uvoz. ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F023 — Uvoz postojećih kolekcija iz drugih aplikacija sa izveštajem o duplikatima i preskočenim poljima. ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F024 — Sačuvaj recept tokom pregledanja kroz dodatak za browser ili sistemski Share meni. ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F025 — Uvoz recepta iz objave na društvenim mrežama sa izvornim linkom i obaveznim pregledom. ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F026 — Praćenje odabranih kulinarskih blogova kroz RSS, uz eksplicitno čuvanje izabranog recepta. ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F027 — Podrecepti: sos ili testo se koristi u više recepata i pravilno ulazi u zbir nabavke. ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F028 — Povezivanje sastojaka sa korakom u kome se koriste, tako da kuvar vidi količine uz taj korak. ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F029 — Fotografija ili kratak video uz pojedinačan korak pripreme. ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F030 — Brza akcija „Potroši ove 3 namirnice”, bez obaveznog popunjavanja cele ostave. ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F031 — Red „Želim uskoro da kuvam” ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F032 — Pravila po danima ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F033 — Obrok van kuće ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F034 — Raspoloživo vreme po danu ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F035 — Kontrola ponavljanja kroz više nedelja ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F036 — Lokacije namirnica ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F037 — Otvoreno pakovanje ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F038 — Odvojene ture iste namirnice ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F039 — Brza provera inventara ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F040 — Dnevnik bačene hrane ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F041 — Redosled prema konkretnoj prodavnici ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F042 — Kupovina celih pakovanja ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F043 — Budžet tokom kupovine ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F044 — Ko kupuje koju stavku ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F045 — Lista redovne kupovine ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F046 — Nutritivne vrednosti po porciji ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F047 — Dnevnik kuvanja ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F048 — Sezonski izbor ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F049 — Sken uz izdvojeni tekst ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F050 — Oprema koju posedujem ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F051 — Temperature i režim rerne ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F052 — Paralelna priprema više jela ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F053 — Glasovno vođenje kuvanja ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F054 — Moje stvarno vreme pripreme ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F055 — Pitanje o tekućem koraku ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F056 — Glasanje za predloge ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F057 — Ko jede ovaj obrok ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F058 — „Zašto je ovo predloženo?” ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F059 — Widget „Danas” ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F060 — Pretplata na kalendar ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F061 — Poređenje nacrta planova ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F062 — Poništi izmenu celog plana ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+- [ ] F063 — Više nezavisnih domaćinstava ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F064 — Privremeno deljenje bez naloga ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F065 — Potpuna rezervna kopija i obnova ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F066 — Razduživanje zajedničkih troškova ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F067 — Slanje korpe online prodavnici ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F068 — Kartice lojalnosti ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F069 — Podsetnik blizu prodavnice ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F070 — Stvarna isplativost obilaska prodavnica ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F071 — Kuponi i uslovne akcije ([stream D](../research/streams/D.md), [kriterijumi i koraci](../research/manifests/D.json)).
+- [ ] F072 — Povratna ambalaža i kaucije ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F073 — Poravnanje kupovine sa računom ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F074 — Težina posude i neto sadržaj ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F075 — Stvarni prinos nakon kuvanja ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F076 — Povezivanje sa kompatibilnom vagom ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F077 — Povezivanje sa termometrom ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F078 — Slanje postavki pametnoj rerni ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F079 — Kalkulator veličine kalupa ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F080 — Pekarski procenti ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F081 — Put učenja kuvanja ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F082 — Kulinarski rečnik ([stream E](../research/streams/E.md), [kriterijumi i koraci](../research/manifests/E.json)).
+- [ ] F083 — Dostupnost konkretnih proizvoda ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F084 — Provera unutrašnje doslednosti recepta ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F085 — Status testiranog recepta ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F086 — Procena ekološkog uticaja ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F087 — Ponudi višak hrane ([stream C](../research/streams/C.md), [kriterijumi i koraci](../research/manifests/C.json)).
+- [ ] F088 — Lične automatizacije preko API-ja ([stream F](../research/streams/F.md), [kriterijumi i koraci](../research/manifests/F.json)).
+- [ ] F089 — Novo planiranje bez interneta i AI-ja ([stream A](../research/streams/A.md), [kriterijumi i koraci](../research/manifests/A.json)).
+- [ ] F090 — Uvažavanje zauzetosti iz kalendara ([stream B](../research/streams/B.md), [kriterijumi i koraci](../research/manifests/B.json)).
+
+## Kontrolne tačke
+
+- [ ] W0: baseline, ugovori, AI ograničenja i kvalitet postojeće 010.
+- [ ] W1–W2: prvi solo tokovi provereni na telefonu/wide i offline.
+- [ ] W3–W4: zalihe, kuvanje/konzumacija, članstvo i konflikti provereni.
+- [ ] W5–W7: sandbox/device capability dokazi, dostupnost i graceful fallback.
+- [ ] Status funkcija promenjen tek uz dokaz implementacije i verifikacije.

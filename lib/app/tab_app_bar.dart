@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../features/account/account_header.dart';
+import '../features/use_first/use_first_screen.dart';
+import 'tavli_brand.dart';
 
 /// Gornja traka glavnih ekrana tabova: naziv aplikacije i avatar. Koji je
 /// tab izabran vidi se u donjim tabovima, odnosno u bočnom meniju.
@@ -12,8 +14,12 @@ class TabAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) => AppBar(
-    title: const Text('Tavli'),
+    title: const FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: TavliBrand(),
+    ),
     automaticallyImplyLeading: false,
-    actions: const [ProfileButton()],
+    actions: const [UseFirstButton(), ProfileButton()],
   );
 }
