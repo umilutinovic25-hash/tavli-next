@@ -35,6 +35,44 @@ PantryStock stock(
 );
 
 void main() {
+  test(
+    'filter računa jedan ili dva poznata manjka, a ne nepoznate količine',
+    () {
+      final items = [stock('a', 'pirinač', 400, 'g')];
+      final recipes = [
+        recipe('jedan', const [
+          Ingredient(name: 'pirinač', quantity: 600, unit: 'g'),
+        ]),
+        recipe('dva', const [
+          Ingredient(name: 'pirinač', quantity: 600, unit: 'g'),
+          Ingredient(name: 'so', quantity: 10, unit: 'g'),
+        ]),
+        recipe('tri', const [
+          Ingredient(name: 'pirinač', quantity: 600, unit: 'g'),
+          Ingredient(name: 'so', quantity: 10, unit: 'g'),
+          Ingredient(name: 'biber', quantity: 10, unit: 'g'),
+        ]),
+        recipe('nepoznato', const [
+          Ingredient(name: 'pirinač', quantity: 600, unit: 'g'),
+          Ingredient(name: 'so'),
+        ]),
+        recipe('dovoljno', const [
+          Ingredient(name: 'pirinač', quantity: 400, unit: 'g'),
+        ]),
+      ];
+      final result = {
+        for (final s in suggestRecipes(recipes, items, now: now))
+          s.recipe.id: s,
+      };
+      expect(result['jedan']!.ingredients.single.missingMicros, 200000000);
+      expect(result['jedan']!.missingOneOrTwo, isTrue);
+      expect(result['dva']!.missingOneOrTwo, isTrue);
+      expect(result['tri']!.missingOneOrTwo, isFalse);
+      expect(result['nepoznato']!.missingOneOrTwo, isFalse);
+      expect(result['dovoljno']!.missingOneOrTwo, isFalse);
+      expect(result['dovoljno']!.ready, isTrue);
+    },
+  );
   test('1 kg − 250 g = 750 g; porcije i rezerve', () {
     final r = recipe('Pirinač', const [
       Ingredient(name: 'pirinač', quantity: 1, unit: 'kg'),

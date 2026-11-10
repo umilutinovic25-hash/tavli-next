@@ -4,6 +4,9 @@
 Predlozi se računaju iz postojeće zbirke recepata i Ostave prijavljenog
 domaćinstva. Glavna akcija „Potroši prvo“ dostupna je iz zaglavlja tabova.
 Ekran ima izbor porcija (1–20, početno 2), pretragu i filter „Mogu sada“.
+Filter „Nedostaju 1–2 sastojka“ prikazuje zasebno recepte sa jednim ili dva
+različita potvrđena manjka; nepoznata potrebna količina ostaje za proveru i
+isključuje recept iz tog filtera. Pretraga i porcije važe i za ovaj filter.
 Otvaranje recepta vodi u postojeći recept/tok sastojaka; predlog ne menja
 Ostavu, ne rezerviše zalihu i ne piše Nabavku.
 
@@ -39,7 +42,7 @@ Ostavu, ne rezerviše zalihu i ne piše Nabavku.
 
 ## UI tekst
 Potroši prvo; Od onoga što već imaš; Porcije; Predlozi; Mogu sada;
-Svi predlozi; Pretraži predloge; Manje porcija; Više porcija;
+Svi predlozi; Nedostaju 1–2 sastojka; Pretraži predloge; Manje porcija; Više porcija;
 Prednost imaju namirnice kojima rok ističe u narednih 7 dana. Računamo potvrđene, slobodne količine iz Ostave.;
 Potroši prvo: {namirnice} · rok {datum}; Sve poznate količine su dostupne;
 {pokriveno}/{ukupno} sastojaka potpuno pokriveno; Nedostaje: {naziv} · {količina};

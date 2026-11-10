@@ -30,9 +30,11 @@ class UseFirstScreen extends ConsumerStatefulWidget {
   ConsumerState<UseFirstScreen> createState() => _UseFirstScreenState();
 }
 
+enum _SuggestionFilter { all, ready, almost }
+
 class _UseFirstScreenState extends ConsumerState<UseFirstScreen> {
   int _servings = 2;
-  bool _readyOnly = false;
+  _SuggestionFilter _filter = _SuggestionFilter.all;
   String _query = '';
   late final Timer _timer;
   late final AppLifecycleListener _lifecycle;
@@ -103,7 +105,11 @@ class _UseFirstScreenState extends ConsumerState<UseFirstScreen> {
     final filtered = suggestions
         .where(
           (s) =>
-              (!_readyOnly || s.ready) &&
+              (switch (_filter) {
+                _SuggestionFilter.all => true,
+                _SuggestionFilter.ready => s.ready,
+                _SuggestionFilter.almost => s.missingOneOrTwo,
+              }) &&
               s.recipe.title.toLowerCase().contains(
                 _query.toLowerCase().trim(),
               ),
@@ -156,13 +162,21 @@ class _UseFirstScreenState extends ConsumerState<UseFirstScreen> {
           children: [
             ChoiceChip(
               label: const Text('Svi predlozi'),
-              selected: !_readyOnly,
-              onSelected: (_) => setState(() => _readyOnly = false),
+              selected: _filter == _SuggestionFilter.all,
+              onSelected: (_) =>
+                  setState(() => _filter = _SuggestionFilter.all),
             ),
             ChoiceChip(
               label: const Text('Mogu sada'),
-              selected: _readyOnly,
-              onSelected: (_) => setState(() => _readyOnly = true),
+              selected: _filter == _SuggestionFilter.ready,
+              onSelected: (_) =>
+                  setState(() => _filter = _SuggestionFilter.ready),
+            ),
+            ChoiceChip(
+              label: const Text('Nedostaju 1–2 sastojka'),
+              selected: _filter == _SuggestionFilter.almost,
+              onSelected: (_) =>
+                  setState(() => _filter = _SuggestionFilter.almost),
             ),
           ],
         ),

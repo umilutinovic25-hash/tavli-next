@@ -58,6 +58,17 @@ class RecipeSuggestion {
   bool get ready =>
       ingredients.isNotEmpty && ingredients.every((i) => i.missingMicros == 0);
   int get coveredCount => ingredients.where((i) => i.missingMicros == 0).length;
+
+  /// Nepoznata količina nije potvrđen manjak i traži posebnu proveru.
+  bool get missingOneOrTwo {
+    if (ingredients.any((i) => i.missingMicros == null)) return false;
+    final missing = {
+      for (final i in ingredients)
+        if (i.missingMicros! > 0) ingredientKey(i.name),
+    };
+    return missing.isNotEmpty && missing.length <= 2;
+  }
+
   List<String> get soonIngredients => [
     for (final i in ingredients)
       if (i.soonExpiry != null) i.name,

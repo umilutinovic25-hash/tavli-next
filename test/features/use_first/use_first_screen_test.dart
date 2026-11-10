@@ -73,6 +73,51 @@ void main() {
       'MaterialIcons',
     )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
   });
+  testTavli('filter izdvaja manjak i radi uz pretragu i porcije', (
+    tester,
+  ) async {
+    final partial = Recipe(
+      id: 'partial',
+      title: 'Kupus sa solju',
+      servings: 2,
+      ingredients: const [
+        Ingredient(name: 'kupus', quantity: 500, unit: 'g'),
+        Ingredient(name: 'so', quantity: 10, unit: 'g'),
+      ],
+      source: RecipeSource.manual,
+      createdAt: now,
+    );
+    await pumpTavli(
+      tester,
+      location: '/use-first',
+      size: const Size(600, 1600),
+      recipes: [partial, recipe('ready', 'Pasulj', 'pasulj')],
+      setup: seed,
+      overrides: [clockProvider.overrideWithValue(() => now)],
+    );
+    await tester.runAsync(
+      () async => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Nedostaju 1–2 sastojka'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kupus sa solju'), findsOneWidget);
+    expect(find.text('Pasulj'), findsNothing);
+    expect(find.text('Nedostaje: so · 10 g'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'pasulj');
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Nema predloga za izabranu pretragu i filter.'),
+      findsOneWidget,
+    );
+    await tester.enterText(find.byType(TextField), '');
+    await tester.tap(find.byTooltip('Više porcija'));
+    await tester.pumpAndSettle();
+    expect(find.text('Nedostaje: kupus · 250 g'), findsOneWidget);
+    await tester.tap(find.text('Mogu sada'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kupus sa solju'), findsNothing);
+  });
   testTavli('prioritet, porcije i živa Ostava bez upisa', (tester) async {
     final app = await pumpTavli(
       tester,
