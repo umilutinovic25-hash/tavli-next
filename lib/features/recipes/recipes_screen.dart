@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/animations/spoon_refresh.dart';
+import '../../app/section_heading.dart';
 import '../../app/tab_app_bar.dart';
 import '../../app/theme/tavli_colors.dart';
 import '../../domain/recipe.dart';
@@ -216,12 +217,26 @@ class _RecipeListState extends ConsumerState<_RecipeList> {
                           child: ListView.builder(
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 88),
-                            itemCount: recipes.length,
-                            itemBuilder: (context, i) => _RecipeTile(
-                              recipes[i],
-                              index: i,
-                              selected: recipes[i].id == widget.selectedId,
-                            ),
+                            itemCount: recipes.length + 1,
+                            itemBuilder: (context, i) {
+                              if (i == 0) {
+                                return const Padding(
+                                  padding: EdgeInsets.only(top: 12, bottom: 24),
+                                  child: SectionHeading(
+                                    eyebrow: 'Tvoja kuhinja',
+                                    title: 'Recepti',
+                                    subtitle:
+                                        'Sačuvaj ideje kojima se rado vraćaš.',
+                                  ),
+                                );
+                              }
+                              final recipe = recipes[i - 1];
+                              return _RecipeTile(
+                                recipe,
+                                index: i - 1,
+                                selected: recipe.id == widget.selectedId,
+                              );
+                            },
                           ),
                         ),
                 ),

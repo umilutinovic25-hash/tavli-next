@@ -304,6 +304,9 @@ class ShoppingRepository {
           ))
           .getSingleOrNull();
 
+  /// Promena stvarne zalihe osvežava postojeće potrebe svih izvora.
+  Future<void> reconcileInventory() => _db.transaction(_reconcile);
+
   /// Usklađuje nabavku plana sa odobrenim obrocima: jedan izvor po obroku u
   /// listi njegove nedelje, pa doprinosi, raspodela zalihe i otvorene
   /// stavke. Ponovljen poziv bez promene ne menja ništa.
@@ -1043,15 +1046,19 @@ class ShoppingRepository {
     // 2. Zaliha: potvrđena ostava (koja nije istekla) i kupljene stavke.
     // Prijem kupovine u ostavu je ista zaliha kao ta kupovina.
     final supplies = <Supply>[];
+    final received = <String, PantryItemRow>{};
     for (final p
         in await (_db.select(_db.pantryItems)..where(
               (t) =>
                   t.householdId.equals(hid) &
-                  t.confirmedAt.isNotNull() &
-                  t.quantity.isNotNull(),
+                  (t.confirmedAt.isNotNull() |
+                      t.sourceShoppingItemId.isNotNull()),
             ))
             .get()) {
-      if (p.expiresAt case final e? when e.isBefore(now)) continue;
+      final expired = p.expiresAt?.isBefore(now) ?? false;
+      if (p.sourceShoppingItemId case final purchase?) received[purchase] = p;
+      final known = p.confirmedAt != null && p.quantity != null;
+      if (p.sourceShoppingItemId == null && (!known || expired)) continue;
       final unit = normalizeUnit(p.unit);
       supplies.add(
         Supply(
@@ -1059,7 +1066,7 @@ class ShoppingRepository {
           origin: SupplyOrigin.pantry,
           ingredient: ingredientKey(p.name),
           unitGroup: unit.group,
-          micros: toMicros(p.quantity!) * unit.factor,
+          micros: !known || expired ? 0 : toMicros(p.quantity!) * unit.factor,
           samePhysicalAs: p.sourceShoppingItemId,
         ),
       );
@@ -1137,10 +1144,24 @@ class ShoppingRepository {
       final supply = capacity[a.supplyId];
       if (c == null) continue;
       if (a.coversWholeUnknown) {
-        kept.add(a);
+        final receipt = received[a.supplyId];
+        if (receipt != null &&
+            (receipt.quantity == 0 ||
+                (receipt.expiresAt?.isBefore(now) ?? false) ||
+                ingredientKey(receipt.name) != c.ingredientKey)) {
+          await (_db.delete(
+            _db.supplyAllocations,
+          )..where((t) => t.id.equals(a.id))).go();
+          await _writer.delete(_allocation, a.id);
+        } else {
+          kept.add(a);
+        }
         continue;
       }
-      final cap = supply?.micros ?? 0;
+      final matches =
+          supply?.ingredient == c.ingredientKey &&
+          supply?.unitGroup == c.unitGroup;
+      final cap = matches ? (supply?.micros ?? 0) : 0;
       final room = cap - (used[a.supplyId] ?? 0);
       final need = (c.micros ?? 0) - (perContribution[c.id] ?? 0);
       final keep = [a.micros ?? 0, room, need].reduce((x, y) => x < y ? x : y);

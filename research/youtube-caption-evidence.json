@@ -1,0 +1,28 @@
+{
+  "video_url": "https://www.youtube.com/watch?v=SVaYJgmPvCg",
+  "title": "AI Cooking Disasters: Debunking Facebook\u2019s Fake Recipes",
+  "channel": "How To Cook That",
+  "upload_date_observed": "2025-03-21",
+  "review_date": "2026-11-09",
+  "evidence_kind": "selected segments of manual English captions inspected; not full video viewing",
+  "caption_sha256": "42e2702693dd77313aef2e4ca9ad9a42c92a9b713691e26de038286b19748e06",
+  "segments_reviewed": [
+    {
+      "start": "02:02",
+      "end": "02:19",
+      "finding": "Reported result differs from the generated presentation image."
+    },
+    {
+      "start": "03:37",
+      "end": "04:10",
+      "finding": "Reported preparation problems motivate checking actual execution, not just syntax."
+    },
+    {
+      "start": "04:36",
+      "end": "05:08",
+      "finding": "Visual plausibility does not establish that an image depicts an actual prepared recipe."
+    }
+  ],
+  "replication_status": "Reported video outcomes not independently reproduced by Tavli team.",
+  "raw_transcript_in_repository": false
+}
