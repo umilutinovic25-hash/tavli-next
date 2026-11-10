@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tavli/domain/pan_converter.dart';
+import 'package:tavli/domain/recipe.dart';
 
 import '../../helpers/test_app.dart';
 
@@ -68,5 +69,35 @@ void main() {
     }
     await tapButton(tester, 'Izračunaj');
     expect(find.text('Faktor: 0,523599'), findsOneWidget);
+  });
+  testTavli('preračun zadržava napomene i za poznate i za nepoznate količine', (
+    tester,
+  ) async {
+    final recipe = sampleRecipe('r', 'Pita').copyWith(
+      ingredients: const [
+        Ingredient(name: 'brašno', quantity: 100, unit: 'g', note: 'prosejano'),
+        Ingredient(name: 'so', note: 'po ukusu'),
+      ],
+    );
+    await pumpTavli(
+      tester,
+      location: '/recipes/r',
+      size: const Size(800, 1400),
+      recipes: [recipe],
+    );
+    await tapButton(tester, 'Preračunaj kalup');
+    for (final entry in {
+      'old-width': '20',
+      'old-height': '4',
+      'new-width': '30',
+      'new-height': '4',
+    }.entries) {
+      final field = find.byKey(ValueKey(entry.key));
+      await tester.ensureVisible(field);
+      await tester.enterText(field, entry.value);
+    }
+    await tapButton(tester, 'Izračunaj');
+    expect(find.text('225 g brašno (prosejano)'), findsOneWidget);
+    expect(find.text('so — količina nije navedena (po ukusu)'), findsOneWidget);
   });
 }

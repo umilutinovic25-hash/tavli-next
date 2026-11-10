@@ -44,6 +44,16 @@ class _PanConverterDialogState extends State<PanConverterDialog> {
           .replaceFirst(RegExp(r'\.0$'), '')
           .replaceAll('.', ',');
 
+  String _ingredientLine(Ingredient ingredient, double factor) {
+    final quantity = ingredient.quantity;
+    final line = quantity == null
+        ? '${ingredient.name} — količina nije navedena'
+        : '${_display(quantity * factor)} ${ingredient.unit ?? ''} ${ingredient.name}'
+              .trim();
+    final note = ingredient.note?.trim();
+    return note == null || note.isEmpty ? line : '$line ($note)';
+  }
+
   double? _number(String s) => double.tryParse(s.trim().replaceAll(',', '.'));
   void _calculate() {
     if (!_form.currentState!.validate()) return;
@@ -196,12 +206,7 @@ class _PanConverterDialogState extends State<PanConverterDialog> {
                   'Preračunati sastojci (zaokruženo na šest značajnih cifara)',
                 ),
                 for (final i in widget.recipe.ingredients)
-                  Text(
-                    i.quantity == null
-                        ? '${i.name} — količina nije navedena'
-                        : '${_display(i.quantity! * factor)} ${i.unit ?? ''} ${i.name}'
-                              .trim(),
-                  ),
+                  Text(_ingredientLine(i, factor)),
               ],
             ],
           ),
