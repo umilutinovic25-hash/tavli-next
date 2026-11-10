@@ -209,5 +209,31 @@ void main() {
       expect(jsonDecode(r.body), {'p_household_id': 'home-1'});
       expect(code, 'K7P2MDXN');
     });
+
+    Map<String, Object?> inviteRow({int? maxUses, int uses = 0}) => {
+      'id': 'inv-1',
+      'household_id': 'home-1',
+      'code': 'K7P2MDXN',
+      'created_at': '2026-11-10T12:00:00Z',
+      'expires_at': '2026-11-17T12:00:00Z',
+      'revoked_at': null,
+      'uses': uses,
+      'max_uses': ?maxUses,
+    };
+
+    test('pregled čita max_uses i preostale upotrebe', () async {
+      handler = (_) => jsonResponse([inviteRow(maxUses: 3, uses: 1)]);
+
+      final invite = (await remote.listForHousehold('home-1')).single;
+
+      expect(invite.maxUses, 3);
+      expect(invite.usesLeft, 2);
+    });
+
+    test('red bez max_uses daje podrazumevanih 5', () async {
+      handler = (_) => jsonResponse([inviteRow()]);
+
+      expect((await remote.listForHousehold('home-1')).single.maxUses, 5);
+    });
   });
 }

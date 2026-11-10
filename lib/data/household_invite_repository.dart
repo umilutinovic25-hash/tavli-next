@@ -108,6 +108,7 @@ class SupabaseHouseholdInviteRemote implements HouseholdInviteRemote {
         ? null
         : DateTime.parse(r['revoked_at'] as String),
     uses: r['uses'] as int,
+    maxUses: r['max_uses'] as int? ?? 5,
   );
 
   static Future<T> _guard<T>(Future<T> Function() action) async {
