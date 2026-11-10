@@ -13,6 +13,17 @@ import '../../domain/time_budget.dart';
 import 'recipe_providers.dart';
 import 'recipe_view.dart' show StepUseLine;
 
+/// Isti editor za ručni unos i ispravku otvorenog foto-pregleda.
+Future<Ingredient?> showRecipeIngredientEditor(
+  BuildContext context, {
+  Ingredient? initial,
+  bool validateQuantity = false,
+}) => showDialog<Ingredient>(
+  context: context,
+  builder: (_) =>
+      _IngredientDialog(initial: initial, validateQuantity: validateQuantity),
+);
+
 /// Ručni unos novog recepta ([id] == null) ili izmena postojećeg.
 class RecipeFormScreen extends ConsumerStatefulWidget {
   const RecipeFormScreen({super.key, this.id, this.draft});
@@ -165,11 +176,9 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
   }
 
   Future<void> _editIngredient([int? index]) async {
-    final result = await showDialog<Ingredient>(
-      context: context,
-      builder: (context) => _IngredientDialog(
-        initial: index == null ? null : _ingredients[index],
-      ),
+    final result = await showRecipeIngredientEditor(
+      context,
+      initial: index == null ? null : _ingredients[index],
     );
     if (result == null || !mounted) return;
     setState(() {
@@ -530,9 +539,10 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
 }
 
 class _IngredientDialog extends StatefulWidget {
-  const _IngredientDialog({this.initial});
+  const _IngredientDialog({this.initial, this.validateQuantity = false});
 
   final Ingredient? initial;
+  final bool validateQuantity;
 
   @override
   State<_IngredientDialog> createState() => _IngredientDialogState();
@@ -543,11 +553,15 @@ class _IngredientDialogState extends State<_IngredientDialog> {
   late final _quantity = TextEditingController(
     text: widget.initial?.quantity == null
         ? ''
-        : formatQuantity(widget.initial!.quantity!),
+        : formatQuantity(
+            widget.initial!.quantity!,
+            preservePrecision: widget.validateQuantity,
+          ),
   );
   late final _unit = TextEditingController(text: widget.initial?.unit);
   late final _note = TextEditingController(text: widget.initial?.note);
   late String _category = widget.initial?.category ?? 'ostalo';
+  String? _quantityError;
 
   @override
   void initState() {
@@ -567,15 +581,24 @@ class _IngredientDialogState extends State<_IngredientDialog> {
   void _submit() {
     if (_name.text.trim().isEmpty) return;
     // Isto čitanje kao za AI odgovor: "0,5", "1/2", prazno → bez količine.
-    Navigator.of(context).pop(
-      Ingredient.fromJson({
-        'name': _name.text,
-        'quantity': _quantity.text,
-        'unit': _unit.text,
-        'category': _category,
-        'note': _note.text,
-      }),
-    );
+    final ingredient = Ingredient.fromJson({
+      'name': _name.text,
+      'quantity': _quantity.text,
+      'unit': _unit.text,
+      'category': _category,
+      'note': _note.text,
+    });
+    final q = ingredient.quantity;
+    if (widget.validateQuantity &&
+        _quantity.text.trim().isNotEmpty &&
+        (q == null || !q.isFinite || q <= 0)) {
+      setState(
+        () => _quantityError =
+            'Unesi pozitivan broj ili ostavi prazno ako količina nije poznata.',
+      );
+      return;
+    }
+    Navigator.of(context).pop(ingredient);
   }
 
   @override
@@ -599,7 +622,11 @@ class _IngredientDialogState extends State<_IngredientDialog> {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
-                    decoration: const InputDecoration(labelText: 'Količina'),
+                    decoration: InputDecoration(
+                      labelText: 'Količina',
+                      errorText: _quantityError,
+                      errorMaxLines: 5,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),

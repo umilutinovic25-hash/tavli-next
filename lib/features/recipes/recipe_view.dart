@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../domain/quantity_review.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
 import '../../domain/step_links.dart';
@@ -15,6 +16,8 @@ class RecipeView extends StatelessWidget {
     super.key,
     this.photoBytes,
     this.showTitle = false,
+    this.reviewQuantities = false,
+    this.onEditIngredient,
   });
 
   final Recipe recipe;
@@ -22,6 +25,8 @@ class RecipeView extends StatelessWidget {
   /// Slika koja još nije sačuvana (pregled recepta iz slike).
   final Uint8List? photoBytes;
   final bool showTitle;
+  final bool reviewQuantities;
+  final ValueChanged<int>? onEditIngredient;
 
   @override
   Widget build(BuildContext context) {
@@ -91,11 +96,25 @@ class RecipeView extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
           ),
-          for (final i in items)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text('• ${ingredientLine(i)}'),
-            ),
+          for (final (index, i) in recipe.ingredients.indexed)
+            if (items.contains(i))
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: onEditIngredient == null
+                    ? _ingredient(context, i)
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: _ingredient(context, i)),
+                          IconButton(
+                            key: ValueKey('review-ingredient-$index'),
+                            tooltip: 'Izmeni sastojak: ${i.name}',
+                            onPressed: () => onEditIngredient!(index),
+                            icon: const Icon(Icons.edit_outlined),
+                          ),
+                        ],
+                      ),
+              ),
         ],
         for (final c in useConflicts(recipe.ingredients, recipe.stepUses))
           Padding(
@@ -158,6 +177,37 @@ class RecipeView extends StatelessWidget {
           const SizedBox(height: 16),
           Text(origin, style: theme.textTheme.bodySmall),
         ],
+      ],
+    );
+  }
+
+  Widget _ingredient(BuildContext context, Ingredient ingredient) {
+    final line = Text(
+      '• ${ingredientLine(ingredient, preservePrecision: reviewQuantities)}',
+    );
+    final issue = reviewQuantities ? quantityReviewIssue(ingredient) : null;
+    if (issue == null) return line;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        line,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 18,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                issue.label,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
