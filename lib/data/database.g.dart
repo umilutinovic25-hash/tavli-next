@@ -101,6 +101,17 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _sourceUrlMeta = const VerificationMeta(
+    'sourceUrl',
+  );
+  @override
+  late final GeneratedColumn<String> sourceUrl = GeneratedColumn<String>(
+    'source_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -145,6 +156,7 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
     stepsJson,
     imagePath,
     answeredBy,
+    sourceUrl,
     createdAt,
     updatedAt,
     householdId,
@@ -230,6 +242,12 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
         answeredBy.isAcceptableOrUnknown(data['answered_by']!, _answeredByMeta),
       );
     }
+    if (data.containsKey('source_url')) {
+      context.handle(
+        _sourceUrlMeta,
+        sourceUrl.isAcceptableOrUnknown(data['source_url']!, _sourceUrlMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -300,6 +318,10 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
         DriftSqlType.string,
         data['${effectivePrefix}answered_by'],
       ),
+      sourceUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_url'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -331,6 +353,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
   final String stepsJson;
   final String? imagePath;
   final String? answeredBy;
+  final String? sourceUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? householdId;
@@ -344,6 +367,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     required this.stepsJson,
     this.imagePath,
     this.answeredBy,
+    this.sourceUrl,
     required this.createdAt,
     required this.updatedAt,
     this.householdId,
@@ -365,6 +389,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     }
     if (!nullToAbsent || answeredBy != null) {
       map['answered_by'] = Variable<String>(answeredBy);
+    }
+    if (!nullToAbsent || sourceUrl != null) {
+      map['source_url'] = Variable<String>(sourceUrl);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -391,6 +418,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       answeredBy: answeredBy == null && nullToAbsent
           ? const Value.absent()
           : Value(answeredBy),
+      sourceUrl: sourceUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceUrl),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       householdId: householdId == null && nullToAbsent
@@ -414,6 +444,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       stepsJson: serializer.fromJson<String>(json['stepsJson']),
       imagePath: serializer.fromJson<String?>(json['imagePath']),
       answeredBy: serializer.fromJson<String?>(json['answeredBy']),
+      sourceUrl: serializer.fromJson<String?>(json['sourceUrl']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       householdId: serializer.fromJson<String?>(json['householdId']),
@@ -432,6 +463,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       'stepsJson': serializer.toJson<String>(stepsJson),
       'imagePath': serializer.toJson<String?>(imagePath),
       'answeredBy': serializer.toJson<String?>(answeredBy),
+      'sourceUrl': serializer.toJson<String?>(sourceUrl),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'householdId': serializer.toJson<String?>(householdId),
@@ -448,6 +480,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     String? stepsJson,
     Value<String?> imagePath = const Value.absent(),
     Value<String?> answeredBy = const Value.absent(),
+    Value<String?> sourceUrl = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<String?> householdId = const Value.absent(),
@@ -461,6 +494,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     stepsJson: stepsJson ?? this.stepsJson,
     imagePath: imagePath.present ? imagePath.value : this.imagePath,
     answeredBy: answeredBy.present ? answeredBy.value : this.answeredBy,
+    sourceUrl: sourceUrl.present ? sourceUrl.value : this.sourceUrl,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     householdId: householdId.present ? householdId.value : this.householdId,
@@ -482,6 +516,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       answeredBy: data.answeredBy.present
           ? data.answeredBy.value
           : this.answeredBy,
+      sourceUrl: data.sourceUrl.present ? data.sourceUrl.value : this.sourceUrl,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       householdId: data.householdId.present
@@ -502,6 +537,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
           ..write('stepsJson: $stepsJson, ')
           ..write('imagePath: $imagePath, ')
           ..write('answeredBy: $answeredBy, ')
+          ..write('sourceUrl: $sourceUrl, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('householdId: $householdId')
@@ -520,6 +556,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     stepsJson,
     imagePath,
     answeredBy,
+    sourceUrl,
     createdAt,
     updatedAt,
     householdId,
@@ -537,6 +574,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
           other.stepsJson == this.stepsJson &&
           other.imagePath == this.imagePath &&
           other.answeredBy == this.answeredBy &&
+          other.sourceUrl == this.sourceUrl &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.householdId == this.householdId);
@@ -552,6 +590,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
   final Value<String> stepsJson;
   final Value<String?> imagePath;
   final Value<String?> answeredBy;
+  final Value<String?> sourceUrl;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String?> householdId;
@@ -566,6 +605,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     this.stepsJson = const Value.absent(),
     this.imagePath = const Value.absent(),
     this.answeredBy = const Value.absent(),
+    this.sourceUrl = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.householdId = const Value.absent(),
@@ -581,6 +621,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     required String stepsJson,
     this.imagePath = const Value.absent(),
     this.answeredBy = const Value.absent(),
+    this.sourceUrl = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.householdId = const Value.absent(),
@@ -603,6 +644,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     Expression<String>? stepsJson,
     Expression<String>? imagePath,
     Expression<String>? answeredBy,
+    Expression<String>? sourceUrl,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String>? householdId,
@@ -618,6 +660,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
       if (stepsJson != null) 'steps_json': stepsJson,
       if (imagePath != null) 'image_path': imagePath,
       if (answeredBy != null) 'answered_by': answeredBy,
+      if (sourceUrl != null) 'source_url': sourceUrl,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (householdId != null) 'household_id': householdId,
@@ -635,6 +678,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     Value<String>? stepsJson,
     Value<String?>? imagePath,
     Value<String?>? answeredBy,
+    Value<String?>? sourceUrl,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<String?>? householdId,
@@ -650,6 +694,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
       stepsJson: stepsJson ?? this.stepsJson,
       imagePath: imagePath ?? this.imagePath,
       answeredBy: answeredBy ?? this.answeredBy,
+      sourceUrl: sourceUrl ?? this.sourceUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       householdId: householdId ?? this.householdId,
@@ -687,6 +732,9 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     if (answeredBy.present) {
       map['answered_by'] = Variable<String>(answeredBy.value);
     }
+    if (sourceUrl.present) {
+      map['source_url'] = Variable<String>(sourceUrl.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -714,6 +762,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
           ..write('stepsJson: $stepsJson, ')
           ..write('imagePath: $imagePath, ')
           ..write('answeredBy: $answeredBy, ')
+          ..write('sourceUrl: $sourceUrl, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('householdId: $householdId, ')
@@ -9252,6 +9301,7 @@ typedef $$RecipesTableCreateCompanionBuilder = RecipesCompanion Function({
   required String stepsJson,
   Value<String?> imagePath,
   Value<String?> answeredBy,
+  Value<String?> sourceUrl,
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<String?> householdId,
@@ -9267,6 +9317,7 @@ typedef $$RecipesTableUpdateCompanionBuilder = RecipesCompanion Function({
   Value<String> stepsJson,
   Value<String?> imagePath,
   Value<String?> answeredBy,
+  Value<String?> sourceUrl,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<String?> householdId,
@@ -9386,6 +9437,11 @@ class $$RecipesTableFilterComposer
 
   ColumnFilters<String> get answeredBy => $composableBuilder(
     column: $table.answeredBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceUrl => $composableBuilder(
+    column: $table.sourceUrl,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9534,6 +9590,11 @@ class $$RecipesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get sourceUrl => $composableBuilder(
+    column: $table.sourceUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -9591,6 +9652,9 @@ class $$RecipesTableAnnotationComposer
     column: $table.answeredBy,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get sourceUrl =>
+      $composableBuilder(column: $table.sourceUrl, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -9720,6 +9784,7 @@ class $$RecipesTableTableManager
                 Value<String> stepsJson = const Value.absent(),
                 Value<String?> imagePath = const Value.absent(),
                 Value<String?> answeredBy = const Value.absent(),
+                Value<String?> sourceUrl = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<String?> householdId = const Value.absent(),
@@ -9734,6 +9799,7 @@ class $$RecipesTableTableManager
                 stepsJson: stepsJson,
                 imagePath: imagePath,
                 answeredBy: answeredBy,
+                sourceUrl: sourceUrl,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 householdId: householdId,
@@ -9750,6 +9816,7 @@ class $$RecipesTableTableManager
                 required String stepsJson,
                 Value<String?> imagePath = const Value.absent(),
                 Value<String?> answeredBy = const Value.absent(),
+                Value<String?> sourceUrl = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<String?> householdId = const Value.absent(),
@@ -9764,6 +9831,7 @@ class $$RecipesTableTableManager
                 stepsJson: stepsJson,
                 imagePath: imagePath,
                 answeredBy: answeredBy,
+                sourceUrl: sourceUrl,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 householdId: householdId,

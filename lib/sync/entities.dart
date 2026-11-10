@@ -90,6 +90,7 @@ class RecipeEntity extends SyncEntity<$RecipesTable, RecipeRow> {
     'steps': jsonDecode(r.stepsJson),
     'image_path': photoFileName(r.imagePath),
     'answered_by': r.answeredBy,
+    'source_url': r.sourceUrl,
     'created_at': _ts(r.createdAt),
   };
 
@@ -105,6 +106,7 @@ class RecipeEntity extends SyncEntity<$RecipesTable, RecipeRow> {
     stepsJson: Value(_json(j['steps'])),
     imagePath: Value(photoLocalPath(j['image_path'] as String?)),
     answeredBy: Value(j['answered_by'] as String?),
+    sourceUrl: Value(j['source_url'] as String?),
     createdAt: Value(_date(j['created_at'])),
     updatedAt: Value(_date(j['updated_at'] ?? j['created_at'])),
   );

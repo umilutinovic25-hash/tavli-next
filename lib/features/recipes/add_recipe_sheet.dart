@@ -16,6 +16,12 @@ Future<void> showAddRecipeSheet(BuildContext context) {
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
+            leading: const Icon(Icons.link),
+            title: const Text('Sa internet adrese'),
+            subtitle: const Text('Uvezi recept sa javne stranice'),
+            onTap: () => open(sheetContext, '/recipes/new/url'),
+          ),
+          ListTile(
             leading: const Icon(Icons.photo_camera_outlined),
             title: const Text('Iz slike'),
             subtitle: const Text('Slikaj ili izaberi sliku recepta'),

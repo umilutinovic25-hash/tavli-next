@@ -154,7 +154,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 5);
+    expect(db.schemaVersion, 7);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -305,6 +305,24 @@ void main() {
       ),
       throwsA(isA<SqliteException>()),
     );
+  });
+
+  test('migracija 5 → 7 čuva recepte i dodaje izvor', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v7-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement(
+      "INSERT INTO recipes (id, title, servings, source, ingredients_json, steps_json, created_at, updated_at) VALUES ('r', 'Pita', 2, 'manual', '[]', '[]', 1, 1)",
+    );
+    await first.customStatement('ALTER TABLE recipes DROP COLUMN source_url');
+    await first.customStatement('PRAGMA user_version = 5');
+    await first.close();
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final row = (await after.select(after.recipes).get()).single;
+    expect(row.title, 'Pita');
+    expect(row.sourceUrl, isNull);
   });
 
   test('ponovljena v5 migracija (user_version vraćen na 4) ne pada', () async {

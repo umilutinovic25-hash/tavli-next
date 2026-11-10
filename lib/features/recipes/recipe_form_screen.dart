@@ -12,9 +12,10 @@ import 'recipe_providers.dart';
 
 /// Ručni unos novog recepta ([id] == null) ili izmena postojećeg.
 class RecipeFormScreen extends ConsumerStatefulWidget {
-  const RecipeFormScreen({super.key, this.id});
+  const RecipeFormScreen({super.key, this.id, this.draft});
 
   final String? id;
+  final Recipe? draft;
 
   @override
   ConsumerState<RecipeFormScreen> createState() => _RecipeFormScreenState();
@@ -36,6 +37,10 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
   @override
   void initState() {
     super.initState();
+    final draft = widget.draft;
+    if (draft != null) {
+      _fill(draft);
+    }
     final id = widget.id;
     if (id != null) {
       _loading = true;
@@ -50,13 +55,17 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
       _loading = false;
       _original = recipe;
       if (recipe != null) {
-        _title.text = recipe.title;
-        _servings.text = '${recipe.servings}';
-        _prep.text = recipe.prepMinutes?.toString() ?? '';
-        _steps.text = recipe.steps.join('\n');
-        _ingredients = [...recipe.ingredients];
+        _fill(recipe);
       }
     });
+  }
+
+  void _fill(Recipe recipe) {
+    _title.text = recipe.title;
+    _servings.text = '${recipe.servings}';
+    _prep.text = recipe.prepMinutes?.toString() ?? '';
+    _steps.text = recipe.steps.join('\n');
+    _ingredients = [...recipe.ingredients];
   }
 
   @override
@@ -114,16 +123,26 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
     setState(() => _saving = true);
     if (original == null) {
       final now = ref.read(clockProvider)();
-      recipe = Recipe(
-        id: newId(),
-        title: title,
-        servings: servings,
-        prepMinutes: prep,
-        ingredients: _ingredients,
-        steps: steps,
-        source: RecipeSource.manual,
-        createdAt: now,
-      );
+      recipe =
+          (widget.draft ??
+                  Recipe(
+                    id: newId(),
+                    title: title,
+                    servings: servings,
+                    prepMinutes: prep,
+                    ingredients: _ingredients,
+                    steps: steps,
+                    source: RecipeSource.manual,
+                    createdAt: now,
+                  ))
+              .copyWith(
+                title: title,
+                servings: servings,
+                prepMinutes: prep,
+                clearPrepMinutes: prep == null,
+                ingredients: _ingredients,
+                steps: steps,
+              );
       await repo.create(recipe);
     } else {
       recipe = original.copyWith(
@@ -177,7 +196,13 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(editing ? 'Izmeni recept' : 'Novi recept'),
+          title: Text(
+            editing
+                ? 'Izmeni recept'
+                : widget.draft != null
+                ? 'Pregled uvoza'
+                : 'Novi recept',
+          ),
           actions: [
             TextButton(
               onPressed: _loading || _saving ? null : _save,
@@ -198,6 +223,14 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          if (widget.draft case final draft?) ...[
+                            const Text(
+                              'Proveri uvezene sastojke i porcije pre čuvanja. Količine su u tekstu sastojaka; razdvoji ih za nabavku. Ako porcije nisu prepoznate, postavljene su na 2.',
+                            ),
+                            const SizedBox(height: 8),
+                            SelectableText('Izvor: ${draft.sourceUrl}'),
+                            const SizedBox(height: 16),
+                          ],
                           TextField(
                             controller: _title,
                             onChanged: (_) => _changed(),
