@@ -1,0 +1,617 @@
+{
+  "stream": "C",
+  "features": [
+    {
+      "id": "F006",
+      "title": "Minimalna zaliha",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. No threshold or replenish policy; lib/app/router.dart /pantry is EmptyStateScreen.",
+      "proposed_changes": [
+        "Add household ReplenishmentPolicy(id, ingredientKey, unitGroup, minimumMicros, targetMicros, active); require target >= minimum >= 0.",
+        "Build a read-only replenish proposal using canonical confirmed usable stock, unresolved reservations, bought-not-received supply and compatible open shopping coverage. Desired total demand = max(existing recipe demand, target stock gap) under a stated policy, never blindly add recipe demand plus gap. Explicit approval creates a stable replenish source, reused on retry; no automatic purchase."
+      ],
+      "dependencies": [
+        "G010",
+        "GQ",
+        "GTX",
+        "F039"
+      ],
+      "acceptance_criteria": [
+        "Stock 200 g, minimum 300 g, target 1000 g produces 800 g proposal; compatible unbought coverage 500 g leaves 300 g additional.",
+        "Equality with minimum creates no prompt; unknown stock asks for review; repeated approval creates one source and preserves bought items."
+      ],
+      "verification": [
+        "Domain fixtures for threshold equality, two equivalent units, unknown quantity, expired lot, shared purchase/receipt identity and existing shopping.",
+        "Repository fake-backend test: approve twice, receive once, reconcile twice; no duplicate source or capacity."
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Read-only minimum/target editor and preview with deterministic domain tests.",
+        "Approve into current ShoppingRepository contribution/source model; sync policy and source with RLS.",
+        "Add pantry low-stock filter and user-controlled reminders only after proposal behavior is stable."
+      ]
+    },
+    {
+      "id": "F013",
+      "title": "Zamrznuti gotovi obroci",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. lib/data/meal_plan_repository.dart::setCooked only changes cooked state; MealPlanEntries has recipeSnapshotJson but no cooked-batch inventory.",
+      "proposed_changes": [
+        "Use cooked PantryItems with supplyKind=cooked and CookedBatch metadata (batchId, recipeSnapshot, preparedAt, frozenAt, confirmed portions or mass, thawReminderAt). Do not match cooked food to raw ingredients by name.",
+        "Meal entry can draw portions from one batch using CookedBatchAllocation; reserving/reheating never generates raw demand again. Cooking consumes ingredients only after explicit confirmation; recording batch output uses the same operation id."
+      ],
+      "dependencies": [
+        "G010",
+        "GTX",
+        "F012",
+        "F038"
+      ],
+      "acceptance_criteria": [
+        "Cook six portions once, freeze four, reserve two on each of two future meals: cooked available=0 and raw demand occurs once.",
+        "Declining notifications or offline operation still allows manual frozenAt/thaw preparation; recipe deletion preserves batch snapshot."
+      ],
+      "verification": [
+        "Domain batch conservation fixtures; repository test cooking retry and reserve/cancel/reheat.",
+        "Widget test list frozen batches, edit portions, select meal; fake clock notification deny/unavailable test."
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Manual cooked-batch creation and listing linked to PantryItems; no automatic ingredient decrement.",
+        "Link batch reservations to plan and remove duplicate raw demand in explicit batch mode.",
+        "Add optional local thaw reminder capability gate and snapshot-preserving sync."
+      ]
+    },
+    {
+      "id": "F017",
+      "title": "Barkod i pakovanje",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. No barcode/catalog adapter observed; camera/AI recipe import is not a product scanner.",
+      "proposed_changes": [
+        "Introduce ProductLookup.lookupBarcode(code) -> found/notFound/unavailable/invalid with CatalogProduct(source, sourceId, barcode, names, brand, quantityText, parsedPackage?, fetchedAt). Cache external responses separately from pantry.",
+        "OpenFoodFactsAdapter selects name/quantity/product_quantity fields, identifies app User-Agent, times out and respects rate limits; supported Serbian language/country tags do not guarantee coverage. User confirms ingredient identity and package amount before supply creation; allow manual entry without camera or network."
+      ],
+      "dependencies": [
+        "GADAPTER",
+        "GQ",
+        "F039"
+      ],
+      "acceptance_criteria": [
+        "A found 500 g package shows editable proposal without pantry write until confirmation; 404, 429, malformed quantity and offline cache miss all retain manual flow.",
+        "Barcode leading zeros survive; volume and mass cannot be interchanged; country rs filter is not a local-stock claim."
+      ],
+      "verification": [
+        "Fake Dio fixtures for found/missing/429/timeout, multipack 6x125 g and unparsed labels; no live network tests.",
+        "Camera capability/permission-denied widget tests on phone and desktop; duplicate scan event creates no duplicate receipt.",
+        "Future Serbia pilot: user-consented basket of at least 30 local products; report found/30, correct package/found, missing translation and observed date; no coverage claim until measured."
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Pure barcode/result/parser contract and manual input, with tests.",
+        "Read-only OFF adapter/cache and preview; record attribution/data-license boundary.",
+        "Optional device scanner capability and explicit confirmed product-to-ingredient mapping."
+      ]
+    },
+    {
+      "id": "F036",
+      "title": "Lokacije namirnica",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. No location field/table; /pantry remains placeholder.",
+      "proposed_changes": [
+        "Add PantryLocation(id, householdId, name, active) and nullable locationId on PantryItems. Unknown location remains null; default labels Frižider/Zamrzivač/Ostava are editable.",
+        "Move whole lot updates the same pantry id and canonical physical identity. A partial move requires split children and conservation under GTX; do not create extra capacity."
+      ],
+      "dependencies": [
+        "G010",
+        "GTX"
+      ],
+      "acceptance_criteria": [
+        "Move 500 g pantry lot from Ostava to Frižider: global stock remains 500 g, existing allocations remain valid, sourceShoppingItemId unchanged.",
+        "Cross-household location rejected; deleting location reassigns to unknown and retains food."
+      ],
+      "verification": [
+        "Repository move+retry and location filter tests; two-account RLS and outbox replay.",
+        "Phone/wide widget tests null/renamed/archived location and offline move."
+      ],
+      "phase": "P1",
+      "scope_slices": [
+        "Add nullable location metadata with migration and sync/RLS.",
+        "Whole-lot move and filtered pantry UI.",
+        "Only then partial move with split transaction and 200+300=500 g fixture."
+      ]
+    },
+    {
+      "id": "F037",
+      "title": "Otvoreno pakovanje",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. expiresAt is single date; no openedAt or opened-use-by provenance.",
+      "proposed_changes": [
+        "Add lot openedAt, labelUseByAt, openedUseByAt, dateEvidence and dateKind. Opening alone does not change mass; effective usable date is the earliest applicable confirmed date.",
+        "User enters/confirms after-opening date from declaration. Never infer safety interval from barcode/name or AI. Keep original manufacturer date and disclose unknown date."
+      ],
+      "dependencies": [
+        "F038",
+        "F039",
+        "GTX"
+      ],
+      "acceptance_criteria": [
+        "Original date 20 Nov, confirmed after-opening 12 Nov => effective 12 Nov; opening twice preserves original openedAt unless explicitly corrected.",
+        "Missing after-opening rule remains unknown, not a calculated safe lifetime; mass unchanged."
+      ],
+      "verification": [
+        "Injected-clock unit tests before/equal/after dates and timezone civil date handling.",
+        "Repository stale edit conflict and widget user-confirmed label evidence, no-date flow."
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Model separate dates/evidence and migration without populating invented dates.",
+        "Manual opening preview and confirmation; reconcile stock eligibility.",
+        "Optional reminders from effective confirmed date with permission-denied fallback."
+      ]
+    },
+    {
+      "id": "F038",
+      "title": "Odvojene ture iste namirnice",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. PantryItems IDs can already represent separate rows; allocateSupply currently sorts supply canonical IDs, not expiry; receipts assume at most one pantry row per shopping item in receivePurchases.",
+      "proposed_changes": [
+        "Treat existing PantryItems as lots, add lot metadata only; same ingredient can have multiple lots. Add expiry-priority selection after demand ordering: confirmed earliest eligible expiry first, unknown last, stable id tie-break; preserve valid historical reservations until user requests rebalance.",
+        "For splitting a received purchase create PhysicalSupply root plus portions or explicit receipt-line children. Replace one-to-one receipt lookup only with defined migration/unique operation key; sum children <= root remaining. Never set every split child samePhysicalAs to the whole root because current canonical dedupe would collapse them."
+      ],
+      "dependencies": [
+        "G010",
+        "GQ",
+        "GTX"
+      ],
+      "acceptance_criteria": [
+        "Lots 300 g expiring 12 Nov and 400 g expiring 20 Nov cover demand 500 g as 300+200 on a new allocation; remaining 200 g.",
+        "Split purchased 1000 g into 400+600 g, repeat operation and receive retry: confirmed total stays 1000 g, never 2000 g; expired received lot must not reappear through bought fallback."
+      ],
+      "verification": [
+        "Extend test/domain/supply_allocation_test.dart for FEFO, unknown expiry, ties, retained reservation and split conservation.",
+        "Repository fixture purchase->receipt->split->expire->reconcile; sync replay and two-device identical operation conflict."
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Document and test physical-root/portion representation against existing canonical algorithm before schema changes.",
+        "Add lot dates and FEFO proposal while retaining current single-row receipts.",
+        "Add optional split/merge with root conservation, unique operation keys and outbox atomicity."
+      ]
+    },
+    {
+      "id": "F039",
+      "title": "Brza provera inventara",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. confirmedAt exists; no general pantry CRUD/inventory workflow. ShoppingRepository._reconcile checks non-null confirmation, but does not enforce a freshness age.",
+      "proposed_changes": [
+        "Extend PantryRepository confirmQuantity/markEmpty/markUnknown with operation id, clock and expected revision. Known uses micros; empty is confirmed zero; unknown is null with a separate checkedAt and confidence state.",
+        "Keep checkedAt distinct from quantityConfirmedAt. Define explicit user-configurable freshness policy rather than silently invalidating old stock. A received purchase marked unknown/empty must suppress bought-item fallback for the same physical root."
+      ],
+      "dependencies": [
+        "G010",
+        "GQ",
+        "GTX"
+      ],
+      "acceptance_criteria": [
+        "Known 250 g -> unknown results in no numeric allocation; empty gives zero; repeating confirmation never increases stock.",
+        "With bought 250 g received and then marked empty, 100 g new demand remains 100 g, rather than being covered by the old bought record."
+      ],
+      "verification": [
+        "Repository fixtures known/unknown/empty across purchase receipt aliases, stale revision and fake clock.",
+        "Widget quick inventory offline, undo explicit correction, phone/wide, text 2x; RLS two households."
+      ],
+      "phase": "P1",
+      "scope_slices": [
+        "Add pure confidence/freshness contract and regression tests for received-root fallback.",
+        "Implement repository commands with transactional reconcile and outbox.",
+        "Replace pantry placeholder with list and quick confirm editor."
+      ]
+    },
+    {
+      "id": "F040",
+      "title": "Dnevnik bačene hrane",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. No food movement/waste reason log; isCooked is not a waste entry.",
+      "proposed_changes": [
+        "Add stock movement reason waste and immutable WasteDetail(movementId, lotId, amountMicros, unitGroup, reason, occurredAt, optional amountMinor/currency). Waste and eaten movements remain distinct; no inferred monetary value.",
+        "Approval subtracts confirmed capacity and recalculates affected reservations atomically; reversal creates compensating movement. Unknown quantity may be logged as qualitative but never used in numeric waste totals."
+      ],
+      "dependencies": [
+        "GTX",
+        "F038",
+        "F039"
+      ],
+      "acceptance_criteria": [
+        "500 g lot - 120 g waste = 380 g; retry same operation remains 380 g; reversal restores 500 g once.",
+        "Report displays 120 g waste independently from consumption and excludes missing price from cost sum with coverage count."
+      ],
+      "verification": [
+        "Domain conservation and negative/overflow tests; repository rollback on outbox error.",
+        "Widget reason/amount review, compensation and fake clock monthly boundary."
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Add typed reason and confirmed waste preview with numeric tests.",
+        "Post atomic movement and recompute reservations; sync and RLS.",
+        "Read-only monthly totals by compatible unit and cost currency with unknown coverage."
+      ]
+    },
+    {
+      "id": "F042",
+      "title": "Kupovina celih pakovanja",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. ShoppingNeed/micros summarize compatible demand; no package-size or rounding model; shopping row quantity currently doubles as purchase quantity.",
+      "proposed_changes": [
+        "PackageOption(productId, contentMicros, unitGroup, packCount, confirmedAt) feeds pure PackageProposal. n=(need+pack-1)~/pack, surplus=n*pack-need for positive integer pack; zero need ->0 packs. Keep exact recipe demand separate from proposed/actual purchase.",
+        "Only confirmed actual bought content becomes supply; surplus may enter pantry once through existing receipt link. Unknown size/dimension mismatch retains exact need and asks for package confirmation."
+      ],
+      "dependencies": [
+        "GQ",
+        "F017",
+        "F038"
+      ],
+      "acceptance_criteria": [
+        "750 g need with 500 g package proposes 2 packages/1000 g and 250 g surplus; 1000 g need proposes 2/0 surplus.",
+        "100 g pantry plus 2 bought 500 g packs can cover at most 1100 g across plans and preparations; receipt creates no additional capacity; reject zero package."
+      ],
+      "verification": [
+        "Integer fixtures 0,1 micro,exact multiples, huge safe bounds, unknown and mass/volume mismatch.",
+        "Repository buy actual quantity different from proposal then receive twice, edit plan, preserve purchase history."
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Pure integer rounding preview with a manually entered package size (F017 optional).",
+        "Persist proposal separate from frozen purchase provenance; confirm actual bought amount.",
+        "Catalog-assisted package choice and optional multiple-size optimization only as later separate slice."
+      ]
+    },
+    {
+      "id": "F072",
+      "title": "Povratna ambalaža i kaucije",
+      "current_state": "lib/data/database.dart::ShoppingItems/PantryItems have no deposit, container-return or currency ledger; existing shopping provenance is food purchase only.",
+      "proposed_changes": [
+        "Add ReturnableType and ReturnableMovement with units signed by issue/return, depositMinor, currency, purchaseOperationId, returnedAt and expectedRevision. Track container count separately from edible stock and from tare.",
+        "Receipt classification can link a deposit line to container issue; partial return decreases held count and records actual refund, without pretending the food was returned. No assumed Serbian national scheme, retailer support or refund amount."
+      ],
+      "dependencies": [
+        "GTX",
+        "F073"
+      ],
+      "acceptance_criteria": [
+        "Buy six bottles at 20 RSD deposit => held 6/paid120 RSD; return four and receive80 => held2/net deposit40; duplicate return operation has no effect.",
+        "Mixed currencies never sum; deposit-only receipt line contributes zero grams to pantry."
+      ],
+      "verification": [
+        "Known integer minor-money/count fixtures and partial-return/over-return/reversal.",
+        "Fake-backend two-account isolation; receipt duplicate and offline conflict tests."
+      ],
+      "phase": "P3",
+      "scope_slices": [
+        "Manual issue/return model and balance screen with currency tests.",
+        "Atomic ledger and compensation with household RLS.",
+        "Optional receipt classification after F073; no retailer integration promised."
+      ]
+    },
+    {
+      "id": "F073",
+      "title": "Poravnanje kupovine sa računom",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. ShoppingRepository.setBought/_buy freezes purchaseProvenanceJson; receivePurchases keys by shopping item; no receipt document, OCR rows or actual-quantity reconciliation.",
+      "proposed_changes": [
+        "ReceiptDraft(documentHash, merchantText, purchasedAt, currency, parserVersion, rows) is private and separate from confirmed stock. Row includes source row ordinal, raw label, parsed quantity/unit/price, classification(food/deposit/discount/return), candidate matches and review status.",
+        "AI/OCR through AIRouter proposes only. ConfirmReconciliation(operationId, expectedDraftRevision, accepted mappings) posts actual purchased quantities and receipt links, then receives the same physical supply in one transaction/outbox group. Unique household+receiptId+rowId+action prevents retry duplicates; document hash warns about possible duplicate, never auto-merges legitimate identical receipts.",
+        "A bought row can span several lots/receipts: use explicit purchase/receipt lines and root conservation (F038). Preserve original demand and frozen purchase history; corrections after confirmation use compensating differences, not delete/recreate. Receipt image private and optional; no automatic public Open Prices upload."
+      ],
+      "dependencies": [
+        "GTX",
+        "GQ",
+        "F038",
+        "GADAPTER"
+      ],
+      "acceptance_criteria": [
+        "List asks750 g; receipt confirms2x500 g: demand stays750 g, actual supply1000 g, remainder250 g; confirming/replaying twice creates one purchase and one receipt supply.",
+        "Already marked bought then receipt reconciliation does not add a second1000 g; ambiguous kg/kom/price line stays unposted until reviewed.",
+        "Food, deposit, discount, unlisted product and returned item are reviewed separately; declining draft writes no purchase/stock."
+      ],
+      "verification": [
+        "Fake AI and malformed OCR fixtures, decimal comma, weighed produce, multipack, duplicate scan, same-content different receipt and mixed units.",
+        "Repository atomic failure injection before/after each row and retry; existing bought->received path; concurrent same-operation unique-key race; exact 750/1000/250 fixture.",
+        "Widget editable matching preview, rejection/manual rows and private image access; local Supabase two-account RLS, no external API."
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Manual receipt draft and row matching UI with no stock writes; pure parsing tests.",
+        "Confirm single-line receipt using existing setBought/receive identity and operation id.",
+        "Add multiline/split/partial reconciliation and corrections with transactional outbox and concurrency constraints.",
+        "Optional photo/text extraction through AIRouter only after manual confirmation flow passes."
+      ]
+    },
+    {
+      "id": "F074",
+      "title": "Težina posude i neto sadržaj",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. No container/tare/gross fields; current normalizeUnit keeps mass separate from volume.",
+      "proposed_changes": [
+        "Container(id, householdId, label, tareMicros, massUnit, verifiedAt) is distinct from product, returnable deposit type and food lot. Measurement(id, containerId, lotId, grossMicros, tareSnapshotMicros, measuredAt, expectedRevision) proposes net=gross-tare.",
+        "Confirm replaces remaining mass by a correction movement, never adds the net as a new receipt. Reject gross<tare and unknown tare; manual entry always available without Bluetooth. Tare snapshot preserves history when empty jar mass changes."
+      ],
+      "dependencies": [
+        "GTX",
+        "F039",
+        "F038"
+      ],
+      "acceptance_criteria": [
+        "Gross842 g minus tare312 g =530 g net (530000000 micros); if prior600 g, correction is-70 g; repeated operation remains530 g.",
+        "Gross300<tare312 rejected; volume lot cannot silently become mass; editing container later does not rewrite measurement history."
+      ],
+      "verification": [
+        "Pure gross/net validation fixtures including zero/unknown and precision boundaries.",
+        "Repository correction invalidates over-reservation; fake clock, stale revision, duplicate command; widget manual measurement and undo."
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Pure mass-only tare calculator and editable container profile.",
+        "Confirm measurement onto one existing lot with atomic correction and outbox.",
+        "Optional container label lookup; device input belongs F076 and is not required."
+      ]
+    },
+    {
+      "id": "F075",
+      "title": "Stvarni prinos nakon kuvanja",
+      "current_state": "lib/domain/shopping_demand.dart::scaleQuantity/demandFor scale raw input to servings; lib/domain/meal_plan.dart::RecipeSnapshot and lib/data/meal_plan_repository.dart::setCooked do not measure final mass.",
+      "proposed_changes": [
+        "Extend CookedBatch (F013 shared contract) with yieldMeasurementId, finalNetMicros, measuredAt, recipeSnapshot, cookedOperationId. Gross yield can use F074 tare; measured water loss does not rewrite raw ingredient purchase demand.",
+        "Portion allocations consume confirmed cooked mass; equal portions use integer quotient/remainder with visible final residual. Label serving count approximate when uneven; nutrition is a separate F046 estimate and cannot infer mass from energy."
+      ],
+      "dependencies": [
+        "GTX",
+        "F013",
+        "F074",
+        "F012"
+      ],
+      "acceptance_criteria": [
+        "1800 g finished batch into six equal portions =>300 g each; allocate2 portions600 g ->1200 g remains; new meal using these portions creates no raw demand.",
+        "1000 g/3 stores333333333,333333333,333333334 micros (sum1000000000); reweigh remaining is explicit correction, not a second batch."
+      ],
+      "verification": [
+        "Known yield/tare and integer residual fixtures; no sum drift on split/recombine.",
+        "Repository cook once -> record yield twice -> freeze -> reserve -> eat; raw-input demand never doubles, recipe source deletion keeps snapshot."
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Manual finished net mass entry on the shared CookedBatch model.",
+        "Mass-based portion allocation with conservation and optional F074 gross/tare.",
+        "Plan-linked servings and later read-only yield comparisons for same recipe version."
+      ]
+    },
+    {
+      "id": "F083",
+      "title": "Dostupnost konkretnih proizvoda",
+      "current_state": "No retailer stock adapter in lib/data; OFF product metadata and Open Prices historical observations are external sources, neither is household Supply nor proof of live shelf stock.",
+      "proposed_changes": [
+        "RetailAvailabilityAdapter.probe(country, retailer, branch, fulfillmentSlot) reports supported/unsupported/authRequired/temporarilyUnavailable with capabilities. AvailabilityObservation(productCode, retailerSku, branchId, slot, status[inStock,outOfStock,unknown], observedAt, expiresAt, source, evidence) is cached separately.",
+        "Only authorized documented retailer data with actual branch/slot semantics can produce inStock. Price history or OFF stores/countries tags remain metadata; stale result becomes unknown. No Serbian retailer is confirmed supported in this research; ship manual dated observation plus unavailable state until a lawful adapter is verified."
+      ],
+      "dependencies": [
+        "GADAPTER",
+        "F017",
+        "F018",
+        "F067"
+      ],
+      "acceptance_criteria": [
+        "Open Prices price from yesterday yields unknown availability; branch A inStock cannot satisfy branch B or a different slot.",
+        "Timeout, unsupported Serbia retailer, missing SKU and expired observation show „Dostupnost nije proverena” with last checked time; household stock and shopping quantities do not change."
+      ],
+      "verification": [
+        "Fake adapters for supported, denied, stale, branch mismatch and late/out-of-order response.",
+        "Future capability audit: official API terms/endpoint/branch identity/slot semantics, sample freshness SLA and Serbian test branch evidence before enabling retailer.",
+        "Widget source/date display and manual observation correction; never use a live retailer in unit tests."
+      ],
+      "phase": "P3",
+      "scope_slices": [
+        "Define availability contract and manual dated observation, default unknown.",
+        "Add isolated cache and fake adapter test suite; no production integration claim.",
+        "Enable one Serbian retailer only after capability/terms/data validation, with feature flag and expiry policy."
+      ]
+    },
+    {
+      "id": "F087",
+      "title": "Ponudi višak hrane",
+      "current_state": "lib/data/database.dart::PantryItems stores nullable REAL quantity/unit, expiresAt, confirmedAt and sourceShoppingItemId; lib/data/pantry_repository.dart::PantryRepository.receivePurchases is transactional/idempotent locally; lib/domain/shopping_demand.dart::toMicros/normalizeUnit and lib/domain/supply_allocation.dart::Supply.canonicalId/allocateSupply preserve confirmed compatible capacity. Household-scoped sync exists in lib/sync/entities.dart::EntityScope; no public offer/claim or external transfer model.",
+      "proposed_changes": [
+        "FoodOffer(id, ownerHouseholdId, lotId, quantityMicros/unitGroup, confirmedDescription, ingredients/allergensAsDeclared, preparation/storage facts, pickupWindow, state, revision) exposes only explicitly chosen facts. Unknown remains unknown; do not label food safe from date alone.",
+        "Offer reservation removes offered amount from planner-available capacity without consuming it. Claim/withdraw/expire do not transfer stock. Owner confirms handover -> single transfer-out movement; recipient can independently confirm receipt under a new household root linked by opaque handover reference, not access donor inventory.",
+        "First slice private revocable unguessable link to named recipient; no public discovery/location feed. Exact address/contact shared only explicitly; auth/authorization for claiming and atomic single-winner transfer gate required online. Offline supports draft and queued owner correction, not two conflicting successful claims."
+      ],
+      "dependencies": [
+        "GTX",
+        "F038",
+        "F039",
+        "F064",
+        "GSHARE"
+      ],
+      "acceptance_criteria": [
+        "Offer300 g from500 g leaves200 g available; withdraw/expire restores500 g; confirmed handover leaves200 g and retry does not subtract again.",
+        "Two claimants racing produce one accepted claim; recipient reads no other pantry row; link revocation removes offer access; exact pickup location absent from public payload."
+      ],
+      "verification": [
+        "State machine fixtures draft->offered->claimed->handedOver and cancel/expire; reservation conservation and handover retry.",
+        "Local backend RLS/public-projection tests for owner, recipient, stranger and expired/revoked token; concurrency test one winner.",
+        "Widget offline draft/unavailable claim, explicit owner handover confirmation, unknown allergen data and injected clock pickup expiry."
+      ],
+      "phase": "P3",
+      "scope_slices": [
+        "Private offer draft and local quantity reservation only, no external publish.",
+        "Revocable minimal projection and online atomic claim; permission/RLS tests.",
+        "Owner-confirmed handover movement and optional independent recipient receipt; no automatic chat/email sent."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "repo_url": "https://github.com/grocy/grocy",
+      "commit": "41206cb90154e0d17d3e108cc1f182b94fdb465d",
+      "license_spdx_or_unknown": "MIT",
+      "inspected_files": [
+        {
+          "path": "LICENSE.md",
+          "symbol": "MIT license grant",
+          "finding": "Copyright (c) 2017-2026 Bernd Bestel; permissive with preserved notice."
+        },
+        {
+          "path": "services/StockService.php",
+          "symbol": "AddMissingProductsToShoppingList/GetMissingProducts",
+          "finding": "Missing stock creates/updates shopping amount rather than blindly appending; uses float/round two decimals, so accounting must not be ported over Tavli micros."
+        },
+        {
+          "path": "services/StockService.php",
+          "symbol": "AddProduct/ConsumeProduct/InventoryProduct",
+          "finding": "Tare modifies gross/net booking; InventoryProduct treats input as new gross total, posts correction. ConsumeProduct records spoiled distinct from ordinary consume and transaction_type."
+        },
+        {
+          "path": "services/StockService.php",
+          "symbol": "OpenProduct/GetProductStockEntries",
+          "finding": "Opening uses stock_next_use, records open transition and caps new after-open date at original due date; tare-enabled opening explicitly unsupported."
+        },
+        {
+          "path": "services/StockService.php",
+          "symbol": "TransferProduct/UndoBooking/UndoTransaction",
+          "finding": "Correlated transfer and undo entries; transfers of tare-enabled products explicitly rejected. Not evidence of Tavli offline or idempotent receipt behavior."
+        },
+        {
+          "path": "helpers/Grocycode.php",
+          "symbol": "Grocycode.Validate/setFromCode",
+          "finding": "Compact typed local label identity; optional later lot-label pattern; no code copied because not necessary for minimum pantry slices."
+        }
+      ],
+      "reuse_decision": "Source patterns only; implement fixed-point Dart domain contracts independently. MIT allows copying but large service is tightly coupled to PHP DB/service globals and float accounting."
+    },
+    {
+      "repo_url": "https://github.com/openfoodfacts/openfoodfacts-dart",
+      "commit": "64237b8c7c69dabb17fc1c894ab11dedec5bd1c4",
+      "license_spdx_or_unknown": "Apache-2.0",
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "symbol": "Apache-2.0 grant",
+          "finding": "License copied unchanged; no repository NOTICE found."
+        },
+        {
+          "path": "lib/src/open_food_api_client.dart",
+          "symbol": "OpenFoodAPIClient.getProductV3/getProductString",
+          "finding": "Typed product response parsing; explicit 404 allowed and TooManyRequestsException check. Keep missing distinct from transport unavailable."
+        },
+        {
+          "path": "lib/src/model/product.dart",
+          "symbol": "Product.quantity/productQuantity/productNameInLanguages",
+          "finding": "Label quantity string and numeric product quantity are nullable; do not treat arbitrary string or returned name as confirmed pantry amount/identity."
+        },
+        {
+          "path": "lib/src/open_prices_api_client.dart",
+          "symbol": "OpenPricesAPIClient.getPrices/getLocations",
+          "finding": "Public read adapter with typed MaybeError response; useful contract for separate observations, not retailer live stock."
+        },
+        {
+          "path": "lib/src/prices/get_prices_parameters.dart",
+          "symbol": "GetPricesParameters.getQueryParameters",
+          "finding": "Product code, currency, dates and branch/location filters are explicit."
+        },
+        {
+          "path": "lib/src/prices/get_locations_parameters.dart",
+          "symbol": "GetLocationsParameters.getQueryParameters",
+          "finding": "Country/city/name filters for observed locations, not coverage guarantee."
+        },
+        {
+          "path": "lib/src/utils/country_helper.dart",
+          "symbol": "OpenFoodFactsCountry.SERBIA",
+          "finding": "rs/SRB and Currency.RSD are representable; not a count of Serbian products, prices or retailer inventory."
+        },
+        {
+          "path": "lib/src/utils/language_helper.dart",
+          "symbol": "OpenFoodFactsLanguage.SERBIAN",
+          "finding": "Serbian language option exists; actual per-product translation may be missing."
+        },
+        {
+          "path": "lib/src/utils/open_food_api_configuration.dart",
+          "symbol": "OpenFoodAPIConfiguration.userAgent",
+          "finding": "Identify calling app; avoid global authenticated user/config leakage in Tavli adapter."
+        },
+        {
+          "path": "lib/src/utils/barcodes_validator.dart",
+          "symbol": "_EANValidator._isDigitsOnly",
+          "finding": "Rejected for copying: character range condition uses <zero AND >nine, which cannot both hold. Also unsupported length may throw. Write independently tested validation boundary."
+        },
+        {
+          "path": "lib/src/utils/unit_helper.dart",
+          "symbol": "UnitHelper.stringToUnit",
+          "finding": "Complete small tagged external-unit mapper copied with dependency. Handles unknowns and alternate spelling; not a pantry quantity conversion engine."
+        },
+        {
+          "path": "lib/src/model/off_tagged.dart",
+          "symbol": "OffTagged.fromOffTag",
+          "finding": "Complete dependency of UnitHelper; copied unchanged."
+        }
+      ],
+      "reuse_decision": "Two small complete dependency-closed files plus exact LICENSE copied for reference only. No SDK installed; no runtime changes. Data ODbL and image terms are separate from Apache SDK code license."
+    },
+    {
+      "repo_url": "https://github.com/openfoodfacts/open-prices",
+      "commit": "ecb334d80083908cabd372df04121314d628af8c",
+      "license_spdx_or_unknown": "AGPL-3.0-only",
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "symbol": "GNU Affero General Public License v3",
+          "finding": "Study/citation only; no code copied."
+        },
+        {
+          "path": "open_prices/prices/models.py",
+          "symbol": "Price.set_is_duplicate_of (and Price fields)",
+          "finding": "Price fields include product_code, currency, date, location, proof and receipt_quantity; duplicate logic uses location/date/currency. These are observations, not stock."
+        },
+        {
+          "path": "open_prices/proofs/models.py",
+          "symbol": "ReceiptItem/ReceiptItem.get_predicted_price/get_predicted_product_name",
+          "finding": "Raw predicted_data, schema_version, status and links to proof/prediction/price are distinct; useful review-before-confirmation pattern, not automatic pantry receipt."
+        },
+        {
+          "path": "open_prices/api/prices/views.py",
+          "symbol": "PriceViewSet.get_authenticators/get_queryset",
+          "finding": "GET public read path; mutations authenticated and owner/moderator guarded."
+        },
+        {
+          "path": "open_prices/api/prices/filters.py",
+          "symbol": "PriceFilter.Meta",
+          "finding": "Filter by product/location/currency/date/proof; no live branch availability field in inspected contract."
+        },
+        {
+          "path": "open_prices/api/locations/filters.py",
+          "symbol": "LocationFilter",
+          "finding": "Country/city/name/price_count filters support later coverage probe, not retailer stock API."
+        }
+      ],
+      "reuse_decision": "No AGPL code copied. Independently implement adapter/result and review-state patterns. Never auto-upload private receipt proof."
+    }
+  ],
+  "copied_files": [
+    {
+      "local_path": "research/reference-code/C/openfoodfacts-dart/LICENSE",
+      "upstream_path": "LICENSE",
+      "sha256": "4ae4ca3576b202be2c006702ec4e38c3f5b035889c7a6cc74fafa8b80be4711b",
+      "source_url": "https://github.com/openfoodfacts/openfoodfacts-dart/blob/64237b8c7c69dabb17fc1c894ab11dedec5bd1c4/LICENSE",
+      "license_path": "research/reference-code/C/openfoodfacts-dart/LICENSE"
+    },
+    {
+      "local_path": "research/reference-code/C/openfoodfacts-dart/lib/src/model/off_tagged.dart",
+      "upstream_path": "lib/src/model/off_tagged.dart",
+      "sha256": "bf3372ba52237b31911a86856c0c401a83897cb9c495f105b072729d98c9b449",
+      "source_url": "https://github.com/openfoodfacts/openfoodfacts-dart/blob/64237b8c7c69dabb17fc1c894ab11dedec5bd1c4/lib/src/model/off_tagged.dart",
+      "license_path": "research/reference-code/C/openfoodfacts-dart/LICENSE"
+    },
+    {
+      "local_path": "research/reference-code/C/openfoodfacts-dart/lib/src/utils/unit_helper.dart",
+      "upstream_path": "lib/src/utils/unit_helper.dart",
+      "sha256": "249469b7c7e915fdbbb7bb41e890b26334b5907ef835fdf00dad49ab37c04a04",
+      "source_url": "https://github.com/openfoodfacts/openfoodfacts-dart/blob/64237b8c7c69dabb17fc1c894ab11dedec5bd1c4/lib/src/utils/unit_helper.dart",
+      "license_path": "research/reference-code/C/openfoodfacts-dart/LICENSE"
+    }
+  ],
+  "unknowns": [
+    "Serbian product/package/name coverage and recent RSD/location price counts were NOT measured; no public production API calls or retailer production checks were made. SDK enum support is not local market support.",
+    "No documented authorized Serbian live branch/slot inventory API was established. F083 must remain unsupported/manual until capability evidence exists.",
+    "Physical root/lot split representation and unique receipt-line keys require integration review with stream D before any implementation; existing samePhysicalAs canonical dedupe cannot represent arbitrary split children unchanged.",
+    "Cross-device stock compare-and-set/atomic command application is a new foundation gate; local transaction/outbox alone does not ensure server-side no overspend.",
+    "Receipt OCR model quality for Serbian fiscal receipts, numeral formatting and multipack labels is unknown; manual review is mandatory and OCR remains optional.",
+    "Pantry confirmedAt currently has no age threshold; decide user-visible freshness policy rather than silently inventing one.",
+    "Data/image licensing and any derived database redistribution need explicit implementation-stage review; code license is not dataset license.",
+    "No upstream software/install scripts, Flutter tests or backend tests were run. Only output JSON/hash/coverage checks described in validation were performed."
+  ]
+}
