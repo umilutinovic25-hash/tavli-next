@@ -130,6 +130,25 @@ class SupabaseHouseholdInviteRemote implements HouseholdInviteRemote {
   }
 }
 
+/// Build bez Supabase podešavanja: pozivnice nisu dostupne (kao bez mreže).
+class UnconfiguredHouseholdInviteRemote implements HouseholdInviteRemote {
+  const UnconfiguredHouseholdInviteRemote();
+
+  @override
+  Future<String> create(String householdId) async =>
+      throw const InviteOffline();
+
+  @override
+  Future<List<HouseholdInvite>> listForHousehold(String householdId) async =>
+      throw const InviteOffline();
+
+  @override
+  Future<void> revoke(String id) async => throw const InviteOffline();
+
+  @override
+  Future<String?> redeem(String code) async => throw const InviteOffline();
+}
+
 /// Pozivnice za domaćinstvo: pravljenje (kod pravi server), pregled,
 /// poništavanje i unos koda.
 class HouseholdInviteRepository {

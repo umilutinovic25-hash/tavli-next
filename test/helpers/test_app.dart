@@ -244,6 +244,10 @@ Future<TestApp> pumpTavli(
         authClockProvider.overrideWithValue(() => app.now),
         syncRemoteProvider.overrideWithValue(app.backend.sync),
         photoRemoteProvider.overrideWithValue(app.backend.photos),
+        householdInviteRemoteProvider.overrideWithValue(app.backend.invites),
+        householdMembershipRemoteProvider.overrideWithValue(
+          app.backend.membership,
+        ),
         keyStoreProvider.overrideWithValue(app.keys),
         builtInKeysProvider.overrideWithValue(
           const BuiltInKeys({AIProvider.gemini: 'fake-test-key'}),

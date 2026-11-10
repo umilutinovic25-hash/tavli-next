@@ -19,8 +19,11 @@ import 'ai/meal_plan_ai.dart';
 import 'ai/recipe_ai.dart';
 import 'data/database.dart';
 import 'data/drift_model_status_store.dart';
+import 'data/household_invite_repository.dart';
+import 'data/household_membership_repository.dart';
 import 'data/preferences_repository.dart';
 import 'data/shopping_repository.dart';
+import 'domain/household.dart';
 import 'domain/user_preferences.dart';
 import 'features/recipes/recipe_providers.dart';
 import 'sync/downloader.dart';
@@ -274,3 +277,50 @@ final preferencesRepositoryProvider = Provider<PreferencesRepository>(
 final preferencesProvider = StreamProvider.autoDispose<UserPreferences>(
   (ref) => ref.watch(preferencesRepositoryProvider).watch(),
 );
+
+/// Pozivnice za domaćinstvo na serveru (u testovima lažni server).
+final householdInviteRemoteProvider = Provider<HouseholdInviteRemote>((ref) {
+  final client = ref.watch(supabaseClientProvider);
+  return client == null
+      ? const UnconfiguredHouseholdInviteRemote()
+      : SupabaseHouseholdInviteRemote(client);
+});
+
+final householdInviteRepositoryProvider = Provider<HouseholdInviteRepository>(
+  (ref) => HouseholdInviteRepository(ref.watch(householdInviteRemoteProvider)),
+);
+
+/// Članstvo u domaćinstvu na serveru (u testovima lažni server).
+final householdMembershipRemoteProvider = Provider<HouseholdMembershipRemote>((
+  ref,
+) {
+  final client = ref.watch(supabaseClientProvider);
+  return client == null
+      ? const UnconfiguredHouseholdMembershipRemote()
+      : SupabaseHouseholdMembershipRemote(client);
+});
+
+final householdMembershipRepositoryProvider =
+    Provider<HouseholdMembershipRepository>(
+      (ref) => HouseholdMembershipRepository(
+        ref.watch(householdMembershipRemoteProvider),
+      ),
+    );
+
+/// Domaćinstva prijavljenog korisnika iz keša, poslednje pridruženo prvo.
+final householdMembershipsProvider =
+    StreamProvider.autoDispose<List<Membership>>((ref) {
+      final scope = ref.watch(accountScopeProvider);
+      if (scope == null) return Stream.value(const []);
+      return ref.watch(accountServiceProvider).watchMemberships(scope.userId);
+    });
+
+/// Članovi aktivnog domaćinstva iz keša.
+final householdMembersProvider =
+    StreamProvider.autoDispose<List<HouseholdMember>>((ref) {
+      final scope = ref.watch(accountScopeProvider);
+      if (scope == null) return Stream.value(const []);
+      return ref
+          .watch(accountServiceProvider)
+          .watchMembers(scope.userId, scope.householdId);
+    });

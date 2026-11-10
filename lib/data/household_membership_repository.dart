@@ -161,6 +161,28 @@ class SupabaseHouseholdMembershipRemote implements HouseholdMembershipRemote {
   }
 }
 
+/// Build bez Supabase podešavanja: članstvo nije dostupno (kao bez mreže).
+class UnconfiguredHouseholdMembershipRemote
+    implements HouseholdMembershipRemote {
+  const UnconfiguredHouseholdMembershipRemote();
+
+  @override
+  Future<void> removeMember(String householdId, String userId) async =>
+      throw const MembershipOffline();
+
+  @override
+  Future<void> leave(String householdId) async =>
+      throw const MembershipOffline();
+
+  @override
+  Future<void> transferOwnership(String householdId, String userId) async =>
+      throw const MembershipOffline();
+
+  @override
+  Future<List<HouseholdMember>> listMembers(String householdId) async =>
+      throw const MembershipOffline();
+}
+
 /// Operacije nad članstvom. Baca [MembershipFailure].
 class HouseholdMembershipRepository {
   HouseholdMembershipRepository(this._remote);
