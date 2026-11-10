@@ -11,6 +11,7 @@ class HouseholdInvite {
     required this.createdAt,
     required this.expiresAt,
     required this.uses,
+    this.maxUses = 5,
     this.revokedAt,
   });
 
@@ -21,12 +22,21 @@ class HouseholdInvite {
   final DateTime expiresAt;
   final DateTime? revokedAt;
   final int uses;
+
+  /// Najviše upotreba (server, podrazumevano 5).
+  final int maxUses;
+
+  int get usesLeft => maxUses - uses;
 }
 
-/// Kod kako ga unosi korisnik: bez razmaka i velikim slovima. Server radi
-/// isto poređenje, ali se normalizuje i na klijentu.
-String normalizeInviteCode(String input) => input.trim().toUpperCase();
+/// Kod kako ga unosi ili nalepi korisnik: bez razmaka, preloma reda i
+/// crtica, velikim slovima. Server radi isto poređenje, ali se normalizuje i
+/// na klijentu.
+String normalizeInviteCode(String input) =>
+    input.replaceAll(RegExp(r'[\s-]'), '').toUpperCase();
 
-/// Važi ako nije poništena i ako [now] još nije posle isteka.
+/// Važi ako nije poništena, nije potrošena i ako [now] još nije posle isteka.
 bool isInviteUsable(HouseholdInvite invite, DateTime now) =>
-    invite.revokedAt == null && now.isBefore(invite.expiresAt);
+    invite.revokedAt == null &&
+    invite.usesLeft > 0 &&
+    now.isBefore(invite.expiresAt);
