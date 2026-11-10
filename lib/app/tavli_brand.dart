@@ -14,7 +14,7 @@ class TavliBrand extends StatelessWidget {
       height: 36,
       decoration: BoxDecoration(
         color: theme.colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(
         Icons.spa_outlined,
@@ -29,7 +29,15 @@ class TavliBrand extends StatelessWidget {
       children: [
         ExcludeSemantics(child: mark),
         const SizedBox(width: 10),
-        Text('Tavli', style: theme.textTheme.titleLarge),
+        Flexible(
+          child: Text(
+            'Tavli',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontSize: 20,
+              letterSpacing: -0.6,
+            ),
+          ),
+        ),
       ],
     );
   }

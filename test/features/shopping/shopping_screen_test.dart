@@ -153,6 +153,17 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Deterdžent');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
+    // Kategorija može biti ispod početnog prikaza na telefonu.
+    await tester.scrollUntilVisible(
+      find.text('Ostalo'),
+      160,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('Ostalo'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Deterdžent'),
