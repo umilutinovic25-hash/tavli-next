@@ -16,6 +16,7 @@ import 'package:tavli/ai/ai_models.dart';
 import 'package:tavli/ai/key_store.dart';
 import 'package:tavli/data/database.dart';
 import 'package:tavli/domain/account.dart';
+import 'package:tavli/domain/household.dart';
 import 'package:tavli/domain/household_role.dart';
 
 import '../helpers/fake_backend.dart';
@@ -518,5 +519,175 @@ void main() {
         expect(await keys.list(), hasLength(1));
       });
     }
+  });
+
+  group('AccountService.refresh', () {
+    late AppDatabase db;
+    late FakeBackend backend;
+    late FakePhotoStore photos;
+    late AccountService service;
+    late AuthSession session;
+    late Account a;
+    final t = DateTime.utc(2026);
+
+    setUp(() async {
+      db = AppDatabase(NativeDatabase.memory());
+      backend = FakeBackend();
+      photos = FakePhotoStore();
+      service = AccountService(db, backend.accounts, photos: photos);
+      session = await backend.auth.verifyCode('ana@mail.com', FakeServer.code);
+      a = await service.loadOrFetch(session);
+    });
+    tearDown(() => db.close());
+
+    Future<void> recipe(String id, String home, {String? image}) => db
+        .into(db.recipes)
+        .insert(
+          RecipesCompanion.insert(
+            id: id,
+            title: id,
+            servings: 1,
+            source: 'manual',
+            ingredientsJson: '[]',
+            stepsJson: '[]',
+            createdAt: t,
+            updatedAt: t,
+            imagePath: Value(image),
+            householdId: Value(home),
+          ),
+        );
+
+    Future<void> outbox(String entity, String recordId) => db
+        .into(db.syncOutbox)
+        .insert(
+          SyncOutboxCompanion.insert(
+            accountId: a.userId,
+            entity: entity,
+            recordId: recordId,
+            op: 'upsert',
+            createdAt: t,
+          ),
+        );
+
+    Future<void> cursor() => db
+        .into(db.syncCursors)
+        .insert(
+          SyncCursorsCompanion.insert(
+            accountId: a.userId,
+            entity: 'recipe',
+            updatedAt: t,
+            lastId: 'x',
+          ),
+        );
+
+    Future<AccountRow> row() => (db.select(
+      db.accounts,
+    )..where((r) => r.userId.equals(a.userId))).getSingle();
+
+    test('uvek pita server, i kad je nalog u kešu', () async {
+      backend.server.addMember('home-9', a.userId);
+      final fresh = await service.refresh(session);
+      expect(fresh.householdId, 'home-9');
+      expect(fresh.role, 'member');
+      expect((await row()).householdId, 'home-9');
+      expect(
+        (await service.watchMemberships(a.userId).first).map(
+          (m) => m.householdId,
+        ),
+        ['home-9', a.householdId],
+      );
+    });
+
+    test('nov skup članstava prazni kursore za puno preuzimanje', () async {
+      await cursor();
+      await (db.update(db.accounts)..where((r) => r.userId.equals(a.userId)))
+          .write(const AccountsCompanion(initialDownloadDone: Value(true)));
+      backend.server.addMember('home-9', a.userId);
+      await service.refresh(session);
+      expect(await db.select(db.syncCursors).get(), isEmpty);
+      expect((await row()).initialDownloadDone, isFalse);
+    });
+
+    test('isti skup članstava ne dira kursore', () async {
+      await service.refresh(session);
+      await cursor();
+      await (db.update(db.accounts)..where((r) => r.userId.equals(a.userId)))
+          .write(const AccountsCompanion(initialDownloadDone: Value(true)));
+      await service.refresh(session);
+      expect(await db.select(db.syncCursors).get(), hasLength(1));
+      expect((await row()).initialDownloadDone, isTrue);
+    });
+
+    test('podaci domaćinstva koje je nestalo brišu se sa uređaja', () async {
+      backend.server.addMember('home-9', a.userId);
+      await service.refresh(session);
+      photos.saved['recipe_photos/zajednicka.jpg'] = Uint8List(1);
+      photos.saved['recipe_photos/moja.jpg'] = Uint8List(1);
+      await recipe(
+        'zajednicki',
+        'home-9',
+        image: 'recipe_photos/zajednicka.jpg',
+      );
+      await recipe('moj', a.householdId, image: 'recipe_photos/moja.jpg');
+      await outbox('recipe', 'zajednicki');
+      await outbox('recipe', 'moj');
+
+      backend.server.members['home-9']!.remove(a.userId);
+      final fresh = await service.refresh(session);
+
+      expect(fresh.householdId, a.householdId);
+      expect((await db.select(db.recipes).get()).map((r) => r.id), ['moj']);
+      expect((await db.select(db.syncOutbox).get()).map((r) => r.recordId), [
+        'moj',
+      ]);
+      expect(photos.saved.keys, ['recipe_photos/moja.jpg']);
+    });
+
+    test('izbor koji više nije dostupan se briše', () async {
+      backend.server.addMember('home-9', a.userId);
+      await service.refresh(session);
+      await service.setPreferredHousehold(a.userId, 'home-9');
+      backend.server.members['home-9']!.remove(a.userId);
+      final fresh = await service.refresh(session);
+      expect(fresh.householdId, a.householdId);
+      expect((await row()).preferredHouseholdId, isNull);
+    });
+
+    test('ručni izbor ima prednost nad poslednjim pridruživanjem', () async {
+      backend.server.addMember('home-9', a.userId);
+      await service.refresh(session);
+      await service.setPreferredHousehold(a.userId, a.householdId);
+      final fresh = await service.refresh(session);
+      expect(fresh.householdId, a.householdId);
+      expect(fresh.role, 'owner');
+    });
+
+    test('bez mreže baca Offline i ništa ne menja', () async {
+      await cursor();
+      backend.server.offline = true;
+      await expectLater(service.refresh(session), throwsA(isA<Offline>()));
+      expect(await db.select(db.syncCursors).get(), hasLength(1));
+      expect((await row()).householdId, a.householdId);
+    });
+
+    test('keš članova zamenjuje skup samo za to domaćinstvo', () async {
+      HouseholdMember member(String id) => HouseholdMember(
+        userId: id,
+        displayName: id,
+        role: HouseholdRole.member,
+        joinedAt: t,
+      );
+      await service.cacheMembers(a.userId, 'h1', [member('x'), member('y')], t);
+      await service.cacheMembers(a.userId, 'h2', [member('z')], t);
+      await service.cacheMembers(a.userId, 'h1', [member('y')], t);
+      expect(
+        (await service.watchMembers(a.userId, 'h1').first).map((m) => m.userId),
+        ['y'],
+      );
+      expect(
+        (await service.watchMembers(a.userId, 'h2').first).map((m) => m.userId),
+        ['z'],
+      );
+    });
   });
 }

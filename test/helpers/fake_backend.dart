@@ -18,7 +18,41 @@ class FakeServer {
 
   final users = <String, String>{}; // email → userId
   final profiles = <String, Map<String, Object?>>{}; // userId → profil
-  final households = <String, String>{}; // userId → householdId
+  final households = <String, String>{}; // userId → lično householdId
+
+  /// Članstva: householdId → (userId → uloga i vreme pridruživanja).
+  final members = <String, Map<String, ({String role, DateTime joinedAt})>>{};
+  final householdNames = <String, String>{}; // householdId → naziv
+
+  /// Dodaje [userId] u [householdId] (bez provere pozivnice).
+  void addMember(
+    String householdId,
+    String userId, {
+    String role = 'member',
+    DateTime? joinedAt,
+  }) {
+    householdNames.putIfAbsent(householdId, () => 'Domaćinstvo $householdId');
+    members.putIfAbsent(householdId, () => {})[userId] = (
+      role: role,
+      joinedAt: joinedAt ?? DateTime.utc(2026, 11, 10),
+    );
+  }
+
+  /// Članstva korisnika, poslednje pridruženo prvo.
+  List<Membership> membershipsOf(String userId) {
+    final out = [
+      for (final MapEntry(key: hid, value: m) in members.entries)
+        if (m[userId] case final me?)
+          Membership(
+            householdId: hid,
+            householdName: householdNames[hid] ?? 'Moje domaćinstvo',
+            role: HouseholdRole.parse(me.role),
+            joinedAt: me.joinedAt,
+          ),
+    ]..sort((a, b) => b.joinedAt.compareTo(a.joinedAt));
+    return out;
+  }
+
   final tables = <String, Map<String, Map<String, Object?>>>{};
   final photos = <String, Uint8List>{};
   final revoked = <String>{}; // userId-jevi kojima je sesija opozvana
@@ -61,6 +95,8 @@ class FakeServer {
     final uid = 'user-${++_n}';
     final hid = 'home-$_n';
     households[uid] = hid;
+    householdNames[hid] = 'Moje domaćinstvo';
+    members[hid] = {uid: (role: 'owner', joinedAt: DateTime.utc(2026, 11))};
     profiles[uid] = {
       'id': uid,
       'email': email,
@@ -268,6 +304,9 @@ class FakeServer {
   /// Briše sve što pripada nalogu (kao Edge Function delete-account).
   void deleteAccount(String userId) {
     final hid = households.remove(userId);
+    for (final m in members.values) {
+      m.remove(userId);
+    }
     for (final t in tables.values) {
       t.removeWhere(
         (_, r) =>
@@ -383,21 +422,16 @@ class FakeAccountApi implements AccountApi {
     if (server.offline) throw const Offline();
     final uid = auth.current!.userId;
     final p = server.profiles[uid]!;
+    final all = server.membershipsOf(uid);
+    final first = all.first;
     return RemoteAccount(
       userId: uid,
       email: p['email']! as String,
       displayName: p['display_name'] as String?,
-      householdId: server.households[uid]!,
-      householdName: 'Moje domaćinstvo',
-      role: 'owner',
-      memberships: [
-        Membership(
-          householdId: server.households[uid]!,
-          householdName: 'Moje domaćinstvo',
-          role: HouseholdRole.owner,
-          joinedAt: DateTime.utc(2026, 11),
-        ),
-      ],
+      householdId: first.householdId,
+      householdName: first.householdName,
+      role: first.role.wire,
+      memberships: all,
     );
   }
 
