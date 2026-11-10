@@ -7,6 +7,7 @@ import 'package:supabase/supabase.dart';
 import 'package:tavli/account/supabase_client.dart';
 import 'package:tavli/account/supabase_config.dart';
 import 'package:tavli/data/household_membership_repository.dart';
+import 'package:tavli/domain/household_role.dart';
 
 import '../helpers/fake_supabase.dart';
 
@@ -32,8 +33,9 @@ void main() {
     });
     tearDown(() => client.dispose());
 
-    HouseholdMembershipRepository repo() =>
-        HouseholdMembershipRepository(client);
+    HouseholdMembershipRepository repo() => HouseholdMembershipRepository(
+      SupabaseHouseholdMembershipRemote(client),
+    );
 
     http.Response dbError(String message, String code) => jsonResponse({
       'code': code,
@@ -112,6 +114,59 @@ void main() {
       await expectLater(
         repo().transferOwnership('h1', 'u2'),
         throwsA(isA<MembershipOffline>()),
+      );
+    });
+
+    test('listMembers zove household_member_list i vraća članove', () async {
+      handler = (_) => jsonResponse([
+        {
+          'user_id': 'u1',
+          'display_name': 'Ana',
+          'role': 'owner',
+          'joined_at': '2026-11-01T10:00:00Z',
+        },
+        {
+          'user_id': 'u2',
+          'display_name': null,
+          'role': 'member',
+          'joined_at': '2026-11-10T10:00:00Z',
+        },
+      ]);
+
+      final members = await repo().listMembers('h1');
+
+      final r = requests.single;
+      expect(r.url.path, endsWith('/rest/v1/rpc/household_member_list'));
+      expect(jsonDecode(r.body), {'p_household_id': 'h1'});
+      expect(members, hasLength(2));
+      expect(members[0].userId, 'u1');
+      expect(members[0].displayName, 'Ana');
+      expect(members[0].role, HouseholdRole.owner);
+      expect(members[1].displayName, isNull);
+      expect(members[1].role, HouseholdRole.member);
+      expect(members[1].joinedAt, DateTime.utc(2026, 11, 10, 10));
+    });
+
+    test('listMembers za ne-člana baca NotHouseholdMember', () async {
+      handler = (_) => dbError('not_household_member', '42501');
+      await expectLater(
+        repo().listMembers('h1'),
+        throwsA(isA<NotHouseholdMember>()),
+      );
+    });
+
+    test('listMembers sa nepoznatom ulogom je greška servera', () async {
+      handler = (_) => jsonResponse([
+        {
+          'user_id': 'u1',
+          'display_name': 'Ana',
+          'role': 'admin',
+          'joined_at': '2026-11-01T10:00:00Z',
+        },
+      ]);
+      await expectLater(
+        repo().listMembers('h1'),
+        throwsA(isA<MembershipServerError>()),
       );
     });
   });

@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:supabase/supabase.dart';
 
+import '../domain/household.dart';
+import '../domain/household_role.dart';
+
 /// Zašto promena članstva nije uspela. Tada se ništa ne menja.
 sealed class MembershipFailure implements Exception {
   const MembershipFailure();
@@ -52,32 +55,80 @@ class MembershipServerError extends MembershipFailure {
   const MembershipServerError();
 }
 
-/// Operacije nad članstvom (RPC funkcije u bazi). Baca [MembershipFailure].
-class HouseholdMembershipRepository {
-  HouseholdMembershipRepository(this._client);
+/// Server za članstvo (RPC funkcije u bazi); u testovima se lažira.
+/// Baca [MembershipFailure].
+abstract interface class HouseholdMembershipRemote {
+  Future<void> removeMember(String householdId, String userId);
+
+  Future<void> leave(String householdId);
+
+  Future<void> transferOwnership(String householdId, String userId);
+
+  /// Članovi domaćinstva sa imenima (bez imejla).
+  Future<List<HouseholdMember>> listMembers(String householdId);
+}
+
+/// Operacije nad članstvom kroz Supabase RPC.
+class SupabaseHouseholdMembershipRemote implements HouseholdMembershipRemote {
+  SupabaseHouseholdMembershipRemote(this._client);
 
   final SupabaseClient _client;
 
-  /// Vlasnik [householdId] uklanja člana. Uklonjena osoba dobija novo, prazno
-  /// domaćinstvo, ako nema nijedno drugo.
+  @override
   Future<void> removeMember(String householdId, String userId) => _call(
     'remove_household_member',
     {'p_household_id': householdId, 'p_user': userId},
   );
 
-  /// Član napušta [householdId]; vlasnik prvo mora da prenese vlasništvo.
+  @override
   Future<void> leave(String householdId) =>
       _call('leave_household', {'p_household_id': householdId});
 
-  /// Vlasnik [householdId] prenosi vlasništvo članu; on postaje član.
+  @override
   Future<void> transferOwnership(String householdId, String userId) => _call(
     'transfer_household_ownership',
     {'p_household_id': householdId, 'p_user': userId},
   );
 
-  Future<void> _call(String function, Map<String, Object?> params) async {
+  @override
+  Future<List<HouseholdMember>> listMembers(String householdId) async {
+    final rows = await _guard(
+      () => _client.rpc<List<dynamic>>(
+        'household_member_list',
+        params: {'p_household_id': householdId},
+      ),
+    );
+    return [for (final r in rows) _memberFromRow(r)];
+  }
+
+  /// Red neočekivanog oblika ili nepoznata uloga je greška servera.
+  static HouseholdMember _memberFromRow(Object? row) {
+    if (row case {
+      'user_id': final String userId,
+      'role': final String role,
+      'joined_at': final String joinedAt,
+    }) {
+      final name = row['display_name'];
+      try {
+        return HouseholdMember(
+          userId: userId,
+          displayName: name is String ? name : null,
+          role: HouseholdRole.parse(role),
+          joinedAt: DateTime.parse(joinedAt),
+        );
+      } on FormatException {
+        throw const MembershipServerError();
+      }
+    }
+    throw const MembershipServerError();
+  }
+
+  Future<void> _call(String function, Map<String, Object?> params) =>
+      _guard(() => _client.rpc<void>(function, params: params));
+
+  Future<T> _guard<T>(Future<T> Function() action) async {
     try {
-      await _client.rpc<void>(function, params: params);
+      return await action();
     } on PostgrestException catch (e) {
       throw _classify(e);
     } on SocketException {
@@ -108,4 +159,27 @@ class HouseholdMembershipRepository {
     }
     return const MembershipServerError();
   }
+}
+
+/// Operacije nad članstvom. Baca [MembershipFailure].
+class HouseholdMembershipRepository {
+  HouseholdMembershipRepository(this._remote);
+
+  final HouseholdMembershipRemote _remote;
+
+  /// Vlasnik [householdId] uklanja člana. Uklonjena osoba dobija novo, prazno
+  /// domaćinstvo, ako nema nijedno drugo.
+  Future<void> removeMember(String householdId, String userId) =>
+      _remote.removeMember(householdId, userId);
+
+  /// Član napušta [householdId]; vlasnik prvo mora da prenese vlasništvo.
+  Future<void> leave(String householdId) => _remote.leave(householdId);
+
+  /// Vlasnik [householdId] prenosi vlasništvo članu; on postaje član.
+  Future<void> transferOwnership(String householdId, String userId) =>
+      _remote.transferOwnership(householdId, userId);
+
+  /// Članovi domaćinstva sa imenima, vlasnik prvi.
+  Future<List<HouseholdMember>> listMembers(String householdId) =>
+      _remote.listMembers(householdId);
 }
