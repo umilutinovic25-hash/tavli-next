@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../account/auth_controller.dart';
 import '../../domain/account.dart';
@@ -28,6 +29,14 @@ class HouseholdScreen extends ConsumerWidget {
                   const InvitesSection(),
                   const SizedBox(height: 16),
                 ],
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: OutlinedButton.icon(
+                    onPressed: () => context.go('/profile/household/join'),
+                    icon: const Icon(Icons.vpn_key_outlined),
+                    label: const Text('Pridruži se kodom'),
+                  ),
+                ),
               ],
             ),
     );
