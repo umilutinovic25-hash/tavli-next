@@ -185,6 +185,12 @@ void main() {
 
   testTavli('Profil u debug verziji ima Animacije', (tester) async {
     await pumpTavli(tester, location: '/profile');
+    // Stavka je poslednja u listi; ispod preseka telefona posle "Preferencije".
+    await tester.scrollUntilVisible(
+      find.text('Animacije'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Animacije'), findsOneWidget);
     expect(find.text('Izgled'), findsOneWidget);
   });

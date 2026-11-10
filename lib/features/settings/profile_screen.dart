@@ -31,6 +31,13 @@ class ProfileScreen extends StatelessWidget {
             onTap: () => context.go('/profile/appearance'),
           ),
           ListTile(
+            leading: const Icon(Icons.restaurant_menu_outlined),
+            title: const Text('Preferencije'),
+            subtitle: const Text('Ishrana, namirnice koje ne volimo, alergije'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go('/profile/preferences'),
+          ),
+          ListTile(
             leading: const Icon(Icons.key),
             title: const Text('AI ključevi'),
             subtitle: const Text('Gemini, Groq, OpenRouter'),
