@@ -1,5 +1,6 @@
 import '../domain/ids.dart';
 import '../domain/recipe.dart';
+import '../domain/step_links.dart';
 import 'ai_models.dart';
 import 'ai_router.dart';
 import 'prompts.dart';
@@ -67,13 +68,27 @@ class RecipeAI {
             system: recipeSystemPrompt,
             prompt: refineRecipePrompt(current, instruction),
           ),
-          (json) => Recipe.fromAiJson(
-            json,
-            id: current.id,
-            source: current.source,
-            createdAt: current.createdAt,
-            imagePath: current.imagePath,
-          ),
+          (json) {
+            final next = Recipe.fromAiJson(
+              json,
+              id: current.id,
+              source: current.source,
+              createdAt: current.createdAt,
+              imagePath: current.imagePath,
+            );
+            // Isti sastojak (po nazivu) i isti tekst koraka zadržavaju veze.
+            return next.copyWith(
+              ingredients: carryIngredientIds(
+                current.ingredients,
+                next.ingredients,
+              ),
+              stepUses: realignStepUses(
+                current.steps,
+                current.stepUses,
+                next.steps,
+              ),
+            );
+          },
         )
         .then(_stampModel);
   }
@@ -100,6 +115,7 @@ class RecipeAI {
         prepMinutes: v.prepMinutes,
         ingredients: v.ingredients,
         steps: v.steps,
+        stepUses: v.stepUses,
         source: v.source,
         imagePath: v.imagePath,
         createdAt: v.createdAt,

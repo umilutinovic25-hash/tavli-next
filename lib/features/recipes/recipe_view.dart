@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
+import '../../domain/step_links.dart';
 import 'recipe_photo.dart';
 
 /// Sadržaj recepta: slika, porcije, sastojci po kategorijama, koraci.
@@ -86,6 +87,20 @@ class RecipeView extends StatelessWidget {
               child: Text('• ${ingredientLine(i)}'),
             ),
         ],
+        for (final c in useConflicts(recipe.ingredients, recipe.stepUses))
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              '„${c.ingredient.name}“: koraci koriste '
+              '${formatQuantity(c.usedQuantity)}'
+              '${c.ingredient.unit == null ? '' : ' ${c.ingredient.unit}'}, '
+              'a recept ima ${formatQuantity(c.ingredient.quantity!)}'
+              '${c.ingredient.unit == null ? '' : ' ${c.ingredient.unit}'}.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ),
         const SizedBox(height: 20),
         Text('Priprema', style: theme.textTheme.titleMedium),
         const SizedBox(height: 8),
@@ -112,7 +127,16 @@ class RecipeView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Expanded(child: Text(step)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(step),
+                        for (final use in recipe.usesFor(n))
+                          StepUseLine(use, recipe.ingredients),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -121,6 +145,42 @@ class RecipeView extends StatelessWidget {
           Text(origin, style: theme.textTheme.bodySmall),
         ],
       ],
+    );
+  }
+}
+
+/// Sastojak uz korak: "300 g brašno"; bez količine samo naziv (raspodela
+/// se ne izmišlja); sastojak koji više nije u receptu se jasno označava.
+class StepUseLine extends StatelessWidget {
+  const StepUseLine(this.use, this.ingredients, {super.key});
+
+  final StepUse use;
+  final List<Ingredient> ingredients;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    Ingredient? ingredient;
+    for (final i in ingredients) {
+      if (i.id == use.ingredientId) ingredient = i;
+    }
+    final text = ingredient == null
+        ? 'Sastojak više nije u receptu'
+        : [
+            if (use.quantity case final q?) formatQuantity(q),
+            if (use.quantity != null) ?(use.unit ?? ingredient.unit),
+            ingredient.name,
+          ].join(' ');
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(
+        '↳ $text',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: ingredient == null
+              ? theme.colorScheme.error
+              : theme.colorScheme.primary,
+        ),
+      ),
     );
   }
 }

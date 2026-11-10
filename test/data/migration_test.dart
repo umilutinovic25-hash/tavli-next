@@ -154,7 +154,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 5);
+    expect(db.schemaVersion, 12);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -323,5 +323,41 @@ void main() {
     addTearDown(again.close);
     expect((await again.select(again.shoppingLists).get()).single.id, 'l1');
     expect(await again.select(again.shoppingSources).get(), isEmpty);
+  });
+
+  test('migracija 5 → 12 dodaje zapis veza; recepti ostaju isti', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v12-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      'INSERT INTO recipes (id, title, servings, source, ingredients_json, '
+      "steps_json, created_at, updated_at) VALUES ('r1', 'Sarma', 4, "
+      """'manual', '[{"name":"kupus"}]', '["Kuvati."]', 1, 2)""",
+    );
+    await before.customStatement(
+      'ALTER TABLE recipes DROP COLUMN step_links_json',
+    );
+    await before.customStatement('PRAGMA user_version = 5');
+    await before.close();
+
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final r = (await after.select(after.recipes).get()).single;
+    expect(r.stepsJson, '["Kuvati."]');
+    expect(r.stepLinksJson, isNull);
+  });
+
+  test('ponovljena v12 migracija (kolona već postoji) ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v12b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 11');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.recipes).get(), isEmpty);
   });
 }

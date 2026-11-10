@@ -60,6 +60,7 @@ void main() {
           {'name': 'kupus', 'quantity': 0.5},
         ]);
         expect(r['steps'], ['Kuvati.']);
+        expect(r['step_links'], isNull);
         expect(r['image_path'], 'a.jpg');
         expect(r['created_at'], '2026-10-30T10:05:07.000Z');
         expect(r.containsKey('updated_at'), isFalse);
@@ -68,6 +69,40 @@ void main() {
     final row = (await db.select(db.recipes).get()).single;
     expect(row.imagePath, 'recipe_photos/a.jpg');
     expect(row.updatedAt.toUtc(), DateTime.utc(2026, 10, 30, 12));
+  });
+
+  test('recept sa vezama koraka: step_links kao lista', () async {
+    await roundTrip(
+      const RecipeEntity(),
+      RecipesCompanion.insert(
+        id: 'r2',
+        title: 'Testo',
+        servings: 4,
+        source: 'manual',
+        ingredientsJson: '[{"name":"brašno","quantity":500,"id":"i-b"}]',
+        stepsJson: '["Prosejati."]',
+        stepLinksJson: const Value(
+          '[{"text":"Prosejati.","uses":[{"ingredientId":"i-b","quantity":300}]}]',
+        ),
+        createdAt: t,
+        updatedAt: t,
+        householdId: const Value('h1'),
+      ),
+      'r2',
+      (r) {
+        expect(r['ingredients'], [
+          {'name': 'brašno', 'quantity': 500, 'id': 'i-b'},
+        ]);
+        expect(r['step_links'], [
+          {
+            'text': 'Prosejati.',
+            'uses': [
+              {'ingredientId': 'i-b', 'quantity': 300},
+            ],
+          },
+        ]);
+      },
+    );
   });
 
   test('verzija recepta', () async {

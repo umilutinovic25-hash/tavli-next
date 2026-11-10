@@ -6,6 +6,7 @@ import '../account/auth_controller.dart';
 import '../domain/ids.dart';
 import '../domain/recipe.dart';
 import '../domain/recipe_version.dart';
+import '../domain/step_links.dart';
 import '../sync/synced_writer.dart';
 import 'database.dart';
 import 'recipe_photo_store.dart';
@@ -271,6 +272,10 @@ class RecipeRepository {
     source: r.source.name,
     ingredientsJson: jsonEncode([for (final i in r.ingredients) i.toJson()]),
     stepsJson: jsonEncode(r.steps),
+    stepLinksJson: Value(switch (writeStepLinks(r.steps, r.stepUses)) {
+      final links? => jsonEncode(links),
+      null => null,
+    }),
     imagePath: Value(r.imagePath),
     answeredBy: Value(r.answeredBy),
     createdAt: r.createdAt,
@@ -281,23 +286,38 @@ class RecipeRepository {
   static Recipe? _fromRowOrNull(RecipeRow? row) =>
       row == null ? null : _fromRow(row);
 
-  static Recipe _fromRow(RecipeRow row) => Recipe(
-    id: row.id,
-    title: row.title,
-    servings: row.servings,
-    prepMinutes: row.prepMinutes,
-    ingredients: [
-      for (final i in jsonDecode(row.ingredientsJson) as List<dynamic>)
-        Ingredient.fromJson(i as Map<String, dynamic>),
-    ],
-    steps: [
+  static Recipe _fromRow(RecipeRow row) {
+    final steps = [
       for (final s in jsonDecode(row.stepsJson) as List<dynamic>) s as String,
-    ],
-    source: RecipeSource.values.asNameMap()[row.source] ?? RecipeSource.manual,
-    imagePath: row.imagePath,
-    answeredBy: row.answeredBy,
-    createdAt: row.createdAt,
-  );
+    ];
+    return Recipe(
+      id: row.id,
+      title: row.title,
+      servings: row.servings,
+      prepMinutes: row.prepMinutes,
+      ingredients: [
+        for (final i in jsonDecode(row.ingredientsJson) as List<dynamic>)
+          Ingredient.fromJson(i as Map<String, dynamic>),
+      ],
+      steps: steps,
+      stepUses: readStepLinks(steps, _decodeLinks(row.stepLinksJson)),
+      source:
+          RecipeSource.values.asNameMap()[row.source] ?? RecipeSource.manual,
+      imagePath: row.imagePath,
+      answeredBy: row.answeredBy,
+      createdAt: row.createdAt,
+    );
+  }
+
+  // Pokvaren zapis veza ne sme da sakrije recept; tada je bez veza.
+  static Object? _decodeLinks(String? json) {
+    if (json == null) return null;
+    try {
+      return jsonDecode(json);
+    } on FormatException {
+      return null;
+    }
+  }
 
   static RecipeVersion? _versionFromRow(RecipeVersionRow row) {
     try {

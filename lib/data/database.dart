@@ -20,6 +20,9 @@ class Recipes extends Table {
   TextColumn get source => text()(); // RecipeSource.name
   TextColumn get ingredientsJson => text()();
   TextColumn get stepsJson => text()();
+
+  /// Veze sastojaka i koraka (v12): [{text, uses}], null bez veza.
+  TextColumn get stepLinksJson => text().nullable()();
   TextColumn get imagePath => text().nullable()();
   TextColumn get answeredBy => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
@@ -395,7 +398,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -412,6 +415,13 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) await transaction(() => _migrateToAccounts(m));
       if (from < 5) await transaction(() => _migrateToPlanShopping(m));
+      // v6–v11 koriste druge grane (018–026); veze koraka su v12.
+      if (from < 12) {
+        final columns = await customSelect('PRAGMA table_info(recipes)').get();
+        if (!columns.any((c) => c.read<String>('name') == 'step_links_json')) {
+          await m.addColumn(recipes, recipes.stepLinksJson);
+        }
+      }
     },
   );
 

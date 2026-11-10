@@ -79,6 +79,17 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _stepLinksJsonMeta = const VerificationMeta(
+    'stepLinksJson',
+  );
+  @override
+  late final GeneratedColumn<String> stepLinksJson = GeneratedColumn<String>(
+    'step_links_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _imagePathMeta = const VerificationMeta(
     'imagePath',
   );
@@ -143,6 +154,7 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
     source,
     ingredientsJson,
     stepsJson,
+    stepLinksJson,
     imagePath,
     answeredBy,
     createdAt,
@@ -218,6 +230,15 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
     } else if (isInserting) {
       context.missing(_stepsJsonMeta);
     }
+    if (data.containsKey('step_links_json')) {
+      context.handle(
+        _stepLinksJsonMeta,
+        stepLinksJson.isAcceptableOrUnknown(
+          data['step_links_json']!,
+          _stepLinksJsonMeta,
+        ),
+      );
+    }
     if (data.containsKey('image_path')) {
       context.handle(
         _imagePathMeta,
@@ -292,6 +313,10 @@ class $RecipesTable extends Recipes with TableInfo<$RecipesTable, RecipeRow> {
         DriftSqlType.string,
         data['${effectivePrefix}steps_json'],
       )!,
+      stepLinksJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}step_links_json'],
+      ),
       imagePath: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}image_path'],
@@ -329,6 +354,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
   final String source;
   final String ingredientsJson;
   final String stepsJson;
+
+  /// Veze sastojaka i koraka (v12): [{text, uses}], null bez veza.
+  final String? stepLinksJson;
   final String? imagePath;
   final String? answeredBy;
   final DateTime createdAt;
@@ -342,6 +370,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     required this.source,
     required this.ingredientsJson,
     required this.stepsJson,
+    this.stepLinksJson,
     this.imagePath,
     this.answeredBy,
     required this.createdAt,
@@ -360,6 +389,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     map['source'] = Variable<String>(source);
     map['ingredients_json'] = Variable<String>(ingredientsJson);
     map['steps_json'] = Variable<String>(stepsJson);
+    if (!nullToAbsent || stepLinksJson != null) {
+      map['step_links_json'] = Variable<String>(stepLinksJson);
+    }
     if (!nullToAbsent || imagePath != null) {
       map['image_path'] = Variable<String>(imagePath);
     }
@@ -385,6 +417,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       source: Value(source),
       ingredientsJson: Value(ingredientsJson),
       stepsJson: Value(stepsJson),
+      stepLinksJson: stepLinksJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stepLinksJson),
       imagePath: imagePath == null && nullToAbsent
           ? const Value.absent()
           : Value(imagePath),
@@ -412,6 +447,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       source: serializer.fromJson<String>(json['source']),
       ingredientsJson: serializer.fromJson<String>(json['ingredientsJson']),
       stepsJson: serializer.fromJson<String>(json['stepsJson']),
+      stepLinksJson: serializer.fromJson<String?>(json['stepLinksJson']),
       imagePath: serializer.fromJson<String?>(json['imagePath']),
       answeredBy: serializer.fromJson<String?>(json['answeredBy']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -430,6 +466,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
       'source': serializer.toJson<String>(source),
       'ingredientsJson': serializer.toJson<String>(ingredientsJson),
       'stepsJson': serializer.toJson<String>(stepsJson),
+      'stepLinksJson': serializer.toJson<String?>(stepLinksJson),
       'imagePath': serializer.toJson<String?>(imagePath),
       'answeredBy': serializer.toJson<String?>(answeredBy),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -446,6 +483,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     String? source,
     String? ingredientsJson,
     String? stepsJson,
+    Value<String?> stepLinksJson = const Value.absent(),
     Value<String?> imagePath = const Value.absent(),
     Value<String?> answeredBy = const Value.absent(),
     DateTime? createdAt,
@@ -459,6 +497,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     source: source ?? this.source,
     ingredientsJson: ingredientsJson ?? this.ingredientsJson,
     stepsJson: stepsJson ?? this.stepsJson,
+    stepLinksJson: stepLinksJson.present
+        ? stepLinksJson.value
+        : this.stepLinksJson,
     imagePath: imagePath.present ? imagePath.value : this.imagePath,
     answeredBy: answeredBy.present ? answeredBy.value : this.answeredBy,
     createdAt: createdAt ?? this.createdAt,
@@ -478,6 +519,9 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
           ? data.ingredientsJson.value
           : this.ingredientsJson,
       stepsJson: data.stepsJson.present ? data.stepsJson.value : this.stepsJson,
+      stepLinksJson: data.stepLinksJson.present
+          ? data.stepLinksJson.value
+          : this.stepLinksJson,
       imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
       answeredBy: data.answeredBy.present
           ? data.answeredBy.value
@@ -500,6 +544,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
           ..write('source: $source, ')
           ..write('ingredientsJson: $ingredientsJson, ')
           ..write('stepsJson: $stepsJson, ')
+          ..write('stepLinksJson: $stepLinksJson, ')
           ..write('imagePath: $imagePath, ')
           ..write('answeredBy: $answeredBy, ')
           ..write('createdAt: $createdAt, ')
@@ -518,6 +563,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
     source,
     ingredientsJson,
     stepsJson,
+    stepLinksJson,
     imagePath,
     answeredBy,
     createdAt,
@@ -535,6 +581,7 @@ class RecipeRow extends DataClass implements Insertable<RecipeRow> {
           other.source == this.source &&
           other.ingredientsJson == this.ingredientsJson &&
           other.stepsJson == this.stepsJson &&
+          other.stepLinksJson == this.stepLinksJson &&
           other.imagePath == this.imagePath &&
           other.answeredBy == this.answeredBy &&
           other.createdAt == this.createdAt &&
@@ -550,6 +597,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
   final Value<String> source;
   final Value<String> ingredientsJson;
   final Value<String> stepsJson;
+  final Value<String?> stepLinksJson;
   final Value<String?> imagePath;
   final Value<String?> answeredBy;
   final Value<DateTime> createdAt;
@@ -564,6 +612,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     this.source = const Value.absent(),
     this.ingredientsJson = const Value.absent(),
     this.stepsJson = const Value.absent(),
+    this.stepLinksJson = const Value.absent(),
     this.imagePath = const Value.absent(),
     this.answeredBy = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -579,6 +628,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     required String source,
     required String ingredientsJson,
     required String stepsJson,
+    this.stepLinksJson = const Value.absent(),
     this.imagePath = const Value.absent(),
     this.answeredBy = const Value.absent(),
     required DateTime createdAt,
@@ -601,6 +651,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     Expression<String>? source,
     Expression<String>? ingredientsJson,
     Expression<String>? stepsJson,
+    Expression<String>? stepLinksJson,
     Expression<String>? imagePath,
     Expression<String>? answeredBy,
     Expression<DateTime>? createdAt,
@@ -616,6 +667,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
       if (source != null) 'source': source,
       if (ingredientsJson != null) 'ingredients_json': ingredientsJson,
       if (stepsJson != null) 'steps_json': stepsJson,
+      if (stepLinksJson != null) 'step_links_json': stepLinksJson,
       if (imagePath != null) 'image_path': imagePath,
       if (answeredBy != null) 'answered_by': answeredBy,
       if (createdAt != null) 'created_at': createdAt,
@@ -633,6 +685,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     Value<String>? source,
     Value<String>? ingredientsJson,
     Value<String>? stepsJson,
+    Value<String?>? stepLinksJson,
     Value<String?>? imagePath,
     Value<String?>? answeredBy,
     Value<DateTime>? createdAt,
@@ -648,6 +701,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
       source: source ?? this.source,
       ingredientsJson: ingredientsJson ?? this.ingredientsJson,
       stepsJson: stepsJson ?? this.stepsJson,
+      stepLinksJson: stepLinksJson ?? this.stepLinksJson,
       imagePath: imagePath ?? this.imagePath,
       answeredBy: answeredBy ?? this.answeredBy,
       createdAt: createdAt ?? this.createdAt,
@@ -681,6 +735,9 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
     if (stepsJson.present) {
       map['steps_json'] = Variable<String>(stepsJson.value);
     }
+    if (stepLinksJson.present) {
+      map['step_links_json'] = Variable<String>(stepLinksJson.value);
+    }
     if (imagePath.present) {
       map['image_path'] = Variable<String>(imagePath.value);
     }
@@ -712,6 +769,7 @@ class RecipesCompanion extends UpdateCompanion<RecipeRow> {
           ..write('source: $source, ')
           ..write('ingredientsJson: $ingredientsJson, ')
           ..write('stepsJson: $stepsJson, ')
+          ..write('stepLinksJson: $stepLinksJson, ')
           ..write('imagePath: $imagePath, ')
           ..write('answeredBy: $answeredBy, ')
           ..write('createdAt: $createdAt, ')
@@ -9250,6 +9308,7 @@ typedef $$RecipesTableCreateCompanionBuilder = RecipesCompanion Function({
   required String source,
   required String ingredientsJson,
   required String stepsJson,
+  Value<String?> stepLinksJson,
   Value<String?> imagePath,
   Value<String?> answeredBy,
   required DateTime createdAt,
@@ -9265,6 +9324,7 @@ typedef $$RecipesTableUpdateCompanionBuilder = RecipesCompanion Function({
   Value<String> source,
   Value<String> ingredientsJson,
   Value<String> stepsJson,
+  Value<String?> stepLinksJson,
   Value<String?> imagePath,
   Value<String?> answeredBy,
   Value<DateTime> createdAt,
@@ -9376,6 +9436,11 @@ class $$RecipesTableFilterComposer
 
   ColumnFilters<String> get stepsJson => $composableBuilder(
     column: $table.stepsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stepLinksJson => $composableBuilder(
+    column: $table.stepLinksJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9524,6 +9589,11 @@ class $$RecipesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get stepLinksJson => $composableBuilder(
+    column: $table.stepLinksJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get imagePath => $composableBuilder(
     column: $table.imagePath,
     builder: (column) => ColumnOrderings(column),
@@ -9583,6 +9653,11 @@ class $$RecipesTableAnnotationComposer
 
   GeneratedColumn<String> get stepsJson =>
       $composableBuilder(column: $table.stepsJson, builder: (column) => column);
+
+  GeneratedColumn<String> get stepLinksJson => $composableBuilder(
+    column: $table.stepLinksJson,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get imagePath =>
       $composableBuilder(column: $table.imagePath, builder: (column) => column);
@@ -9718,6 +9793,7 @@ class $$RecipesTableTableManager
                 Value<String> source = const Value.absent(),
                 Value<String> ingredientsJson = const Value.absent(),
                 Value<String> stepsJson = const Value.absent(),
+                Value<String?> stepLinksJson = const Value.absent(),
                 Value<String?> imagePath = const Value.absent(),
                 Value<String?> answeredBy = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -9732,6 +9808,7 @@ class $$RecipesTableTableManager
                 source: source,
                 ingredientsJson: ingredientsJson,
                 stepsJson: stepsJson,
+                stepLinksJson: stepLinksJson,
                 imagePath: imagePath,
                 answeredBy: answeredBy,
                 createdAt: createdAt,
@@ -9748,6 +9825,7 @@ class $$RecipesTableTableManager
                 required String source,
                 required String ingredientsJson,
                 required String stepsJson,
+                Value<String?> stepLinksJson = const Value.absent(),
                 Value<String?> imagePath = const Value.absent(),
                 Value<String?> answeredBy = const Value.absent(),
                 required DateTime createdAt,
@@ -9762,6 +9840,7 @@ class $$RecipesTableTableManager
                 source: source,
                 ingredientsJson: ingredientsJson,
                 stepsJson: stepsJson,
+                stepLinksJson: stepLinksJson,
                 imagePath: imagePath,
                 answeredBy: answeredBy,
                 createdAt: createdAt,
