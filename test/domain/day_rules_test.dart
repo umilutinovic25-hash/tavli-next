@@ -21,6 +21,43 @@ MealSlot slot(int day, [MealType type = MealType.lunch]) =>
     MealSlot(CivilDate(2026, 11, day), type);
 
 void main() {
+  test('bez mesa razlikuje mleveno brašno i pačetinu', () {
+    expect(
+      evaluateRule(
+        mondayNoMeat,
+        dish([
+          const Ingredient(name: 'mleveno brašno', category: 'suvi proizvodi'),
+        ]),
+      ).fit,
+      RuleFit.pass,
+    );
+    expect(
+      evaluateRule(
+        mondayNoMeat,
+        dish([const Ingredient(name: 'pačetina')]),
+      ).fit,
+      RuleFit.fail,
+    );
+    expect(evaluateRule(mondayNoMeat, dish([meso])).fit, RuleFit.fail);
+  });
+
+  test('kratak naziv sastojka se ne poklapa sa delom druge reči', () {
+    const noSalt = DayRule(
+      id: 'salt',
+      weekday: 1,
+      kind: RuleKind.without,
+      value: 'so',
+    );
+    expect(
+      evaluateRule(noSalt, dish([const Ingredient(name: 'losos')])).fit,
+      RuleFit.pass,
+    );
+    expect(
+      evaluateRule(noSalt, dish([const Ingredient(name: 'morska so')])).fit,
+      RuleFit.fail,
+    );
+  });
+
   test('ponedeljak bez mesa: mesni recept krši, sa dokazom', () {
     final r = evaluateRule(mondayNoMeat, dish([meso, krompir]));
     expect(r.fit, RuleFit.fail);

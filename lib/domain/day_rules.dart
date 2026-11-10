@@ -144,8 +144,9 @@ const _meatStems = [
   'meso',
   'mesa',
   'mesn',
-  'mlevenog',
-  'mleveno',
+  'pacet',
+  'patk',
+  'pacje',
   'svinj',
   'junet',
   'junec',
@@ -230,8 +231,24 @@ bool _isFish(Ingredient i) =>
     _tokens(i.name)
         .any((t) => _fishWords.contains(t) || _fishStems.any(t.startsWith));
 
-bool _contains(Ingredient i, String value) =>
-    normalizeForSearch(i.name).contains(normalizeForSearch(value.trim()));
+bool _contains(Ingredient i, String value) {
+  final name = _tokens(i.name);
+  final query = _tokens(value);
+  if (query.isEmpty || query.length > name.length) return false;
+  for (var start = 0; start <= name.length - query.length; start++) {
+    var matches = true;
+    for (var j = 0; j < query.length; j++) {
+      final token = query[j];
+      if (name[start + j] != token &&
+          !(token.length >= 4 && name[start + j].startsWith(token))) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) return true;
+  }
+  return false;
+}
 
 RuleResult evaluateRule(DayRule rule, RecipeSnapshot? snapshot) {
   final items = snapshot?.ingredients ?? const <Ingredient>[];
