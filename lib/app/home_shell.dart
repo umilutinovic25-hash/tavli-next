@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/account/sync_banner.dart';
 import 'router.dart';
+import 'tavli_brand.dart';
 
 /// Donji tabovi na telefonu, bočni meni na širem ekranu (macOS, tablet).
 class HomeShell extends StatelessWidget {
@@ -28,6 +29,11 @@ class HomeShell extends StatelessWidget {
                   : NavigationRailLabelType.all,
               selectedIndex: shell.currentIndex,
               onDestinationSelected: _select,
+              leading: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 20, 12, 32),
+                child: TavliBrand(compact: width < 1000),
+              ),
+              groupAlignment: -0.8,
               destinations: [
                 for (final t in tabs)
                   NavigationRailDestination(
