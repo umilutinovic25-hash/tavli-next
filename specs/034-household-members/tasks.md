@@ -72,11 +72,11 @@
   - `FakeServer` model: `memberships` (householdId → {userId → (role, joinedAt)}), `householdNames`, pozivnice (kod, rok, maxUses, uses, revoked), brojač `calls` po radnji; `_visible` za red sa `household_id` gleda članstvo umesto `households[userId]` (postojeći testovi ostaju zeleni jer lično domaćinstvo ostaje članstvo). Dodaj `FakeInviteRemote implements HouseholdInviteRemote` i `FakeMembershipRemote implements HouseholdMembershipRemote` nad istim stanjem (pravila kao migracije: samo vlasnik pravi/poništava, 5 neuspeha → `InviteTooManyAttempts`, redeem postojećeg člana ne troši upotrebu, vlasnik ne može da napusti, uklanjanje/prenos traže vlasnika); izloži ih kroz `FakeBackend.invites` / `FakeBackend.membership`.
   - `refreshAccount()` vraća `true` i postavlja novi `SignedIn` sa novim `householdId`; bez mreže vraća `false` i stanje ostaje; `SessionRevoked` ide u postojeći tok `sessionExpired`.
   - `start()` posle `SignedIn` iz keša poziva `refreshAccount()` bez čekanja (komentar sa razlogom za `unawaited`); test: server ima novije članstvo → posle `pumpEventQueue` stanje ima novo domaćinstvo; offline start i dalje daje `SignedIn` iz keša.
-  - Integracioni test (Review Focus 1) u `test/sync/` ili `test/account/`: B ima kursor posle T0; A u zajedničkom domaćinstvu ima red sa `updated_at` pre T0; B se pridruži (`FakeBackend`), `refreshAccount`, `syncEngine.pull()` → red je u B-ovoj lokalnoj bazi.
+  - Integracioni test (Review Focus 1) u novom `test/sync/household_join_sync_test.dart`: B ima kursor posle T0; A u zajedničkom domaćinstvu ima red sa `updated_at` pre T0; B se pridruži (`FakeBackend`), `refreshAccount`, `syncEngine.pull()` → red je u B-ovoj lokalnoj bazi.
 
 ### Akcije i tekstovi
 
-- [ ] T011 Provajderi u `lib/providers.dart`: `householdInviteRepositoryProvider`, `householdMembershipRepositoryProvider` (Supabase remote kad je klijent konfigurisan, inače remote koji baca `InviteOffline`/`MembershipOffline`), `householdMembershipsProvider` (StreamProvider iz `watchMemberships`), `householdMembersProvider` (StreamProvider iz `watchMembers` za aktivni scope); `test/helpers/test_app.dart` override-uje oba remote-a vrednostima iz `FakeBackend`. Test: `test/app/providers_test.dart` ili postojeći ekvivalent — bez Supabase konfiguracije `householdMembershipRepositoryProvider.leave(...)` baca `MembershipOffline`.
+- [ ] T011 Provajderi u `lib/providers.dart`: `householdInviteRepositoryProvider`, `householdMembershipRepositoryProvider` (Supabase remote kad je klijent konfigurisan, inače remote koji baca `InviteOffline`/`MembershipOffline`), `householdMembershipsProvider` (StreamProvider iz `watchMemberships`), `householdMembersProvider` (StreamProvider iz `watchMembers` za aktivni scope); `test/helpers/test_app.dart` override-uje oba remote-a vrednostima iz `FakeBackend`. Test u novom `test/app/household_providers_test.dart`: bez Supabase konfiguracije `householdMembershipRepositoryProvider.leave(...)` baca `MembershipOffline`.
 
 - [ ] T012 [P] `householdErrorText(Object error)` u `lib/features/household/household_error_text.dart` (ugovor §7), test `test/features/household/household_error_text_test.dart`: svaka klasa iz tabele → tačan tekst; nepoznata greška → `'Nešto nije uspelo. Pokušaj ponovo.'`; nijedan tekst ne sadrži `toString()` greške.
 
@@ -135,6 +135,7 @@
   - Neuspelo osvežavanje → poslednja lista + „Prikazano je poslednje poznato stanje.“ (US3-5).
   - Vlasnik: meni na tuđem redu → „Ukloni iz domaćinstva“ → dijalog „Ukloniti {ime} iz domaćinstva?“ / „Više neće videti podatke ovog domaćinstva.“ → član nestaje, „Član je uklonjen.“; član nema meni (US3-6); vlasnik nema meni na sopstvenom redu.
   - US3-4 (uklonjeni korisnik): test na drugom nalogu u istom `FakeBackend` — posle `refreshAccount` aktivno lično domaćinstvo, zajednički redovi nisu u lokalnoj bazi.
+  - Široko (1200×800) i tekst 2× na telefonu: bez overflow-a.
   - Semantika: svaki red ima čitljivu oznaku (ime + uloga + „Ti“) za čitač ekrana.
 
 ---
@@ -148,6 +149,7 @@
   - Vlasnik sa drugim članovima: umesto dugmeta tekst „Pre napuštanja prenesi vlasništvo drugom članu.“ (US4-2); vlasnik jedinog domaćinstva bez drugih članova: ni napuštanje ni prenos (US4-4).
   - Vlasnik: meni člana → „Prenesi vlasništvo“ → „Preneti vlasništvo na {ime}?“ / „Ti postaješ član i više ne možeš da pozivaš ni uklanjaš članove.“ → uloge zamenjene, „Vlasništvo je preneto.“, „Pozovi člana“ nestaje.
   - Server odbija (član je u međuvremenu otišao) → „Taj korisnik više nije član domaćinstva.“ i lista osvežena (US4-5).
+  - Tekst 2× na telefonu: dijalozi i objašnjenje vlasnika bez overflow-a.
 
 ---
 
@@ -160,6 +162,8 @@
   - Ponovno pokretanje (`pumpTavli` sa istom bazom) → izabrano domaćinstvo ostaje (US5-3).
   - Izabrano domaćinstvo uklonjeno na serveru → posle osvežavanja aktivno poslednje pridruženo (US5-4).
   - Offline → poruka o mreži, izbor nepromenjen.
+  - FR-019: izmena u Nabavci domaćinstva A dok je offline, pa prebacivanje na B i slanje → red na serveru ima `household_id` A, ne B.
+  - Široko (1200×800) i tekst 2× na telefonu: bez overflow-a.
 
 ---
 
