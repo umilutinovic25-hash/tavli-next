@@ -1,14 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../account/auth_controller.dart';
 import '../account/account_header.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final householdName = switch (ref.watch(authControllerProvider)) {
+      SignedIn(:final account) => account.householdName,
+      _ => null,
+    };
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil'),
@@ -23,6 +29,13 @@ class ProfileScreen extends StatelessWidget {
         children: [
           const AccountHeader(),
           const Divider(),
+          ListTile(
+            leading: const Icon(Icons.home_outlined),
+            title: const Text('Domaćinstvo'),
+            subtitle: householdName == null ? null : Text(householdName),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go('/profile/household'),
+          ),
           ListTile(
             leading: const Icon(Icons.palette_outlined),
             title: const Text('Izgled'),

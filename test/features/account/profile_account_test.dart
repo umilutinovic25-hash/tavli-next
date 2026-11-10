@@ -20,7 +20,7 @@ void main() {
     // Zaglavlje je iznad postojećih stavki.
     expect(
       tester.getTopLeft(find.text('Ana Petrović')).dy,
-      lessThan(tester.getTopLeft(find.text('AI ključevi')).dy),
+      lessThan(tester.getTopLeft(find.text('Izgled')).dy),
     );
   });
 
