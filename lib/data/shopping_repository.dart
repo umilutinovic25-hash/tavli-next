@@ -304,6 +304,9 @@ class ShoppingRepository {
           ))
           .getSingleOrNull();
 
+  /// Promena stvarne zalihe osvežava postojeće potrebe svih izvora.
+  Future<void> reconcileInventory() => _db.transaction(_reconcile);
+
   /// Usklađuje nabavku plana sa odobrenim obrocima: jedan izvor po obroku u
   /// listi njegove nedelje, pa doprinosi, raspodela zalihe i otvorene
   /// stavke. Ponovljen poziv bez promene ne menja ništa.
@@ -419,7 +422,7 @@ class ShoppingRepository {
               ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
               ..limit(1))
             .getSingleOrNull();
-    final json = jsonEncode(snapshot.toJson());
+    final json = jsonEncode(snapshot.withCurrentDictionary().toJson());
     String id;
     if (current != null && !repeat) {
       id = current.id;
@@ -858,16 +861,34 @@ class ShoppingRepository {
                   t.householdId.equals(_scope.householdId),
             ))
             .get();
-    return totalsOf(items);
+    final contributions =
+        await (_db.select(_db.shoppingContributions)..where(
+              (t) =>
+                  t.shoppingItemId.isIn([for (final i in items) i.id]) &
+                  t.householdId.equals(_scope.householdId),
+            ))
+            .get();
+    return totalsOf(
+      items,
+      identities: {
+        for (final c in contributions)
+          if (c.shoppingItemId != null)
+            c.shoppingItemId!: (c.ingredientKey, c.unitGroup),
+      },
+    );
   }
 
   /// Zbir stavki po namirnici i grupi jedinica (za prikaz celog plana).
-  static List<PlanTotal> totalsOf(List<ShoppingItemRow> items) {
+  static List<PlanTotal> totalsOf(
+    List<ShoppingItemRow> items, {
+    Map<String, (String, String)> identities = const {},
+  }) {
     final groups = <(String, String), List<ShoppingItemRow>>{};
     for (final i in items) {
       final unit = normalizeUnit(i.unit);
       final group = i.quantity == null ? unknownGroup : unit.group;
-      groups.putIfAbsent((ingredientKey(i.name), group), () => []).add(i);
+      final identity = identities[i.id] ?? (ingredientKey(i.name), group);
+      groups.putIfAbsent(identity, () => []).add(i);
     }
     int micros(ShoppingItemRow i) => i.quantity == null
         ? 0
@@ -965,6 +986,7 @@ class ShoppingRepository {
           maxServings,
         ),
         ingredients: snapshot.ingredients,
+        dictionaryVersion: snapshot.dictionaryVersion,
       ),
     );
   }
@@ -1043,15 +1065,19 @@ class ShoppingRepository {
     // 2. Zaliha: potvrđena ostava (koja nije istekla) i kupljene stavke.
     // Prijem kupovine u ostavu je ista zaliha kao ta kupovina.
     final supplies = <Supply>[];
+    final received = <String, PantryItemRow>{};
     for (final p
         in await (_db.select(_db.pantryItems)..where(
               (t) =>
                   t.householdId.equals(hid) &
-                  t.confirmedAt.isNotNull() &
-                  t.quantity.isNotNull(),
+                  (t.confirmedAt.isNotNull() |
+                      t.sourceShoppingItemId.isNotNull()),
             ))
             .get()) {
-      if (p.expiresAt case final e? when e.isBefore(now)) continue;
+      final expired = p.expiresAt?.isBefore(now) ?? false;
+      if (p.sourceShoppingItemId case final purchase?) received[purchase] = p;
+      final known = p.confirmedAt != null && p.quantity != null;
+      if (p.sourceShoppingItemId == null && (!known || expired)) continue;
       final unit = normalizeUnit(p.unit);
       supplies.add(
         Supply(
@@ -1059,7 +1085,12 @@ class ShoppingRepository {
           origin: SupplyOrigin.pantry,
           ingredient: ingredientKey(p.name),
           unitGroup: unit.group,
-          micros: toMicros(p.quantity!) * unit.factor,
+          dictionaryIngredient: dictionaryIngredientKey(p.name, 1),
+          dictionaryUnitGroup: normalizeUnit(
+            p.unit,
+            dictionaryVersion: 1,
+          ).group,
+          micros: !known || expired ? 0 : toMicros(p.quantity!) * unit.factor,
           samePhysicalAs: p.sourceShoppingItemId,
         ),
       );
@@ -1079,6 +1110,11 @@ class ShoppingRepository {
           origin: SupplyOrigin.purchase,
           ingredient: ingredientKey(i.name),
           unitGroup: unit.group,
+          dictionaryIngredient: dictionaryIngredientKey(i.name, 1),
+          dictionaryUnitGroup: normalizeUnit(
+            i.unit,
+            dictionaryVersion: 1,
+          ).group,
           micros: toMicros(i.quantity!) * unit.factor,
         ),
       );
@@ -1137,10 +1173,24 @@ class ShoppingRepository {
       final supply = capacity[a.supplyId];
       if (c == null) continue;
       if (a.coversWholeUnknown) {
-        kept.add(a);
+        final receipt = received[a.supplyId];
+        if (receipt != null &&
+            (receipt.quantity == 0 ||
+                (receipt.expiresAt?.isBefore(now) ?? false) ||
+                ingredientKey(receipt.name) != c.ingredientKey)) {
+          await (_db.delete(
+            _db.supplyAllocations,
+          )..where((t) => t.id.equals(a.id))).go();
+          await _writer.delete(_allocation, a.id);
+        } else {
+          kept.add(a);
+        }
         continue;
       }
-      final cap = supply?.micros ?? 0;
+      final matches =
+          supply?.ingredient == c.ingredientKey &&
+          supply?.unitGroup == c.unitGroup;
+      final cap = matches ? (supply?.micros ?? 0) : 0;
       final room = cap - (used[a.supplyId] ?? 0);
       final need = (c.micros ?? 0) - (perContribution[c.id] ?? 0);
       final keep = [a.micros ?? 0, room, need].reduce((x, y) => x < y ? x : y);
@@ -1190,6 +1240,8 @@ class ShoppingRepository {
           origin: s.origin,
           ingredient: s.ingredient,
           unitGroup: s.unitGroup,
+          dictionaryIngredient: s.dictionaryIngredient,
+          dictionaryUnitGroup: s.dictionaryUnitGroup,
           micros: (s.micros ?? 0) - (used[s.canonicalId] ?? 0),
         ),
     ]);
@@ -1279,10 +1331,18 @@ class ShoppingRepository {
               if (items[id] case final i?
                   when !i.isBought &&
                       i.listId == listId &&
-                      ingredientKey(i.name) == ingredient &&
+                      dictionaryIngredientKey(
+                            i.name,
+                            ingredient.startsWith('v1:') ? 1 : 0,
+                          ) ==
+                          ingredient &&
                       (i.quantity == null
                               ? unknownGroup
-                              : normalizeUnit(i.unit).group) ==
+                              : normalizeUnit(
+                                  i.unit,
+                                  dictionaryVersion:
+                                      ingredient.startsWith('v1:') ? 1 : 0,
+                                ).group) ==
                           group &&
                       !liveItems.contains(id))
                 i,

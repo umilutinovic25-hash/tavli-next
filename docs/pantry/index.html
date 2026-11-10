@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="sr-Latn">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,"><title>Tavli — funkcionalna Ostava</title>
+<style>
+@font-face{font-family:Jakarta;src:url('../../assets/fonts/PlusJakartaSans-Regular.ttf')}@font-face{font-family:Jakarta;src:url('../../assets/fonts/PlusJakartaSans-Bold.ttf');font-weight:700}
+:root{--bg:#f8f7f2;--text:#1b1f1c;--muted:#5c6660;--green:#3d7a57;--surface:#fff;--line:#e5e3db}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 Jakarta,system-ui,sans-serif}main{max-width:1440px;margin:auto;padding:40px 24px}.brand{color:var(--green);font-weight:700}h1{font-size:clamp(30px,5vw,48px);letter-spacing:-.04em;line-height:1.15;margin:24px 0 16px}h2{font-size:18px}p{max-width:760px;color:var(--muted)}nav{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0}button{font:inherit;font-weight:700;border:1px solid var(--line);border-radius:14px;min-height:48px;padding:12px 20px;background:var(--surface);color:var(--text);cursor:pointer}button[aria-pressed=true]{background:var(--green);color:white}button:focus-visible,a:focus-visible{outline:3px solid var(--green);outline-offset:4px}.grid{display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr);gap:32px;align-items:start}img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:20px;background:var(--surface)}a{color:var(--green)}.note{font-size:14px;border-top:1px solid var(--line);padding-top:24px;margin-top:32px}@media(max-width:800px){.grid{grid-template-columns:1fr}.phone{max-width:390px}}
+</style>
+<main><span class="brand">Tavli / Ostava</span>
+<h1>Ono što imaš kod kuće,<br>povezano sa sledećim obrokom.</h1>
+<p>Implementirani su pregled, pretraga, unos, izmena i uklanjanje namirnica. Postojeća baza, prenos iz Nabavke i red za sinhronizaciju koriste iste podatke.</p>
+<nav aria-label="Izaberi prikaz Ostave">
+<button type="button" data-view="list" aria-pressed="true">Pregled</button>
+<button type="button" data-view="form" aria-pressed="false">Unos namirnice</button>
+<button type="button" data-view="dark" aria-pressed="false">Tamna tema</button>
+</nav>
+<div class="grid"><section class="phone"><h2 id="label">Telefon</h2><img id="phone" src="screens/pantry-390.png" alt="Funkcionalna Ostava na telefonu"></section>
+<section><h2>Široki ekran</h2><img src="screens/pantry-1440.png" alt="Funkcionalna Ostava na širokom ekranu"><p>Potvrđene količine smanjuju nabavku. Nepoznate i istekle zalihe ne pokrivaju brojčanu potrebu. Ponovljeni prijem iste kupovine ne pravi duplikat.</p></section></div>
+<p class="note">Ovo je galerija stvarnih Flutter ekrana sa probnim podacima. Dugmad menjaju prikaz galerije; ne upisuju namirnice. Funkcionalnost je proverena u aplikacionim testovima. <a href="README.md">Detalji implementacije i provera</a>.</p>
+</main><script>
+const images={list:'pantry-390',form:'pantry-form',dark:'pantry-dark-bosiljak'};
+document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('button').forEach(other=>other.setAttribute('aria-pressed',String(other===button)));document.querySelector('#phone').src=`screens/${images[button.dataset.view]}.png`;document.querySelector('#phone').alt=button.textContent;document.querySelector('#label').textContent=button.textContent;}));
+</script></html>

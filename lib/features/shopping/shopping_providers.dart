@@ -8,12 +8,13 @@ import '../../domain/plan_calendar.dart';
 import '../../providers.dart';
 import '../recipes/recipe_providers.dart';
 
-/// Ostava prijavljenog domaćinstva (za sada samo prijem kupljenog).
+/// Jedina instanca repozitorijuma Ostave prijavljenog domaćinstva.
 final pantryRepositoryProvider = Provider<PantryRepository>(
   (ref) => PantryRepository(
     ref.watch(databaseProvider),
     scope: ref.watch(accountScopeProvider) ?? noAccountScope,
     writer: ref.watch(syncedWriterProvider),
+    shopping: ref.watch(shoppingRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
 );

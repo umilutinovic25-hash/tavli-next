@@ -1,0 +1,607 @@
+{
+  "stream": "A",
+  "baseline_commit": "1eca2c3d14fb5dd9b25a42958aa018c8d8dfbb94",
+  "features": [
+    {
+      "id": "F001",
+      "title": "Uvoz recepta sa URL-a",
+      "phase": "P1",
+      "current_state": "lib/features/recipes/add_recipe_sheet.dart offers existing photo/name/manual inputs; lib/features/recipes/ai_preview.dart:AiRecipePreview already reviews before save. lib/domain/recipe.dart:RecipeSource has only photo/ai/manual; Recipe has no URL/author/extraction provenance. lib/data/recipe_repository.dart:RecipeRepository.create is transactional with outbox.",
+      "proposed_changes": "ImportRequestV1(kind=url, input, clientRequestId) -> ImportDraftV1(recipe candidate, provenance, field evidence, warnings, completeness). Server fetch -> schema.org JSON-LD/microdata -> bounded text extraction -> opt-in AIRouter fallback -> existing preview -> RecipeRepository transaction. Keep author, original URL, final fetched URL and claimed canonical URL distinct; none authorizes another fetch.",
+      "dependencies": [
+        "G-SERVER",
+        "G-PROVENANCE",
+        "G-SYNC"
+      ],
+      "scope_slices": [
+        "Add pure adapter and synthetic HTML fixtures for single Recipe and @graph, returning unsaved drafts.",
+        "Add isolated server fetch policy and authenticated endpoint; reject unavailable capability.",
+        "Connect existing add/preview/save flow, source metadata and outbox migration; add fallback only after structured import works."
+      ],
+      "acceptance_criteria": [
+        "Structured fixture imports with zero AI requests and zero recipe writes before confirmation.",
+        "Multiple Recipe entities require explicit selection; absent quantities remain null with review flags.",
+        "Discard produces zero recipe/outbox writes; retry with same accepted operation ID creates one recipe.",
+        "All redirect/image/canonical-derived requests pass G-SERVER; private target makes zero outbound connections."
+      ],
+      "verification": [
+        "Unit fixtures: JSON-LD object/list/@graph, microdata, malformed JSON, HowToSection, ranges and unknown yields.",
+        "Fake DNS/HTTP tests: public->private redirect, DNS rebinding, mapped IPv6, oversized/chunked/decompression body and timeout.",
+        "Widget save/discard/retry and local two-account RLS/outbox tests after implementation."
+      ]
+    },
+    {
+      "id": "F002",
+      "title": "Potvrđeni sinonimi sastojaka i jedinica",
+      "phase": "P1",
+      "current_state": "lib/domain/shopping_sync.dart:ingredientKey normalizes spelling; lib/domain/shopping_demand.dart:normalizeUnit and demandFor separate mass/volume/count, without household synonym records. lib/domain/supply_allocation.dart:allocateSupply requires equal keys and unit groups.",
+      "proposed_changes": "AliasV1(id, householdId, kind=ingredient|unit, normalizedAlias, canonicalId, confirmedBy, revision, retiredAt). Pure resolver used by search/demand/allocation; ingredients retain display spelling. Unit aliases map labels to an existing dimension and exact factor, never infer density. Suggestions require confirmation; changed aliases preview affected live demands and preserve approved historical snapshots.",
+      "dependencies": [
+        "G-SYNC"
+      ],
+      "scope_slices": [
+        "Introduce immutable alias resolver with cycle/collision rejection and fixture tests.",
+        "Persist confirmed household aliases through repository/outbox and migration; expose review action.",
+        "Use one resolver in search/demand/allocation, rebuilding affected live projections transactionally with versioned snapshots."
+      ],
+      "acceptance_criteria": [
+        "beli luk/češnjak user-confirmed mapping resolves to one ingredient; unconfirmed suggestion changes nothing.",
+        "500 g plus 0.5 kg canonical demand equals 1,000,000,000 micros; g and ml remain separate.",
+        "Cycles, ambiguous canonical mappings and cross-household aliases are rejected; retirement does not rewrite history."
+      ],
+      "verification": [
+        "Pure tests for Serbian Latin diacritics, whitespace, duplicate/cyclic aliases and dimension mismatch.",
+        "Golden demand/allocation before/after alias migration; two-account isolation and outbox replay."
+      ]
+    },
+    {
+      "id": "F003",
+      "title": "Sačuvane kombinovane pretrage",
+      "phase": "P1",
+      "current_state": "lib/domain/recipe_format.dart:filterRecipes searches only normalized title substring; lib/features/recipes/recipe_providers.dart:RecipeSearch holds an ephemeral string; RecipeRepository.watchAll supplies current household recipes.",
+      "proposed_changes": "RecipeQueryV1(text, includeIngredientIds, excludeIngredientIds, maxPrepMinutes, includeUnknownDuration=false, dietaryRuleSetId) plus SavedRecipeQuery(id, owner, name, queryJson, version). Extend current list/provider and pure query engine; persist user data via repository/outbox. Start with local scan, add drift index only when measured. Fuzzy title matches cannot satisfy hard ingredient exclusions.",
+      "dependencies": [
+        "F002",
+        "G-RULES",
+        "G-SYNC"
+      ],
+      "scope_slices": [
+        "Implement typed predicates and query serialization over existing Recipe list.",
+        "Expose combined filters on existing list; preserve title-search behavior and animations.",
+        "Persist, rename and delete saved queries; later add migration-backed index from benchmark evidence."
+      ],
+      "acceptance_criteria": [
+        "AND query <=30 min + piletina + exclude kikiriki returns exactly fixture set.",
+        "Unknown duration excluded for strict <=30 unless explicitly included; missing metadata shown.",
+        "Saved query survives restart/offline/sync and never leaks between accounts.",
+        "1,000 recipes/20 ingredients predicate benchmark target p95 <200 ms on declared baseline device, recorded rather than presumed."
+      ],
+      "verification": [
+        "Truth-table tests for conjunction/exclusion, unknowns, Serbian spelling and deterministic ordering.",
+        "Widget save/load/delete; replay serialization round trip; benchmark without network or AI."
+      ]
+    },
+    {
+      "id": "F004",
+      "title": "Mogu danas da skuvam",
+      "phase": "P1",
+      "current_state": "lib/domain/shopping_demand.dart:demandFor provides scaled micros and unknownGroup; lib/domain/supply_allocation.dart:allocateSupply deduplicates purchase/receipt physical stock. lib/data/pantry_repository.dart:receivePurchases persists receipts; no recipe feasibility ranking API exists.",
+      "proposed_changes": "RecipeFeasibilityV1(recipeId, servings, status=covered|missing|needsReview, remainingLines, allocations, snapshotRevision). Build from existing demandFor/allocateSupply on confirmed usable pantry supplies, considering current reservations. Standalone candidate evaluation uses a fresh copy of the same stock, while accepted multi-slot plans share one allocation ledger. Quantity-free or uncertain lines never imply numerical coverage.",
+      "dependencies": [
+        "F002",
+        "G-PANTRY",
+        "G-RULES"
+      ],
+      "scope_slices": [
+        "Add pure feasibility façade over existing quantity functions.",
+        "Read confirmed stock/reservations through pantry data layer and show covered/missing/review groups.",
+        "Connect serving changes and approval refresh against current stock revision."
+      ],
+      "acceptance_criteria": [
+        "Recipe requiring 400 g with 250 g confirmed stock shows exactly 150 g missing.",
+        "Unknown stock or recipe quantity yields needsReview, never covered.",
+        "One purchase and its pantry receipt count once; two 200 g meals cannot both claim the same 250 g in a joint plan.",
+        "Missing 1–2 counts distinct demand groups and lists incompatible units separately."
+      ],
+      "verification": [
+        "Hand-calculated 400-250=150 g fixture, serving scaling, reservations and receipt canonicalId tests.",
+        "Regression existing demand/allocation tests plus offline recipe list/widget update on pantry edits."
+      ]
+    },
+    {
+      "id": "F005",
+      "title": "Potroši prvo",
+      "phase": "P1",
+      "current_state": "lib/data/database.dart:PantryItems.expiresAt/confirmedAt exist. Supply in lib/domain/supply_allocation.dart has no expiration metadata and allocates by supply ID; no expiry-aware ranking is present.",
+      "proposed_changes": "ExpiryEvidence(supplyCanonicalId, confirmedExpiresOn, dateKind, confirmationRevision). Rank candidates by actually allocatable known quantity from eligible soon-expiring lots, through an adapter around existing allocation. Do not change generic allocator ordering silently: introduce explicit lot preference policy after agreement with stream C. Date-only CivilDate and injected today; past date is review/exclude policy, never a safety judgment.",
+      "dependencies": [
+        "F004",
+        "G-PANTRY"
+      ],
+      "scope_slices": [
+        "Add pure expiring-lot ranking with fixed today and date-kind handling.",
+        "Expose window and confirmed dates on existing pantry-backed suggestions.",
+        "Add versioned policy to plan candidate scoring and explanation evidence."
+      ],
+      "acceptance_criteria": [
+        "Only confirmed expiry within chosen 3-day window contributes; unknown and expired dates do not earn a bonus.",
+        "Bonus capped by quantity actually consumed by candidate; duplicated receipt earns no extra credit.",
+        "Identical input and today produce identical order; reasons show the actual item/date."
+      ],
+      "verification": [
+        "Fixed-clock tests across month/year boundaries and Europe/Belgrade DST dates.",
+        "Competing-lot fixture proving 50 g consumed from 100 g soon-expiring stock earns 50 g evidence, not 100 g.",
+        "Widget unknown-date/expired-review and stock-revision refresh tests."
+      ]
+    },
+    {
+      "id": "F019",
+      "title": "PDF i nalepljeni tekst",
+      "phase": "P2",
+      "current_state": "lib/ai/recipe_ai.dart:RecipeAI supports fromImage/fromDishName/refine; lib/features/recipes/from_photo_screen.dart and AiRecipePreview provide image draft flow. No PDF/text import endpoint or source-document model exists.",
+      "proposed_changes": "Reuse ImportDraftV1 with kind=text|pdf, immutable source digest, page/character spans and extraction mode=text|ocr|ai. Proposed limits: 10 MiB PDF, 10 selected pages, 100k extracted characters; enforce byte/magic/type limits and sandbox parser with network disabled. Text first, optional OCR on empty/scanned pages; capability response reports unsupported encrypted PDF/OCR. AI must preserve unresolved quantity strings and flag uncertainty.",
+      "dependencies": [
+        "F001",
+        "G-AI",
+        "G-PROVENANCE"
+      ],
+      "scope_slices": [
+        "Add paste-text pure parser/draft into same preview.",
+        "Add bounded PDF text service and page selection; source spans retained.",
+        "Add OCR capability adapter for scans with explicit unavailable state and same review/save transaction."
+      ],
+      "acceptance_criteria": [
+        "Pasted fixture and text PDF preserve ingredients, source spans and null unknown quantities with no auto-save.",
+        "Scanned PDF without OCR reports „Prepoznavanje ovog dokumenta nije dostupno” and offers text/photo input.",
+        "Encrypted, overlimit and malformed PDFs fail boundedly; temporary uploads expire within 24 h unless explicitly retained."
+      ],
+      "verification": [
+        "Synthetic PDF/text/scanned/encrypted fixtures, page/byte/time cap tests and sandbox no-egress assertion.",
+        "Parser mismatch fake-AI tests and preview corrections/discard; no upstream code executed."
+      ]
+    },
+    {
+      "id": "F020",
+      "title": "Prevod uz očuvan original",
+      "phase": "P2",
+      "current_state": "lib/domain/recipe_version.dart:RecipeVersion stores previous recipe; lib/data/recipe_repository.dart:update retains at most 30 historical versions. lib/domain/recipe.dart:toAiJson contains numeric quantities and steps, but no immutable original language/document.",
+      "proposed_changes": "TranslationDraft(sourceRevisionId, targetLocale=sr-Latn, translated text by stable field IDs, numericInvariantDiff). Freeze original in provenance asset, not only the 30-version rolling history. Send text fields and placeholder tokens for quantities/units/times to AIRouter; reconstruct typed numeric fields deterministically. Unit conversions are a separate confirmed operation. Save a normal version with translation link and provenance.",
+      "dependencies": [
+        "F019",
+        "G-AI",
+        "G-PROVENANCE",
+        "G-SYNC"
+      ],
+      "scope_slices": [
+        "Implement field/token mapping and numeric-invariant validator.",
+        "Add AIRouter translation draft and paired original/translation preview.",
+        "Persist confirmed version and immutable original reference with delete/restore coverage."
+      ],
+      "acceptance_criteria": [
+        "2.5 g, 180 °C, 1/2 and 20 minutes preserve their original numeric/unit facts, including numbers inside steps.",
+        "Any missing/changed placeholder blocks save with a review issue.",
+        "After 31 later edits original source remains retrievable; output UI is Serbian Latin."
+      ],
+      "verification": [
+        "Fake provider attempts altering numeric tokens, reordered fields and Cyrillic response.",
+        "Round-trip source/version restore, prune/delete and private asset access tests."
+      ]
+    },
+    {
+      "id": "F024",
+      "title": "Share meni i browser unos",
+      "phase": "P2",
+      "current_state": "lib/app/router.dart contains in-app routes; existing add_recipe_sheet.dart lacks a share/extension intake contract. Existing repository and preview can own eventual save.",
+      "proposed_changes": "ExternalIntakeV1(kind=url|text|image, payload, intakeId, receivedAt, platform). OS share adapter and optional browser bridge feed existing ImportRequestV1; no separate storage. Persist small pending intake in account-scoped local queue; require sign-in before preview and explicit save. Reject executable schemes and oversize payload; browser extension uses least privilege active tab and never embeds provider credentials.",
+      "dependencies": [
+        "F001",
+        "F019",
+        "G-SYNC"
+      ],
+      "scope_slices": [
+        "Define deduplicated intake queue and route adapter with fake platform tests.",
+        "Implement capability probe/share intake per supported Android/iOS/macOS target and normal URL fallback.",
+        "Evaluate browser extension separately after app share works; consume same schema and endpoint."
+      ],
+      "acceptance_criteria": [
+        "Same intake delivered twice yields one pending draft; no background recipe save.",
+        "Cold/warm start and sign-in handoff preserve payload only within selected account.",
+        "Unsupported platform displays „Nalepi link recepta”; URL parser rejects file/javascript/data schemes."
+      ],
+      "verification": [
+        "Platform integration matrix for cold/warm app, canceled sign-in, account switch, app restart and invalid deep link.",
+        "Fake hostile extension payload and preview discard/idempotent save tests."
+      ]
+    },
+    {
+      "id": "F025",
+      "title": "Uvoz objave sa društvene mreže",
+      "phase": "P3",
+      "current_state": "No social import integration exists in inspected lib/ai/recipe_ai.dart or add_recipe_sheet.dart. RecipeSource cannot express source post/transcript provenance.",
+      "proposed_changes": "SocialImportCapability(platform, supportedMedia, publicUrlOnly, status) delegates URL/text/image material to ImportDraftV1. Record post URL, submitted caption/transcript ownership/source and unavailable sections. Begin user-supplied caption/image rather than promise platform API access. No authenticated scraping, paywall bypass, remote code execution or invention from thumbnail/title; platform adapter returns needsUserContent when insufficient.",
+      "dependencies": [
+        "F001",
+        "F019",
+        "F024",
+        "G-PROVENANCE"
+      ],
+      "scope_slices": [
+        "Accept supplied post URL plus caption/image through shared draft flow.",
+        "Add supported-public-domain capability adapter only after API/terms review.",
+        "Add transcript spans when available; retain partial draft and review state."
+      ],
+      "acceptance_criteria": [
+        "Title+thumbnail alone produces insufficient evidence, not a full recipe.",
+        "Private/deleted/blocked post offers paste/photo path without requesting social credentials.",
+        "Every inferred field is marked; confirmation needed before recipe save."
+      ],
+      "verification": [
+        "Synthetic public-caption, partial-caption, unavailable-post and prompt-injection fixtures.",
+        "Capability-off and timeout widget flows; provenance and no-autosave checks."
+      ]
+    },
+    {
+      "id": "F026",
+      "title": "RSS predlozi",
+      "phase": "P3",
+      "current_state": "No feed entities or subscription scheduler in lib/data/database.dart; RecipeRepository stores only explicitly saved recipes.",
+      "proposed_changes": "FeedSubscriptionV1(id, householdId, url, enabled, etag, lastModified, checkedAt) and FeedEntryV1(feedId, entryKey, title, link, publishedAt, state). Feed entries are suggestions, separate from Recipes. Fetch server-side via G-SERVER, parse bounded RSS/Atom with XML external entities/DTD/network disabled; conditional HTTP, capped poll/backoff and per-household uniqueness. Selecting entry invokes F001 preview.",
+      "dependencies": [
+        "F001",
+        "G-SERVER",
+        "G-SYNC"
+      ],
+      "scope_slices": [
+        "Implement bounded synthetic RSS/Atom parser and stable entry identity.",
+        "Add subscription repository/cache and constrained server polling.",
+        "Show suggestions with explicit import preview and unsubscribe/delete lifecycle."
+      ],
+      "acceptance_criteria": [
+        "Repeated fetch/304 produces zero duplicate entries and zero recipe writes.",
+        "Unknown/non-date publication time stays unknown; GUID-less stable key uses normalized link and feed scope.",
+        "XXE/entity expansion blocked; private enclosure/image/link cannot bypass fetch boundary.",
+        "Unsubscribe halts later polling; offline shows last successful check time."
+      ],
+      "verification": [
+        "RSS/Atom/namespace fixtures, GUID reuse, 304, bad ETag, redirects, XML bomb and malicious link tests.",
+        "Fake clock rate/backoff and unsubscribe; preview/discard/offline widgets and RLS."
+      ]
+    },
+    {
+      "id": "F030",
+      "title": "Potroši ove tri namirnice",
+      "phase": "P1",
+      "current_state": "filterRecipes in lib/domain/recipe_format.dart only searches titles; F004 quantity engine exists at domain level but no session-only ingredient selector.",
+      "proposed_changes": "QuickIngredientIntentV1(selected canonical ingredient IDs, optional quantities/unit, expiresWithSession=true). Feed same RecipeQuery/feasibility/scoring contracts. Name-only entries contribute matched-ingredient reasons, never confirmed availability. No phantom pantry entries or supply IDs; optional quantities are ephemeral scenario supply and clearly distinct from confirmed stock.",
+      "dependencies": [
+        "F002",
+        "F004"
+      ],
+      "scope_slices": [
+        "Add pure matching by canonical ingredients and evidence type.",
+        "Add 1–3 ingredient quick action on existing search flow.",
+        "Allow optional quantity scenario and transition to normal plan preview with no pantry writes."
+      ],
+      "acceptance_criteria": [
+        "Three selected ingredient names produce ranked matches even with an empty pantry.",
+        "Name-only match shows „Sadrži izabrane namirnice”, never „Imaš sve”.",
+        "Closing flow leaves pantry/outbox unchanged; duplicate synonyms count once."
+      ],
+      "verification": [
+        "Empty-pantry, synonym-duplicate and unknown-quantity tests.",
+        "Widget enter/clear/close and verify zero database writes until explicit recipe/plan approval."
+      ]
+    },
+    {
+      "id": "F035",
+      "title": "Kontrola ponavljanja",
+      "phase": "P2",
+      "current_state": "lib/ai/meal_plan_ai.dart:propose only passes already planned draft titles to outline. lib/data/meal_plan_repository.dart:setCooked toggles bool; lib/data/database.dart:MealPlanEntries has isCooked but no actual cookedAt event history.",
+      "proposed_changes": "RepetitionRuleV1(canonicalRecipeId, windowDays, maxOccurrences, mode=hard|prefer) and CookingOccurrence(eventId, entryId?, recipeIdentity, recipeRevision, cookedOn, reversesEventId?). Integrate F047 actual cooking history; existing true flags have unknown actual dates and must not be fabricated from planned dates. Count actual cooking plus accepted prospective slots for planning limits, without counting canceled/undone cooking twice. Tie history to stable recipe identity, not title.",
+      "dependencies": [
+        "F047",
+        "G-RULES",
+        "G-SYNC"
+      ],
+      "scope_slices": [
+        "Agree cooking-event contract with stream E and migrate legacy flags as undated evidence.",
+        "Add pure rolling-window counter and candidate predicate.",
+        "Expose frequency setting and reason; use in offline and AI candidate validation."
+      ],
+      "acceptance_criteria": [
+        "One cooking yesterday with max 1/7 days prevents another proposed occurrence; unexecuted old plans do not.",
+        "Two recipes sharing a title remain distinct; rename does not erase history.",
+        "Unsatisfiable frequency leaves slot unresolved and offers explicit rule edit; no silent relaxation."
+      ],
+      "verification": [
+        "Fixed-date 7-day boundary, undo/duplicate event, rename and same-title fixtures.",
+        "Legacy isCooked import shows unknown date; fake AI violating frequency rejected."
+      ]
+    },
+    {
+      "id": "F048",
+      "title": "Sezonski izbor",
+      "phase": "P2",
+      "current_state": "No region/season ingredient calendar in lib/domain/recipe.dart or database.dart; mealPlanSystemPrompt broadly mentions Serbian supermarkets but has no seasonal evidence.",
+      "proposed_changes": "SeasonCalendarV1(id, regionCode, publisher, sourceUrl, sourceRevision, license, reviewedAt, monthRanges, canonicalIngredientIds). Start manually curated and independently licensed Serbian region data; no claimed dataset collected in this pass. Seasonal scoring is a soft preference after hard rules, never availability or freshness fact. Preserve date and region of reason; offline uses last reviewed dataset.",
+      "dependencies": [
+        "F002",
+        "G-RULES",
+        "G-PROVENANCE"
+      ],
+      "scope_slices": [
+        "Define versioned calendar and pure month-wrap lookup with synthetic data.",
+        "Validate a region-specific dataset license/source before shipping real entries.",
+        "Add opt-in regional preference, local cache and bounded scoring reason."
+      ],
+      "acceptance_criteria": [
+        "Fixture spanning Nov-Feb matches Nov/Jan but not June; unsupported region produces no seasonal bonus.",
+        "Reason shows region, month and calendar version/source; missing data produces no invented claim.",
+        "Seasonality never outranks a hard exclusion or substitutes for pantry stock."
+      ],
+      "verification": [
+        "Synthetic month/hemisphere/region tests and offline cache/version update.",
+        "Data review checks licensing, source date, canonical mapping and no unsupported Serbian coverage claim."
+      ]
+    },
+    {
+      "id": "F058",
+      "title": "Zašto je ovo predloženo",
+      "phase": "P1",
+      "current_state": "lib/ai/meal_plan_ai.dart constructs SlotProposal(title, libraryRecipeId/draftRecipeKey); lib/domain/meal_plan.dart:PlanDraft has no score evidence. AIResult.attempts tracks technical attempts, not user recommendation reasons.",
+      "proposed_changes": "RecommendationEvidenceV1(ruleId, inputRevision, metric, value, unit, sourceIds, observedAt) and RecommendationScoreV1(components, rankKey, rulesVersion). Pure scorer emits typed evidence; Serbian formatter renders only present facts. Explain available amount, expiry, duration and cooked history using respective adapters. Technical provider attempts remain separate; model prose cannot become factual evidence.",
+      "dependencies": [
+        "F004",
+        "G-RULES"
+      ],
+      "scope_slices": [
+        "Add score/evidence value objects and deterministic reason formatter.",
+        "Show a reason sheet for F004/F030; enrich with F005/F035/F048 as available.",
+        "Persist evidence with draft snapshot and revalidate on approval; show changed-input warning."
+      ],
+      "acceptance_criteria": [
+        "400 g demand/250 g supply reason reports exactly 250 g covered and 150 g missing.",
+        "No duration/expiry/history data yields no corresponding statement.",
+        "Score order reconstructs exactly from components; stock edit marks evidence stale until refreshed.",
+        "Explanations in Serbian Latin show reference date rather than unsupported „sveže” claims."
+      ],
+      "verification": [
+        "Hand-computed score golden, absent-field and rule-version tests.",
+        "Widget stale evidence/refreshed rank; fake AI cannot inject new reason type or external URL."
+      ]
+    },
+    {
+      "id": "F089",
+      "title": "Determinističko novo planiranje offline",
+      "phase": "P2-foundation-first",
+      "current_state": "lib/features/planning/plan_generation.dart orchestrates MealPlanAI; lib/ai/meal_plan_ai.dart:propose needs network. Existing lib/domain/meal_plan.dart:PlanDraft and MealPlanRepository.approve already support review, snapshots, protected entries and transactional shopping reconciliation.",
+      "proposed_changes": "LocalPlanEngineV1(input: PlanRequest + typed rules + recipe/stock/history snapshots + today + rulesVersion; output: existing PlanDraft plus diagnostics/evidence). Strict candidate filter -> deterministic scorer -> bounded beam search across slots with shared allocateSupply ledger. Stable recipe IDs/slots break ties; no random UUID/time calls in engine. Search caps and deterministic node count provide partial/unsatisfiable diagnostics, not an optimality claim. Existing approve remains sole plan/shopping write path.",
+      "dependencies": [
+        "F003",
+        "F004",
+        "F058",
+        "G-RULES",
+        "G-PLANNER",
+        "G-PANTRY"
+      ],
+      "scope_slices": [
+        "Add pure single-slot candidate chooser returning existing SlotProposal/library snapshot.",
+        "Extend to chronological multi-slot bounded search with shared stock and protected slots.",
+        "Connect offline option to existing preview/approve; add F005/F035/F048 scoring only as each lands.",
+        "Benchmark fixed node budget and expose unresolved constraints/unsupported free-text wishes."
+      ],
+      "acceptance_criteria": [
+        "Same serialized inputs/rulesVersion yield byte-equivalent normalized draft/evidence in 100 runs regardless recipe insertion order.",
+        "All hard rules hold for every filled slot; no solution yields explicit empty slots/reasons, never unsafe fallback.",
+        "Single 250 g stock across two 200 g slots records 150 g total shortfall, with no repeated stock allocation.",
+        "Network-disabled generation makes zero AI/backend calls and persists nothing until approval.",
+        "Target <=2 s for 31 days x3 slots x1,000 candidates with declared node cap/device; if unmet reduce candidate cap transparently without dropping hard rules."
+      ],
+      "verification": [
+        "Tiny exhaustive oracle verifies hard constraints and expected ranking; infeasible and locked/cooked replacement cases.",
+        "Permutation/property tests for determinism, quantity conservation, unknowns and cancellation/node cap.",
+        "Offline widget generation/edit/approve, stale fingerprint and outbox idempotency regression; measured benchmark."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "repo_url": "https://github.com/mealie-recipes/mealie",
+      "commit": "471c7936d3c782a431fd2081b632f404cb3dbb1a",
+      "license_spdx_or_unknown": "AGPL-3.0-only",
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "symbol": "repository license",
+          "finding": "AGPL v3 text; study-only policy applies."
+        },
+        {
+          "path": "mealie/services/scraper/scraper.py",
+          "symbol": "create_from_html / finalize_scraped_recipe",
+          "finding": "Creates/finalizes draft separately from caller persistence; image fetching is another trust boundary."
+        },
+        {
+          "path": "mealie/services/scraper/recipe_scraper.py",
+          "symbol": "RecipeScraper.scrape / DEFAULT_SCRAPER_STRATEGIES",
+          "finding": "Fetch once then strategy chain: package, transcription, OpenAI, OpenGraph; stops at first cleaned result."
+        },
+        {
+          "path": "mealie/pkgs/safehttp/transport.py",
+          "symbol": "is_blocked_ip / _check_target / _SafeTransportMixin._apply_pin",
+          "finding": "Normalizes IPv4-mapped IPv6, rejects nonpublic destinations by default, resolves hosts and pins connection addresses."
+        },
+        {
+          "path": "mealie/pkgs/safehttp/fetch.py",
+          "symbol": "_read_capped / resilient_fetch",
+          "finding": "Stream cap and deadline/backoff machinery are separate from parsing."
+        },
+        {
+          "path": "mealie/repos/repository_recipes.py",
+          "symbol": "RepositoryRecipes.page_all",
+          "finding": "Household-scoped query, organizer/food filters and text search before pagination; do not truncate candidates before filtering."
+        }
+      ],
+      "reuse_decision": "Study and cite only; no AGPL code copied. Implement Tavli-specific draft/fetch/search contracts independently."
+    },
+    {
+      "repo_url": "https://github.com/TandoorRecipes/recipes",
+      "commit": "cbb96e151fe0c57c16a4456fe1bd04230b1c1e5c",
+      "license_spdx_or_unknown": "LicenseRef-AGPL-3.0-with-Commons-Clause",
+      "inspected_files": [
+        {
+          "path": "LICENSE.md",
+          "symbol": "repository license",
+          "finding": "AGPL v3 with Commons Clause restriction; not plain AGPL or permissive."
+        },
+        {
+          "path": "cookbook/helper/recipe_url_import.py",
+          "symbol": "get_from_scraper",
+          "finding": "Maps scraper output to existing recipe JSON, attaches source URL, applies automation, parses servings/times."
+        },
+        {
+          "path": "cookbook/helper/automation_helper.py",
+          "symbol": "AutomationEngine.apply_food_automation / apply_unit_automation",
+          "finding": "Space-scoped confirmed rules and cache; aliases separate from regex replacement; useful design pattern, not copied implementation."
+        },
+        {
+          "path": "cookbook/helper/recipe_search.py",
+          "symbol": "SearchParams.from_params / RecipeSearch.get_queryset / _resolve_params",
+          "finding": "Typed combined filters, saved-filter scoping and cooked-history annotations/filtering."
+        }
+      ],
+      "reuse_decision": "Study-only; custom added restriction. Independent exact-match alias and query model, no copied code or datasets."
+    },
+    {
+      "repo_url": "https://github.com/julianpoy/RecipeSage",
+      "commit": "6d92e4804618e81bb463c9ab22345d92819e4448",
+      "license_spdx_or_unknown": "LicenseRef-RecipeSage-personal-use-or-commercial",
+      "inspected_files": [
+        {
+          "path": "LICENSE.md",
+          "symbol": "repository license",
+          "finding": "Personal-use restriction with AGPL text and separate written license for other use; classify custom, not AGPL-only."
+        },
+        {
+          "path": "packages/util/server/src/general/clip/clip.ts",
+          "symbol": "clipUrl / clipHtml / attemptEach",
+          "finding": "URL intake and JSON-LD -> microdata -> LLM strategy chain with usable/grounded checks and partial merge."
+        },
+        {
+          "path": "packages/util/server/src/ml/pdfToRecipe.ts",
+          "symbol": "pdfToRecipe",
+          "finding": "Text extraction first, default 5-page bound, image OCR fallback if extracted text below threshold."
+        },
+        {
+          "path": "packages/express/src/routes/import/job/pdfs.ts",
+          "symbol": "pdfsHandler",
+          "finding": "Authenticated upload, size limit, temporary file/storage and queued job ID; useful async intake boundary."
+        },
+        {
+          "path": "packages/util/server/src/search/searchRecipeIds.ts",
+          "symbol": "searchRecipeIds",
+          "finding": "Scoped fulltext-prefix and fuzzy title searches merged/deduplicated under limit."
+        },
+        {
+          "path": "packages/trpc/src/procedures/recipes/searchRecipesByIngredients.ts",
+          "symbol": "searchRecipesByIngredients",
+          "finding": "Bounded input terms with matchedTerms evidence and visibility constraints."
+        },
+        {
+          "path": "packages/util/server/src/db/findRecipesByIngredients.ts",
+          "symbol": "findRecipesByIngredients",
+          "finding": "Matched ingredient count then unmatched count/title/ID ordering; term matching is not quantitative stock proof."
+        }
+      ],
+      "reuse_decision": "Study-only; custom terms, no code copied. Independent PDF draft and local quantitative retrieval implementation."
+    },
+    {
+      "repo_url": "https://github.com/hhursev/recipe-scrapers",
+      "commit": "80266d1db324d58f1426d78facbe2e342662b990",
+      "license_spdx_or_unknown": "MIT",
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "symbol": "repository license",
+          "finding": "MIT, copyright 2015 The recipe-scrapers contributors."
+        },
+        {
+          "path": "recipe_scrapers/_schemaorg.py",
+          "symbol": "SchemaOrg.__init__ / _find_entity",
+          "finding": "JSON-LD and microdata extraction; handles @graph, WebPage.mainEntity and person references. Not a safe fetch boundary."
+        },
+        {
+          "path": "recipe_scrapers/_opengraph.py",
+          "symbol": "OpenGraph.site_name / title / description / image",
+          "finding": "Small complete metadata extraction class on caller-supplied soup; copied unchanged."
+        },
+        {
+          "path": "recipe_scrapers/_exceptions.py",
+          "symbol": "OpenGraphException / RecipeScrapersExceptions",
+          "finding": "Internal dependency copied unchanged, with version dependency."
+        },
+        {
+          "path": "recipe_scrapers/__version__.py",
+          "symbol": "__version__",
+          "finding": "Version constant copied to complete internal imports; no upstream initializer executed."
+        }
+      ],
+      "reuse_decision": "Copy only complete OpenGraph metadata module plus its two internal dependencies and MIT license. Reference only; schema.org extraction is a proposed adapter, not implemented by this kit."
+    }
+  ],
+  "copied_files": [
+    {
+      "local_path": "research/reference-code/A/recipe-scrapers/LICENSE",
+      "upstream_path": "LICENSE",
+      "sha256": "de5dd1698c31b1b789b2859c8ea4b637dff98ca7bce95eb282f2492603c3c8f9",
+      "source_url": "https://github.com/hhursev/recipe-scrapers/blob/80266d1db324d58f1426d78facbe2e342662b990/LICENSE",
+      "license_path": "research/reference-code/A/recipe-scrapers/LICENSE"
+    },
+    {
+      "local_path": "research/reference-code/A/recipe-scrapers/recipe_scrapers/_opengraph.py",
+      "upstream_path": "recipe_scrapers/_opengraph.py",
+      "sha256": "1db2be112fdb2dedf48ca0401586fb7382d0e610a4dcde2099fb9ca0ac983453",
+      "source_url": "https://github.com/hhursev/recipe-scrapers/blob/80266d1db324d58f1426d78facbe2e342662b990/recipe_scrapers/_opengraph.py",
+      "license_path": "research/reference-code/A/recipe-scrapers/LICENSE"
+    },
+    {
+      "local_path": "research/reference-code/A/recipe-scrapers/recipe_scrapers/_exceptions.py",
+      "upstream_path": "recipe_scrapers/_exceptions.py",
+      "sha256": "1181341e0578e064793222d379b9d6ca34ec6c6b0eb44f53ffb37ce09906803e",
+      "source_url": "https://github.com/hhursev/recipe-scrapers/blob/80266d1db324d58f1426d78facbe2e342662b990/recipe_scrapers/_exceptions.py",
+      "license_path": "research/reference-code/A/recipe-scrapers/LICENSE"
+    },
+    {
+      "local_path": "research/reference-code/A/recipe-scrapers/recipe_scrapers/__version__.py",
+      "upstream_path": "recipe_scrapers/__version__.py",
+      "sha256": "bad726cacbc04e0f669a974e3fa2b3e94377052e1e3c5d66f79606d2b71746d8",
+      "source_url": "https://github.com/hhursev/recipe-scrapers/blob/80266d1db324d58f1426d78facbe2e342662b990/recipe_scrapers/__version__.py",
+      "license_path": "research/reference-code/A/recipe-scrapers/LICENSE"
+    }
+  ],
+  "unknowns": [
+    "No upstream software, install script, provider call or production backend was run. Runtime behavior/performance and platform capability remain unverified.",
+    "No licensed Serbia-specific season dataset was collected; F048 must not ship real seasonal claims before data/license review.",
+    "No platform social API permission, browser extension distribution or OCR/PDF engine capability guaranteed; probe before implementation.",
+    "All acceptance checks are proposed future tests; this delivery validates only artifact schema, coverage, hashes and Python syntax statically.",
+    "Hard dietary rule taxonomy and unknown-ingredient policy need product confirmation during feature specification; default strict mode blocks unknown compliance, never claims allergen safety.",
+    "Tavli runtime source is original baseline 1eca2c3d14fb5dd9b25a42958aa018c8d8dfbb94; research uses upstream HEAD snapshots independently pinned, not claims of installed compatibility.",
+    "Server routing/governance must explicitly update constitution III/IV: keep AIRouter as orchestration entry and move built-in credentials to server without a parallel UI/provider bypass."
+  ],
+  "delivery_verification": {
+    "status": "passed",
+    "checks": [
+      "Exact 15 owned IDs and no duplicates against research/streams.json",
+      "Required feature fields populated; dependencies resolve to Fnnn or foundation gates",
+      "One report section for every owned feature",
+      "Four upstream HEAD commits match manifests; all 22 listed source paths exist",
+      "Four copied upstream files byte-identical; SHA-256 and license paths match",
+      "MIT copyright notice preserved; three copied Python modules statically parse with ast.parse"
+    ],
+    "not_run": [
+      "Tavli Flutter tests/build/analyze",
+      "Upstream software or importers",
+      "Provider APIs or production backend",
+      "Platform integration tests or performance benchmarks"
+    ]
+  }
+}

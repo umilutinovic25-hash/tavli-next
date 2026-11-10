@@ -83,3 +83,18 @@ class RecipeFilters extends Notifier<RecipeSearchFilter> {
 
 final recipeFiltersProvider =
     NotifierProvider<RecipeFilters, RecipeSearchFilter>(RecipeFilters.new);
+
+/// Izbor prikaza deli se između biblioteke i otvorenog recepta.
+class RecipeGridView extends Notifier<bool> {
+  @override
+  bool build() {
+    ref.watch(accountScopeProvider);
+    return false;
+  }
+
+  void set(bool grid) => state = grid;
+}
+
+final recipeGridViewProvider = NotifierProvider<RecipeGridView, bool>(
+  RecipeGridView.new,
+);

@@ -1,0 +1,522 @@
+{
+  "stream": "B",
+  "features": [
+    {
+      "id": "F007",
+      "title": "Šabloni nedelje",
+      "current_state": "lib/domain/meal_plan.dart: MealPlan/PlanDraft imaju apsolutne datume, snimke i PlanBase; lib/data/meal_plan_repository.dart: approve kreira nove izvore kroz reconcilePlan. Nema modela šablona.",
+      "proposed_changes": "PlanTemplate{id,householdId,name,schemaVersion,days[dayOffset,mealType,entryKind,snapshot,recipeId,servings,preparationKey]}; sačuvati sadržaj, bez kupljenih stavki, cooked/locked statusa i rezervacija. applyTemplate(anchor,portionOverrides,targetBase) vraća PlanDraft; relativne veze priprema premapirati u nove UUID. Ne kopirati postojeće izvore potražnje.",
+      "dependencies": [
+        "G-SYNC",
+        "G-PLAN-REV"
+      ],
+      "phase": "P1",
+      "scope_slices": [
+        "Sačuvaj sedam relativnih dana iz postojećeg plana i prikaži sadržaj šablona offline.",
+        "Primeni na novi datum uz pregled praznih mesta, novih porcija i nove identitete.",
+        "Primeni na postojeći plan uz diff i zaštitu zaključanih/skuvanih/prošlih obroka; odobri kroz postojeći repository."
+      ],
+      "acceptance_criteria": [
+        "Primena 2 puta daje 2 nezavisna plana i izvore; promena jednog ne menja šablon/drugi plan.",
+        "Od 28.12.2026. sedmi dan je 03.01.2027; stari isCooked se ne prenosi.",
+        "Pregled i odbacivanje ne menjaju recepte, nabavku ili outbox; obrisani izvorni recept ostaje upotrebljiv preko snimka."
+      ],
+      "verification": [
+        "Domain: relativni datumi preko godine i prestupnog dana; povezane pripreme imaju nove, konzistentne ID-jeve.",
+        "Repository: broj upisa/outbox-a pre i posle odbačenog pregleda, dupli submit operationId, stari fingerprint.",
+        "Widget: primena na telefonu/rail-u i tekst 2×; regresija test/data/meal_plan_repository_test.dart."
+      ]
+    },
+    {
+      "id": "F012",
+      "title": "Povezani ostaci",
+      "current_state": "lib/domain/meal_plan.dart: PlannedMeal ima servings i isCooked, bez pojma pojedeno; lib/data/shopping_repository.dart: reconcilePlan stvara izvor za svaki unos sa snapshot-om, _demand skalira njegove porcije. Kopiran recept sutradan danas duplira potražnju.",
+      "proposed_changes": "Preparation{id,householdId,planId,cookSlot,snapshot,plannedYield,actualYield?,status}; MealConsumption{id,entryId,preparationId,reservedServings,eatenServings?,status}. Unos ima kind=cook|leftover|away. Potražnja sirovina pripada preparationId i cookSlot-u jednom; servings za jedenje nisu yield pripreme. Rezervacije ukupno <= raspoloživ prinos; status planned/cooked/discarded i reserved/eaten/released su odvojeni. F075 može dodati merenu masu, ali nije uslov za ručne porcije.",
+      "dependencies": [
+        "G-SYNC",
+        "G-PLAN-REV",
+        "G-DEMAND"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Migriraj svaki legacy recipe unos u jednu pripremu i jednu konzumaciju, bez promene ukupne potražnje.",
+        "U pregledu povećaj prinos i poveži budući obrok sa ostatkom; prikaži račun porcija i jednu nabavku.",
+        "Potvrdi skuvano i zatim pojedeno odvojeno; premeštanje/brisanje/undo proverava sve zavisne obroke."
+      ],
+      "acceptance_criteria": [
+        "Priprema 6 porcija sa 600 g pasulja: 4 večeras + 2 sutra = 600 g potrebe, nikada 800 g ili 1.2 kg.",
+        "Promena sutrašnje rezervacije sa 2 na 3 bez većeg prinosa je odbijena; promena planiranog prinosa na 7 pre kuvanja daje 700 g.",
+        "Skuvano zatvara sirovinsku nabavku jednom i zadržava postojeće rezervacije zalihe; pojedeno ne pravi novo skidanje sirovina.",
+        "Brisanje pripreme sa vezanim ostacima zahteva eksplicitno razvezivanje/zamenu u pregledu; drugi household ne može rezervisati prinos."
+      ],
+      "verification": [
+        "Domain: 6=4+2, 5<4+2 invalidno, ciklus/veza na kasniju pripremu/negativan prinos zabranjeni.",
+        "Repository: ponovljena cooked/eaten potvrda je idempotentna; cooked->uncooked uz već eaten zavisnike odbijen; cross-week ostatak ne stvara izvor u drugoj nedelji.",
+        "Sync/RLS: dva uređaja istovremeno rezervišu poslednje 2 porcije; server prihvata najviše jednu komandu.",
+        "Regresija supply allocations i purchaseProvenanceJson, ručna i kupljena stavka ostaju posle uklanjanja veze."
+      ]
+    },
+    {
+      "id": "F014",
+      "title": "Grupe jela koje troše pakovanja",
+      "current_state": "lib/ai/meal_plan_ai.dart: MealPlanAI.propose ima pantryNames i raspored po nedeljama, bez podataka o veličini pakovanja; lib/domain/shopping_demand.dart računa normalizovane potrebe.",
+      "proposed_changes": "PackageOption{ingredientKey,unitGroup,sizeMicros,source,observedAt}; BundleProposal{3..5 draft meals,packageChoices,demandTotals,residuals,coverage}. Rangiranje deterministički računa ceil(uncovered/size)*size-uncovered po uporedivoj jedinici. Ostatak pakovanja nije kvarenje niti novac. AI može predložiti grupu, kod proverava količine i uslove.",
+      "dependencies": [
+        "G-DEMAND",
+        "G-PACKAGE-CATALOG"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Ručno potvrđene veličine pakovanja i tačan obračun ostatka za jednu namirnicu.",
+        "Pregled grupe 3–5 jela uz pokrivenost podacima i postojeću zalihu raspoređenu jednom.",
+        "Odobri grupu kao PlanDraft, uz zamenu jela i ponovno računanje."
+      ],
+      "acceptance_criteria": [
+        "Tri jela traže 200+150+100 g; pakovanje 500 g bez zalihe daje 1 pakovanje i 50 g ostatka.",
+        "Sa 100 g potvrđene zalihe kupuje se 500 g za 350 g nepokrivene potrebe, ostatak 150 g; zaliha se ne oduzima po jelu.",
+        "Nepoznata veličina/jedinica je Nepoznato, ne nula; nema tvrdnje o uštedi bez uporedivih cena."
+      ],
+      "verification": [
+        "Domain unapred izračunati primeri 450/500, 550/500=>2 pakovanja, mešane neuporedive jedinice.",
+        "Repository preview bez upisa i approve jednom; postojeće kupljeno ne nestaje.",
+        "Widget zamena jednog jela menja zbir/ostatak i prikazuje izvor veličine."
+      ]
+    },
+    {
+      "id": "F015",
+      "title": "Podsetnici za pripremu",
+      "current_state": "lib/domain/shopping_source.dart: RecipeSnapshot ima tekstualne steps i prepMinutes; lib/domain/plan_calendar.dart: CivilDate nema vreme/zonu. U pregledanim planning modelima nema pripremnih obaveza.",
+      "proposed_changes": "PrepObligation{id,preparationId,label,offsetMinutes,anchorKind,cookLocalTime,zoneId,enabled,revision}; NotificationGateway.capabilities/probe/schedule/cancel. Ručno uneta obaveza prvo; AI predlog mora da se potvrdi. Obaveze nisu tajmeri kuvanja F009. Trajno čuvati nameru, a raspored lokalnih notifikacija ponovo izvesti pri promeni plana/zone/dozvole.",
+      "dependencies": [
+        "G-SYNC",
+        "G-TIME",
+        "F012"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Ručno dodaj obavezu uz datum, sat i zonu u detalju pripreme.",
+        "Probe dozvole/platforme i lokalno zakazivanje sa stabilnim ID-jem.",
+        "Reconcile promena, brisanja, undo-a i ponovnog pokretanja; predlozi iz recepta uz pregled."
+      ],
+      "acceptance_criteria": [
+        "Kuvanje 10.11.2026. u 18:00 Europe/Belgrade i offset 12 h daju podsetnik u 06:00.",
+        "Pomeri kuvanje za 1 h: tačno jedan novi aktivan podsetnik, stari otkazan; retry ne duplira.",
+        "Odbijena dozvola prikazuje Podsetnici nisu dostupni i obavezu u aplikaciji; nema obećanja tačnog vremena isporuke."
+      ],
+      "verification": [
+        "Fake clock/gateway: denied, unsupported, reboot, stale revision, prošli rok.",
+        "Zone testovi nonexistent/ambiguous sat pri DST: eksplicitni izbor bez tihog pomeranja CivilDate.",
+        "Widget promena/suppress/cancel i gašenje na odjavi; OS smoke provera tek u implementaciji."
+      ]
+    },
+    {
+      "id": "F031",
+      "title": "Želim uskoro da kuvam",
+      "current_state": "lib/features/planning/plan_generation.dart: useRecipe postavlja recept na određeni MealSlot; PlanRequest.only očekuje datirana mesta. Nema nedatiranog reda u pregledanim modelima.",
+      "proposed_changes": "CookingQueueItem{id,householdId,recipeId?,snapshot,positionKey,requestedServings,createdBy}; nema shopping source dok se ne odobri raspoređivanje. schedule(queueItem,slot,targetBase) pravi postojeći nacrt; uklanjanje stavke reda tek u istoj transakciji sa uspešnim odobrenjem. Duplikat recepta je dozvoljen kao odvojena namera.",
+      "dependencies": [
+        "G-SYNC",
+        "G-PLAN-REV"
+      ],
+      "phase": "P1",
+      "scope_slices": [
+        "Dodaj/ukloni i promeni redosled nedatiranih snimaka offline.",
+        "Izaberi datum/obrok dugmetom; drag je dodatna radnja na širokom ekranu.",
+        "Pregled zamene postojećeg unosa i atomarno odobrenje+uklanjanje iz reda."
+      ],
+      "acceptance_criteria": [
+        "10 stavki u redu daje 0 novih shopping sources.",
+        "Odbijen zastareo nacrt ostavlja stavku u redu i postojeći obrok netaknut.",
+        "Obrisani bibliotečki recept ima upotrebljiv snapshot; prazno mesto i zamena imaju različit pregled."
+      ],
+      "verification": [
+        "Repository fake backend: schedule rollback i isti operationId dvaput.",
+        "Widget 390/1024 px, tastatura i tekst 2× bez obaveznog drag-a.",
+        "Dva uređaja raspoređuju istu queue stavku: jedna potvrđena operacija, konflikt druge."
+      ]
+    },
+    {
+      "id": "F032",
+      "title": "Pravila po danima",
+      "current_state": "lib/domain/meal_plan.dart: PlanRequest.wishes je slobodan tekst; lib/ai/meal_plan_ai.dart: parseOutline proverava oblik/slotove/recipeId, ne pravila sastojaka ili dana.",
+      "proposed_changes": "DayRule{id,weekday,mealType?,predicate,mode=required|preferred,version}; eksplicitni SlotRuleOverride{ruleId,slot,reason}. Deterministički evaluator nad potvrđenim recipe metadata/ingredients vraća pass/fail/unknown sa dokazom. Obavezne alergije ostaju neizuzimljiva ograničenja iz streama A; lokalno dnevno pravilo nije dozvola za njihovo zaobilaženje.",
+      "dependencies": [
+        "G-SYNC",
+        "G-RULE-METADATA",
+        "G-HARD-CONSTRAINTS"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Ručno pravilo i evaluator za jedan potvrđen tag/namirnicu.",
+        "Dodaj pravila u zahtev generatora i validaciju posle AI rezultata; nema rezultata prikazuje razlog.",
+        "Pregled odstupanja i eksplicitni override samo dnevnog pravila, sa čuvanjem verzije u planu."
+      ],
+      "acceptance_criteria": [
+        "Ponedeljak bez mesa odbija poznat mesni recept i označava neklasifikovan kao Neprovereno.",
+        "Petak riba i <=20 aktivnih minuta se kombinuju; 0 kandidata ne popušta pravilo tiho.",
+        "Override ponedeljka ne važi za sledeći ponedeljak niti menja alergije."
+      ],
+      "verification": [
+        "Domain matrica weekday 1..7, mealType wildcard, preferred/required i unknown.",
+        "Fake AI vrati zabranjen recept: pregled pokazuje prekršaj i approve ga odbija bez override-a.",
+        "Offline sačuvano pravilo i RLS dva domaćinstva; regresija parseOutline."
+      ]
+    },
+    {
+      "id": "F033",
+      "title": "Obrok van kuće",
+      "current_state": "lib/domain/meal_plan.dart: SlotProposal uvek bira libraryRecipeId ili draftRecipeKey; PlannedMeal.snapshot null označava legacy zapis, ne obrok van kuće. reconcilePlan preskače unos bez snimka.",
+      "proposed_changes": "Proširi postojeći unos diskriminatorom kind=cook|leftover|away, awayReason=restaurant|visiting|skip i opcioni label. Ne koristiti null snapshot kao diskriminator. away zauzima termin, nema sirovinsku potražnju i generator ga čuva dok korisnik izričito ne odabere zamenu.",
+      "dependencies": [
+        "G-SYNC",
+        "G-PLAN-REV"
+      ],
+      "phase": "P1",
+      "scope_slices": [
+        "Migracija kind=cook za postojeće unose i ručni away unos.",
+        "Prikaži zauzet termin i isključi ga iz regenerableSlots.",
+        "Pregled cook<->away zamene i reconcile samo razlike."
+      ],
+      "acceptance_criteria": [
+        "Restoran, Kod roditelja i Preskačem daju 0 demand lines i prikazuju zauzet slot.",
+        "Zamena recepta restoranom čuva kupljene/ručne stavke i oslobađa samo neiskorišćene rezervacije.",
+        "Stari nečitljiv snapshot pokazuje Recept nije dostupan, ne Restoran."
+      ],
+      "verification": [
+        "Domain exhaustive switch/parser nepoznatog kind-a i legacy fallback.",
+        "Repository zamena sa kupljenih 200 g i rezervisanih 100 g: kupovina opstaje, neiskorišćena rezerva se oslobađa.",
+        "Widget away oznaka, undo i regeneracija koja ga ne prepisuje."
+      ]
+    },
+    {
+      "id": "F034",
+      "title": "Vreme po danu",
+      "current_state": "lib/domain/shopping_source.dart: RecipeSnapshot.prepMinutes je jedina vremenska mera; lib/features/planning/meal_entry_card.dart prikazuje je kao min, bez razlikovanja aktivnog/ukupnog.",
+      "proposed_changes": "RecipeTiming{activeMinutes?,elapsedMinutes?,source,confirmedAt}; SlotTimeBudget{slot,maxActiveMinutes?,maxElapsedMinutes?,window?}. Postojeći prepMinutes zadržati kao legacy nespecificirano vreme, ne migrirati automatski u aktivno. Poznato trajanje proverava kod; unknown zahteva proveru pre tvrdog ograničenja.",
+      "dependencies": [
+        "G-SYNC",
+        "G-PLAN-REV"
+      ],
+      "phase": "P1",
+      "scope_slices": [
+        "Potvrđeno aktivno/ukupno vreme i ručni budžet za jedan dan.",
+        "Evaluator i prikaz poznato/nepoznato u postojećem pregledu.",
+        "Generator filtrira/rangira uz isti evaluator, bez tihog popuštanja."
+      ],
+      "acceptance_criteria": [
+        "Utorak 20 min: recept 15 aktivno/60 ukupno prolazi aktivni limit; 25/30 ne prolazi.",
+        "Ako postoji i prozor 18:00–18:45, 60 ukupno ne staje, iako aktivni rad prolazi.",
+        "Legacy prepMinutes=15 ne postaje potvrđenih 15 aktivno; nedelja 90 ne menja utorak."
+      ],
+      "verification": [
+        "Domain granice 20/21, unknown, nula/negativno, active<=elapsed.",
+        "Fake AI prekršaj i ručna izmena metadata posle početka nacrta invalidiraju evaluaciju.",
+        "Widget dve jasno odvojene mere i offline unos; regresija postojećeg prikaza vremena."
+      ]
+    },
+    {
+      "id": "F050",
+      "title": "Oprema koju posedujem",
+      "current_state": "lib/domain/shopping_source.dart: RecipeSnapshot sadrži sastojke i tekstualne korake, bez strukturisanih resursa; PlanRequest nema opremu.",
+      "proposed_changes": "HouseholdEquipment{equipmentType,count,capabilities,confirmedAt}; RecipeEquipmentRequirement{type,count,capability?,alternativeGroup?}. Evaluator required/optional/alternative sa unknown stanjem; ne pretpostavljati da reč rerna u tekstu znači potvrđenu opremu. Snapshot zamrzava odobrene zahteve; bez kontrole uređaja.",
+      "dependencies": [
+        "G-SYNC",
+        "G-EQUIPMENT-METADATA"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Ručno unesi kućnu opremu i zahteve jednog recepta.",
+        "Objasni nedostajuću opremu i alternative u detalju/pretrazi.",
+        "Primeni isti evaluator na PlanDraft i sačuvaj potvrđeni izbor alternative."
+      ],
+      "acceptance_criteria": [
+        "Rerna=0 blokira recept koji zahteva rernu; blender opciono ne blokira.",
+        "Alternativa blender OR seckalica prolazi kad postoji jedan odgovarajući resurs; AND zahteva oba.",
+        "Nepoznati zahtevi ne prikazuju Oprema proverena; promena opreme ponovo proverava nacrt."
+      ],
+      "verification": [
+        "Domain AND/OR, count 0/1/2, capability temperature nepoznata.",
+        "Repository household izolacija i snapshot nakon izmene biblioteke.",
+        "Widget bez opreme/unknown i pristupačno objašnjenje; nema Bluetooth/API poziva."
+      ]
+    },
+    {
+      "id": "F052",
+      "title": "Paralelna priprema",
+      "current_state": "lib/domain/shopping_source.dart: RecipeSnapshot.steps je List<String>, bez trajanja pojedinačnih koraka/zavisnosti; MealPlan nema raspored resursa. Sam tekst nije dovoljan za pouzdan raspored.",
+      "proposed_changes": "CookTask{id,preparationId,dependsOn[],durationMinutes?,attention=active|passive,resources[{type,quantity,capability}],earliest?,latest?}; PreparationSchedule{inputFingerprint,tasks,startTimes,conflicts,confirmedAt?}. Prvo DAG i deterministički bounded list scheduling, ne obećanje optimuma. Aktivni zadaci dele human-attention kapacitet; pasivni korak oslobađa pažnju ali može držati rernu. AI ekstrakcija ide samo u pregled.",
+      "dependencies": [
+        "F034",
+        "F050",
+        "F012",
+        "G-TIME"
+      ],
+      "phase": "P3",
+      "scope_slices": [
+        "Ručno potvrdi DAG i resurse za dva mala recepta.",
+        "Izračunaj predlog bez preklapanja i prikaži konflikte/unknown trajanja.",
+        "Potvrdi raspored i ručno pomeri korak uz revalidaciju zavisnika."
+      ],
+      "acceptance_criteria": [
+        "Dva zadatka rerne po 30 min sa kapacitetom 1 daju najmanje 60 min zauzeća; nema preklapanja.",
+        "Dva aktivna zadatka po 10 min za jednog kuvara daju 20 min; pasivnih 30 može teći uz aktivnih 10.",
+        "Ciklus ili nepoznato trajanje daju nepotpun predlog, bez poruke da je završetak garantovan; promena input-a uklanja staro odobrenje."
+      ],
+      "verification": [
+        "Domain topološki red/ciklus, resource interval disjointness, AND preduslovi i deadline nemoguć.",
+        "Unapred izračunat primer A aktivno 10->rerna 30 i B aktivno 10: završetak 40 min sa B tokom rerne.",
+        "Widget potvrda i pomeranje, fake clock; bez pokretanja pametnih uređaja."
+      ]
+    },
+    {
+      "id": "F057",
+      "title": "Ko jede obrok",
+      "current_state": "lib/domain/meal_plan.dart: PlannedMeal.servings podržava broj porcija po unosu; MealPlan.defaultServings je podrazumevana vrednost. Ne postoje prisutni/gosti, niti pouzdan broj članova u ovom modelu.",
+      "proposed_changes": "MealAttendance{entryId,memberIds[],guestCount,servingOverrides?,revision}; imena samo potvrđenih članova, gosti kao broj. Predložen broj porcija iz prisutnih uz eksplicitno prihvatanje; ne zaključivati privatne profile drugih članova. Uz F012 attendance menja konzumaciju, a ne automatski prinos već skuvane pripreme.",
+      "dependencies": [
+        "G-SYNC",
+        "F011",
+        "F012"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Ručno broj prisutnih i gostiju uz postojeće changeServings.",
+        "Izbor članova sa household proverom i pregledom novih porcija.",
+        "Raspodela na novu pripremu/ostatak uz proveru prinosa i stale revision."
+      ],
+      "acceptance_criteria": [
+        "2 člana +1 gost predlažu 3 porcije; odbacivanje ostavlja stare porcije.",
+        "Promena 2->3 za svežu pripremu sa 200 g za 2 daje 300 g; 0 prisutnih traži skip/away, ne nevažeće 0 servings.",
+        "Dodavanje gosta uz ostatak bez viška označava nedostatak i ne pravi sirovinsku nabavku za već skuvan ostatak."
+      ],
+      "verification": [
+        "Domain attendance granice i eksplicitni serving override; bez automatskog čitanja privatnih profila.",
+        "Repository bivši/tuđi član odbijen; konflikt istovremenog attendance i prinosa.",
+        "Widget gosti bez naloga, prikaz ukupno/porcije i regresija changeServings zaštite skuvanog."
+      ]
+    },
+    {
+      "id": "F060",
+      "title": "Pretplata na kalendar",
+      "current_state": "lib/domain/plan_calendar.dart: CivilDate čuva datum bez zone; lib/data/meal_plan_repository.dart: fingerprint je lokalni JSON plan+entries, ne ICS UID/revision; nema feed ugovora u pregledanim planning fajlovima.",
+      "proposed_changes": "CalendarSubscription{id,householdId,tokenDigest,selectedPlanIds,fieldPolicy,enabled,createdAt}; odvojeni server read-only feed projektuje potvrđene sinhronizovane obroke. UID=opaque subscriptionId+stable entryId@tavli; SEQUENCE iz monotone eventRevision, ne fingerprint ili vreme poll-a. Podrazumevano celodnevni DATE, DTEND sledeći datum; vremenski događaj samo sa potvrđenim vremenom/zonom. Snimak odobrenog obroka je izvor naziva, ne promenljiv bibliotečki recept.",
+      "dependencies": [
+        "G-PLAN-REV",
+        "G-FEED",
+        "G-TIME"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Čista ICS projekcija i fixture serializer sa tačnim datumima/escaping/folding.",
+        "Autentifikovano kreiranje/rotacija/opoziv linka i scoped feed read sa ograničenim poljima.",
+        "Probe javnog HTTPS endpoint-a i korisnikovog kalendarskog klijenta; dokumentuj eventualno osvežavanje i tombstone politiku."
+      ],
+      "acceptance_criteria": [
+        "Dva poll-a istog obroka imaju isti UID i SEQUENCE; pomeranje datuma menja SEQUENCE, zadržava UID.",
+        "Rotacija ili opoziv odmah odbija stare linkove na serveru; već preuzete kopije se ne mogu izbrisati sa tuđeg kalendara.",
+        "Srpski UTF-8, zarez, tačka-zarez, kosa crta i newline se bezbedno serijalizuju; redovi najviše 75 okteta uz pravilno folding.",
+        "Feed ne daje sastojke, privatne profile, attendee imena, backend credential ili pravo pisanja; offline nesinhronizovana izmena jasno čeka objavu."
+      ],
+      "verification": [
+        "Golden ICS i roundtrip nezavisnim parserom u budućim testovima; DATE 31.12->01.01, DST timed opciono.",
+        "Local server test dva household-a, disabled/rotated/unknown digest, GET bez write efekta, bez URL tokena u logovima.",
+        "Deletion tombstone STATUS:CANCELLED stabilan UID i veći sequence; stvarni Google/Apple klijenti uslovni smoke, ne tvrdnja implementirane integracije."
+      ]
+    },
+    {
+      "id": "F061",
+      "title": "Poređenje nacrta",
+      "current_state": "lib/features/planning/plan_generation.dart: PlanGenerationState ima jedan draft; MealPlanAI.propose ne piše podatke; MealPlanRepository.approve već predstavlja tačku potvrde.",
+      "proposed_changes": "PlanScenarioSet{requestSnapshot,baseFingerprint,inventoryFingerprint,priceSnapshotId,timingVersion,candidates[2..3]}; ScenarioMetrics{knownCost?,currency,coverage,activeMinutes?,shoppingTripsAssumptions}. Sve alternative koriste istu zalihu/cene/pravila kao nezavisne simulacije, bez rezervacija. Broj odlazaka nije broj artikala: zahteva eksplicitnu pretpostavku termina/prodavnica; bez nje Nepoznato.",
+      "dependencies": [
+        "G-PLAN-REV",
+        "G-DEMAND",
+        "F034",
+        "F018"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Dva ručno sastavljena nacrta i isti deterministički kalkulator metrika.",
+        "Poređenje pokrivenosti i pretpostavki na telefonu/široko; opcioni treći AI nacrt kroz AIRouter.",
+        "Izaberi jedan i pozovi postojeći approve jednom, ostale odbaci."
+      ],
+      "acceptance_criteria": [
+        "Tri scenarija rezervišu 0 zalihe i stvaraju 0 izvora pre potvrde; posle potvrde samo izabrani postoji.",
+        "Scenariji sa 80% i 100% pokrivenosti cena ne prikazuju nepotpun niži zbir kao dokaz da je jeftiniji.",
+        "Cena 2×100 RSD i 1×150 RSD daje 200 i 150 samo pod istim osnovama; RSD i EUR se ne sabiraju bez potvrđenog kursa."
+      ],
+      "verification": [
+        "Pure evaluator identični ulazi=>identične metrike; zaliha 100 g simulirana zasebno po scenariju.",
+        "Repository stale plan/inventory/cene traže novi pregled; dupli confirm operationId stvara jedan plan.",
+        "Fake AI failure zadržava spremne alternative; widget tabovi 2/3 scenarija i unknown vreme/odlasci."
+      ]
+    },
+    {
+      "id": "F062",
+      "title": "Poništi ceo plan",
+      "current_state": "lib/data/meal_plan_repository.dart: approve/_edit/removeMeal rade transakciju i reconcile, fingerprint proverava lokalni plan+entries. Nema istorije agregata; lib/data/database.dart: ShoppingItems.purchaseProvenanceJson čuva poreklo kupovine.",
+      "proposed_changes": "PlanOperation{id,planId,householdId,baseRevision,resultRevision,beforeImage,afterImage,undoOf?,status}; undoLatest(expectedRevision) pravi kompenzacionu komandu, ne vraća celu bazu. beforeImage obuhvata plan, entry identitete/snimke, pripreme i veze, pravila/attendance u agregatu. Ponovo izvedi otvorenu potražnju kroz reconcile; kupljene/ručne stavke, potvrđena potrošnja i istorija ostaju činjenice. Ne briši recepte automatski čak i ako ih je approve napravio.",
+      "dependencies": [
+        "G-PLAN-REV",
+        "G-SYNC",
+        "G-DEMAND"
+      ],
+      "phase": "P2",
+      "scope_slices": [
+        "Zabeleži before/after jedne zamene unosa u istoj lokalnoj transakciji.",
+        "Poništi poslednju odobrenu agregatnu izmenu uz pregled razlike i preuskladjivanje potražnje.",
+        "Proširi pokriće na batch/template/leftover operacije i server CAS/idempotentni replay."
+      ],
+      "acceptance_criteria": [
+        "Potreba 300->400 g, kupljeno 200 i ostava 100: undo na 300 daje 0 preostalo i zadržava kupovinu 200; pri ponovnom povećanju opet 100.",
+        "Tuđa novija izmena ili potvrđeno jedenje/potrošnja posle operacije blokiraju automatsko vraćanje i nude pregled konflikta.",
+        "Retry istog undo operationId ne pravi drugi undo niti novi izvor; revision monotono raste i pri undo-u."
+      ],
+      "verification": [
+        "Repository transaction fault između restore i reconcile vraća sve lokalne upise/outbox; istorija kupovine byte-identična.",
+        "Dva uređaja undo expectedRevision=N: jedan uspeva, drugi dobija konflikt bez prepisivanja.",
+        "Domain povezani ostaci ne postaju siročad; promena nedelje obnavlja logički isti izvor bez drugog pokrića.",
+        "Regresije test/data/shopping_repository_test.dart i test/data/meal_plan_repository_test.dart; ne koristiti recipe-version undo kao zamenu."
+      ]
+    },
+    {
+      "id": "F090",
+      "title": "Zauzetost iz kalendara",
+      "current_state": "lib/domain/plan_calendar.dart: CivilDate i PlanRequest nemaju instant intervale; postojeći generation koristi ručne izbore. Nema calendar availability gateway-a u pregledanim planning fajlovima.",
+      "proposed_changes": "AvailabilityGateway.probe()->supported|permissionRequired|unavailable i query(window,calendarSelection)->BusySnapshot{intervals[startUtc,endUtc),zoneId,fetchedAt,expiresAt,coverageErrors}; samo zauzetost, bez naslova/opisa/lokacije/ucesnika. Lokalni algoritam oduzima uniju intervala od ručnog prozora, predlaže raspored uz aktivno/ukupno vreme. Provider dozvole ostaju zasebne od ICS bearer linka; ručni prozori ostaju dostupan fallback.",
+      "dependencies": [
+        "F034",
+        "G-TIME",
+        "G-AVAILABILITY"
+      ],
+      "phase": "P3",
+      "scope_slices": [
+        "Fake gateway i ručni prozor sa intervalnim algoritmom.",
+        "Jedan uslovni provider adapter sa najmanjim dokazano dovoljnim freebusy scope-om i eksplicitnim izborom kalendara.",
+        "Preview predloga, svežina/greške i potvrda novog termina; offline koristi označen cache ili ručni prozor."
+      ],
+      "acceptance_criteria": [
+        "Prozor 17:00–20:00 i busy [18:00,19:00) daju slobodno [17,18) i [19,20); recept 45 min nudi 17:00 ili 19:00, 90 min ne staje.",
+        "Interval koji se završava u 18:00 ne blokira start 18:00; preklopljeni busy intervali se spajaju.",
+        "403, nepoznata parcijalna greška, denied/unsupported i istekao cache ne znače Slobodno; korisnik vidi Zauzetost nije proverena.",
+        "Nijedan detalj spoljnog događaja ne ulazi u PlanDraft, AI prompt, telemetry ili household sync; potvrda ne piše u spoljni kalendar."
+      ],
+      "verification": [
+        "Domain prazni/dupli/prekonoćni intervali, granice, DST u Europe/Belgrade i conversion UTC->lokalni dan.",
+        "Fake adapter delimičan calendar error, revoke, token expiry, stale TTL i offline; isključenje briše cache i prekida refresh.",
+        "Contract fixture samo busy start/end; capability test na svakoj ciljnoj platformi pre javnog obećanja podrške."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "repo_url": "https://github.com/cooklang/cookcli",
+      "commit": "4e53c8c9c29a5ced2b444b19133cb38a5217c8bb",
+      "license_spdx_or_unknown": "MIT",
+      "inspected_files": [
+        {
+          "path": "crates/core/src/shopping_list/days.rs",
+          "symbol": "DayRange.contains; section_date; kept_ingredients; kept_quantity",
+          "finding": "Datumskim filtrom bira indekse sastojaka, a zatim sabira samo odabrane članove grupe; korisno za granice perioda, nije model ostataka."
+        },
+        {
+          "path": "src/util/menu.rs",
+          "symbol": "load_menu; parse_menu; keep_empty_meals; scaled_quantity",
+          "finding": "Rezolvira skalu referenci; posebno vraća prazne obroke za prikaz; API i shopping ih ne koriste."
+        },
+        {
+          "path": "src/server/handlers/menus.rs",
+          "symbol": "menu_response",
+          "finding": "Odgovor uklanja obroke koji imaju samo beleške/tekst; Tavli away mora ostati eksplicitno zauzet slot."
+        },
+        {
+          "path": "crates/core/LICENSE",
+          "symbol": "MIT license grant",
+          "finding": "Original copyright Alexey Dubovskoy; puna dozvola i disclaimer kopirani uz fajl. Nema pronađenog NOTICE fajla."
+        }
+      ],
+      "reuse_decision": "Kopiran kompletan days.rs i njegova MIT licenca samo kao referenca. Rust i njegove zavisnosti nisu instalirani, izvršeni ili povezani; Tavli CivilDate/demand ostaju osnova sopstvene implementacije."
+    },
+    {
+      "repo_url": "https://github.com/mealie-recipes/mealie",
+      "commit": "471c7936d3c782a431fd2081b632f404cb3dbb1a",
+      "license_spdx_or_unknown": "AGPL-3.0",
+      "inspected_files": [
+        {
+          "path": "mealie/repos/repository_meal_plan_rules.py",
+          "symbol": "RepositoryMealPlanRules.get_rules",
+          "finding": "Spaja konkretan dan/tip i wildcard pravila uz household filter."
+        },
+        {
+          "path": "mealie/routes/households/controller_mealplan.py",
+          "symbol": "GroupMealplanController._get_random_recipes_from_mealplan",
+          "finding": "Pretvara primenljiva pravila u kombinovan filter; za raspon koristi samo globalna pravila."
+        },
+        {
+          "path": "mealie/schema/meal_plan/plan_rules.py",
+          "symbol": "PlanRulesDay; PlanRulesCreate.validate_query_filter_string",
+          "finding": "Tipizirani dani/obroci; validacija filtera pre upotrebe."
+        },
+        {
+          "path": "mealie/services/household_services/mealplan_ical_service.py",
+          "symbol": "MealPlanICalService._event_lines; _fold; _escape_text",
+          "finding": "Stabilan UID, revision iz vremena izmene, DATE ekskluzivni kraj, UTF-8 folding i TEXT escaping. Tavli predlaže namenski monotoni revision."
+        },
+        {
+          "path": "mealie/routes/households/controller_mealplan_ical.py",
+          "symbol": "MealplanICalController.create_ical_token; delete_ical_token",
+          "finding": "Rotacija zamenjuje token, opoziv ga uklanja; odvojena javna GET ruta."
+        },
+        {
+          "path": "LICENSE",
+          "symbol": "GNU Affero GPL v3 text",
+          "finding": "AGPL, bez kopiranja bilo kog izvornog fajla u ovaj repo."
+        }
+      ],
+      "reuse_decision": "Samo proučeni i citirani arhitektonski obrasci; sopstvena implementacija iz ugovora i standarda, bez AGPL koda."
+    },
+    {
+      "repo_url": "https://github.com/kewisch/ical.js",
+      "commit": "e6b2e61930d819ff72a7e5b399d52c8b92131106",
+      "license_spdx_or_unknown": "MPL-2.0",
+      "inspected_files": [
+        {
+          "path": "lib/ical/period.js",
+          "symbol": "Period.fromString; Period.fromData",
+          "finding": "Period razdvaja početak/kraj ili trajanje i odbija neispravan slash oblik; koristan signal za strogo parsiranje intervala."
+        },
+        {
+          "path": "LICENSE",
+          "symbol": "MPL-2.0",
+          "finding": "MPL je izvan MIT/BSD/Apache izbora ovog prolaza; ništa kopirano."
+        }
+      ],
+      "reuse_decision": "Proučavanje tipa perioda; nije odabrana runtime zavisnost niti kopirana implementacija."
+    }
+  ],
+  "copied_files": [
+    {
+      "local_path": "research/reference-code/B/cookcli/days.rs",
+      "upstream_path": "crates/core/src/shopping_list/days.rs",
+      "sha256": "5ce078aa4ebc0ad54217eaef958d249f64c776a463de4c98285fb65f848d700c",
+      "source_url": "https://github.com/cooklang/cookcli/blob/4e53c8c9c29a5ced2b444b19133cb38a5217c8bb/crates/core/src/shopping_list/days.rs",
+      "license_path": "research/reference-code/B/cookcli/LICENSE"
+    },
+    {
+      "local_path": "research/reference-code/B/cookcli/LICENSE",
+      "upstream_path": "crates/core/LICENSE",
+      "sha256": "af27681b98fd4549e7966762a119a1bd90c5ea547b42964da2407d7678dc6ddf",
+      "source_url": "https://github.com/cooklang/cookcli/blob/4e53c8c9c29a5ced2b444b19133cb38a5217c8bb/crates/core/LICENSE",
+      "license_path": "research/reference-code/B/cookcli/LICENSE"
+    }
+  ],
+  "unknowns": [
+    "Apple/native calendar pristup bez event-content dozvole nije potvrđen; podrška ostaje unavailable dok capability probe i API dokumentacija ne dokažu traženu granicu.",
+    "Google freebusy endpoint/scope je dokumentovan, ali Tavli OAuth konfiguracija, verifikacija aplikacije i platformska podrška nisu testirani.",
+    "Klijentska ICS učestalost osvežavanja, brisanje i cancellation ponašanje Google/Apple moraju se proveriti uslovnim smoke testom; server opoziv ne briše već preuzete podatke.",
+    "Plan fingerprint nije server aggregate CAS; potreban je novi atomski command/revision ugovor, bez pretpostavke da postojeći row outbox već pruža distribuiranu transakciju.",
+    "Prinos, rok/način čuvanja ostataka i trajanja nisu pouzdano poznati iz današnjih string koraka. Ne nuditi automatsku bezbednosnu procenu hrane; korisnik potvrđuje podatke.",
+    "Veličine pakovanja, cene, prisutnost i oprema nedostaju u baseline modelu; metrike i filtri imaju unknown stanje do potvrde.",
+    "Retention za plan operations i tombstones zahteva dogovor pre migracije; početni predlog 90 dana istorije feeda/tombstone-a je produktna odluka, ne interoperabilna garancija."
+  ]
+}

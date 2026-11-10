@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/animations/spoon_refresh.dart';
+import '../../app/section_heading.dart';
 import '../../app/tab_app_bar.dart';
 import '../../app/theme/tavli_colors.dart';
 import '../../domain/recipe.dart';
@@ -10,6 +11,7 @@ import '../../domain/recipe_format.dart';
 import '../../domain/saved_recipe_search.dart';
 import 'add_recipe_sheet.dart';
 import 'recipe_detail_screen.dart';
+import 'recipe_grid.dart';
 import 'recipe_photo.dart';
 import 'recipe_providers.dart';
 import 'saved_search_dialog.dart';
@@ -123,6 +125,7 @@ class _RecipeListState extends ConsumerState<_RecipeList> {
   Widget build(BuildContext context) {
     final query = ref.watch(recipeSearchProvider);
     final filters = ref.watch(recipeFiltersProvider);
+    final grid = ref.watch(recipeGridViewProvider);
     return ref
         .watch(recipesProvider)
         .when(
@@ -145,51 +148,95 @@ class _RecipeListState extends ConsumerState<_RecipeList> {
               includeIngredient: filters.includeIngredient,
               excludeIngredient: filters.excludeIngredient,
             ).apply(all);
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: SearchBar(
-                    controller: _search,
-                    hintText: 'Pretraži recepte',
-                    leading: const Icon(Icons.search),
-                    onChanged: ref.read(recipeSearchProvider.notifier).set,
-                    trailing: [
-                      IconButton(
-                        tooltip: 'Filteri',
-                        icon: const Icon(Icons.tune),
-                        onPressed: () async {
-                          final result = await showDialog<RecipeSearchFilter>(
-                            context: context,
-                            builder: (_) => SavedSearchDialog(
-                              initial: RecipeSearchFilter(
-                                query: query,
-                                maxMinutes: filters.maxMinutes,
-                                includeIngredient: filters.includeIngredient,
-                                excludeIngredient: filters.excludeIngredient,
-                              ),
+            final controls = <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: SearchBar(
+                  controller: _search,
+                  hintText: 'Pretraži recepte',
+                  leading: const Icon(Icons.search),
+                  onChanged: ref.read(recipeSearchProvider.notifier).set,
+                  trailing: [
+                    IconButton(
+                      tooltip: 'Filteri',
+                      icon: const Icon(Icons.tune),
+                      onPressed: () async {
+                        final result = await showDialog<RecipeSearchFilter>(
+                          context: context,
+                          builder: (_) => SavedSearchDialog(
+                            initial: RecipeSearchFilter(
+                              query: query,
+                              maxMinutes: filters.maxMinutes,
+                              includeIngredient: filters.includeIngredient,
+                              excludeIngredient: filters.excludeIngredient,
                             ),
-                          );
-                          if (!mounted || result == null) return;
-                          _search.text = result.query;
-                          ref
-                              .read(recipeSearchProvider.notifier)
-                              .set(result.query);
-                          ref.read(recipeFiltersProvider.notifier).set(result);
+                          ),
+                        );
+                        if (!mounted || result == null) return;
+                        _search.text = result.query;
+                        ref
+                            .read(recipeSearchProvider.notifier)
+                            .set(result.query);
+                        ref.read(recipeFiltersProvider.notifier).set(result);
+                      },
+                    ),
+                    if (query.isNotEmpty)
+                      IconButton(
+                        tooltip: 'Obriši pretragu',
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          _search.clear();
+                          ref.read(recipeSearchProvider.notifier).set('');
                         },
                       ),
-                      if (query.isNotEmpty)
-                        IconButton(
-                          tooltip: 'Obriši pretragu',
-                          icon: const Icon(Icons.close),
-                          onPressed: () {
-                            _search.clear();
-                            ref.read(recipeSearchProvider.notifier).set('');
-                          },
-                        ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: SegmentedButton<bool>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(
+                        value: false,
+                        icon: Icon(Icons.view_list_outlined),
+                        tooltip: 'Prikaži listu',
+                      ),
+                      ButtonSegment(
+                        value: true,
+                        icon: Icon(Icons.grid_view_outlined),
+                        tooltip: 'Prikaži mrežu',
+                      ),
                     ],
+                    selected: {grid},
+                    onSelectionChanged: (value) => ref
+                        .read(recipeGridViewProvider.notifier)
+                        .set(value.single),
                   ),
                 ),
+              ),
+            ];
+            if (grid && recipes.isNotEmpty) {
+              return Column(
+                children: [
+                  ...controls,
+                  Expanded(
+                    child: SpoonRefresh(
+                      onRefresh: _refresh,
+                      child: RecipeGrid(
+                        recipes: recipes,
+                        selectedId: widget.selectedId,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+            return Column(
+              children: [
+                ...controls,
                 Expanded(
                   child: recipes.isEmpty
                       ? _Message(
@@ -207,12 +254,26 @@ class _RecipeListState extends ConsumerState<_RecipeList> {
                           child: ListView.builder(
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 88),
-                            itemCount: recipes.length,
-                            itemBuilder: (context, i) => _RecipeTile(
-                              recipes[i],
-                              index: i,
-                              selected: recipes[i].id == widget.selectedId,
-                            ),
+                            itemCount: recipes.length + 1,
+                            itemBuilder: (context, i) {
+                              if (i == 0) {
+                                return const Padding(
+                                  padding: EdgeInsets.only(top: 12, bottom: 24),
+                                  child: SectionHeading(
+                                    eyebrow: 'Tvoja kuhinja',
+                                    title: 'Recepti',
+                                    subtitle:
+                                        'Sačuvaj ideje kojima se rado vraćaš.',
+                                  ),
+                                );
+                              }
+                              final recipe = recipes[i - 1];
+                              return _RecipeTile(
+                                recipe,
+                                index: i - 1,
+                                selected: recipe.id == widget.selectedId,
+                              );
+                            },
                           ),
                         ),
                 ),
