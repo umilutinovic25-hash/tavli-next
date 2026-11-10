@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import '../account/auth_controller.dart';
 import '../domain/ids.dart';
+import '../domain/meal_plan.dart' show MealKind;
 import '../domain/plan_calendar.dart';
 import '../domain/recipe.dart';
 import '../domain/shopping_demand.dart';
@@ -350,7 +351,12 @@ class ShoppingRepository {
     final kept = <String>{};
     for (final e in entries) {
       final period = periodFor(range, CivilDate.fromWire(e.date));
-      if (e.recipeSnapshotJson == null || period == null) continue;
+      // Obrok van kuće (i nepoznata vrsta) zauzima mesto bez nabavke.
+      if (MealKind.parse(e.kind) != MealKind.cook ||
+          e.recipeSnapshotJson == null ||
+          period == null) {
+        continue;
+      }
       final listId = await weekList(planId, period);
       var source = sources[e.id];
       if (source != null && source.listId != listId) {
@@ -519,7 +525,8 @@ class ShoppingRepository {
               (t) =>
                   t.householdId.equals(_scope.householdId) &
                   t.recipeId.equals(recipeId) &
-                  t.isCooked.equals(false),
+                  t.isCooked.equals(false) &
+                  t.kind.equals(MealKind.cook.name),
             )
             ..limit(1))
           .getSingleOrNull() !=

@@ -20,6 +20,36 @@ enum MealType {
       values.asNameMap()[name is String ? name.trim() : null];
 }
 
+/// Vrsta obroka u planu. `away` zauzima mesto, ali ne traži namirnice.
+enum MealKind {
+  cook,
+  away;
+
+  /// Prazno je stari zapis (kuva se); nepoznata vrsta sa novije verzije
+  /// zauzima mesto bez nabavke, kao [away].
+  static MealKind parse(String? name) => switch (name) {
+    null || 'cook' => cook,
+    _ => away,
+  };
+}
+
+/// Zašto se obrok ne kuva kod kuće. `name` je vrednost u bazi.
+enum AwayReason {
+  restaurant('Restoran'),
+  visiting('Kod roditelja'),
+  skip('Preskačem');
+
+  const AwayReason(this.label);
+
+  final String label;
+
+  static AwayReason? tryParse(Object? name) =>
+      values.asNameMap()[name is String ? name : null];
+}
+
+/// Najduža napomena uz obrok van kuće.
+const maxAwayNoteLength = 80;
+
 /// Najduži plan: ceo kalendarski mesec.
 const maxPlanDays = 31;
 
@@ -238,12 +268,27 @@ class PlannedMeal {
     this.recipeId,
     this.isLocked = false,
     this.isCooked = false,
+    this.kind = MealKind.cook,
+    this.awayReason,
+    this.awayNote,
   });
 
   final String id;
   final String planId;
   final MealSlot slot;
   final int servings;
+
+  /// Kod [MealKind.away] snimak (ako postoji) je jelo pre promene, da
+  /// može da se vrati; nabavka ga ne vidi.
+  final MealKind kind;
+  final AwayReason? awayReason;
+  final String? awayNote;
+
+  bool get isAway => kind == MealKind.away;
+
+  /// "Restoran · sa kolegama"; nepoznat razlog je "Van kuće".
+  String get awayTitle =>
+      [awayReason?.label ?? 'Van kuće', ?awayNote].join(' · ');
 
   /// null samo za stari unos bez snimka.
   final RecipeSnapshot? snapshot;
@@ -255,7 +300,7 @@ class PlannedMeal {
 }
 
 /// Mesta plana koja ponovni predlog sme da menja: bez zaključanih,
-/// skuvanih i prošlih obroka.
+/// skuvanih, obroka van kuće i prošlih obroka.
 Set<MealSlot> regenerableSlots(
   MealPlan plan,
   List<PlannedMeal> meals,
@@ -263,7 +308,7 @@ Set<MealSlot> regenerableSlots(
 ) {
   final protected = {
     for (final m in meals)
-      if (m.isLocked || m.isCooked) m.slot,
+      if (m.isLocked || m.isCooked || m.isAway) m.slot,
   };
   return {
     for (final s in plan.slots)

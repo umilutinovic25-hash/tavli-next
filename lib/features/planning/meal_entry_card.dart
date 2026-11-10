@@ -12,6 +12,7 @@ class MealEntryCard extends StatelessWidget {
     required this.meal,
     this.selected = false,
     this.onTap,
+    this.onEmptyTap,
   });
 
   final MealSlot slot;
@@ -19,21 +20,27 @@ class MealEntryCard extends StatelessWidget {
   final bool selected;
   final VoidCallback? onTap;
 
+  /// Prazno mesto (npr. izbor obroka van kuće).
+  final VoidCallback? onEmptyTap;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final meal = this.meal;
-    final snapshot = meal?.snapshot;
-    final details = [
-      if (snapshot?.prepMinutes case final m?) '$m min',
-      if (meal != null) servingsLabel(meal.servings),
-    ].join(' · ');
+    final away = meal?.isAway ?? false;
+    final snapshot = away ? null : meal?.snapshot;
+    final details = away
+        ? ''
+        : [
+            if (snapshot?.prepMinutes case final m?) '$m min',
+            if (meal != null) servingsLabel(meal.servings),
+          ].join(' · ');
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       color: selected ? colors.secondaryContainer : null,
       child: InkWell(
-        onTap: meal == null ? null : onTap,
+        onTap: meal == null ? onEmptyTap : onTap,
         borderRadius: BorderRadius.circular(20),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 56),
@@ -52,6 +59,8 @@ class MealEntryCard extends StatelessWidget {
                 Text(
                   meal == null
                       ? 'Nije planirano'
+                      : away
+                      ? meal.awayTitle
                       : (snapshot?.title ?? 'Recept nije dostupan'),
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: meal == null ? colors.onSurfaceVariant : null,
@@ -70,6 +79,11 @@ class MealEntryCard extends StatelessWidget {
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: colors.onSurfaceVariant,
                           ),
+                        ),
+                      if (away)
+                        const _Tag(
+                          icon: Icons.restaurant_outlined,
+                          text: 'Van kuće',
                         ),
                       if (meal?.isLocked ?? false)
                         const _Tag(

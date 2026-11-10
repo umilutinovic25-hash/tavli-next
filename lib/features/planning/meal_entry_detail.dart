@@ -8,6 +8,7 @@ import '../../domain/shopping_demand.dart' show maxServings, scaleQuantity;
 import '../recipes/cooking_screen.dart';
 import '../recipes/recipe_view.dart';
 import 'meal_actions.dart';
+import 'meal_away.dart';
 import 'plan_format.dart';
 import 'planning_providers.dart';
 
@@ -56,6 +57,72 @@ class MealEntryDetail extends ConsumerWidget {
       if (await runMealEdit(context, () => repo.removeMeal(meal.id))) {
         onRemoved?.call();
       }
+    }
+
+    if (meal.isAway) {
+      final previous = snapshot?.title;
+      return ReadableScroll(
+        children: [
+          Text(
+            '${dayLabel(meal.slot.date)} · ${meal.slot.type.label}',
+            style: theme.textTheme.labelLarge,
+          ),
+          const SizedBox(height: 4),
+          Text(meal.awayTitle, style: theme.textTheme.headlineSmall),
+          const SizedBox(height: 4),
+          Text(
+            'Obrok van kuće: mesto je zauzeto i ništa se ne dodaje u '
+            'nabavku. Ponovni predlog ga ne menja.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (previous != null)
+                FilledButton.tonalIcon(
+                  onPressed: protected
+                      ? null
+                      : () => runMealEdit(
+                          context,
+                          () => repo.restoreMeal(meal.id),
+                          done: 'Vraćeno: „$previous“.',
+                        ),
+                  icon: const Icon(Icons.undo),
+                  label: Text('Vrati „$previous“'),
+                ),
+              OutlinedButton.icon(
+                onPressed: protected
+                    ? null
+                    : () => chooseAway(
+                        context,
+                        ref,
+                        plan: plan,
+                        slot: meal.slot,
+                        current: meal,
+                      ),
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Promeni razlog'),
+              ),
+              OutlinedButton.icon(
+                onPressed: protected
+                    ? null
+                    : () => replaceMeal(context, ref, plan, meal),
+                icon: const Icon(Icons.swap_horiz),
+                label: const Text('Zameni jelom'),
+              ),
+              TextButton.icon(
+                onPressed: protected ? null : remove,
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Ukloni iz plana'),
+              ),
+            ],
+          ),
+        ],
+      );
     }
 
     return ReadableScroll(
@@ -138,6 +205,19 @@ class MealEntryDetail extends ConsumerWidget {
                   : () => replaceMeal(context, ref, plan, meal),
               icon: const Icon(Icons.swap_horiz),
               label: const Text('Zameni jelo'),
+            ),
+            OutlinedButton.icon(
+              onPressed: protected
+                  ? null
+                  : () => chooseAway(
+                      context,
+                      ref,
+                      plan: plan,
+                      slot: meal.slot,
+                      current: meal,
+                    ),
+              icon: const Icon(Icons.restaurant_outlined),
+              label: const Text('Obrok van kuće'),
             ),
             OutlinedButton.icon(
               onPressed: meal.isCooked
