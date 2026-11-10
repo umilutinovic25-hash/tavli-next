@@ -18,6 +18,10 @@ final mealPlanRepositoryProvider = Provider<MealPlanRepository>(
   ),
 );
 
+final weekTemplatesProvider = StreamProvider.autoDispose<List<WeekTemplate>>(
+  (ref) => ref.watch(mealPlanRepositoryProvider).watchWeekTemplates(),
+);
+
 /// Svi sačuvani planovi, noviji prvi.
 final mealPlansProvider = StreamProvider.autoDispose<List<MealPlan>>(
   (ref) => ref.watch(mealPlanRepositoryProvider).watchPlans(),

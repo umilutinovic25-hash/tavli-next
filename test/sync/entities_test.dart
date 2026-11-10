@@ -218,6 +218,23 @@ void main() {
     );
   });
 
+  test('šablon nedelje prolazi kroz sinhronizaciju', () async {
+    await roundTrip(
+      const WeekTemplateEntity(),
+      WeekTemplatesCompanion.insert(
+        id: 't1',
+        householdId: const Value('h1'),
+        name: 'Nedelja',
+        mealsJson: '[{"weekday":2}]',
+        createdAt: t,
+      ),
+      't1',
+      (r) => expect(r['meals'], [
+        {'weekday': 2},
+      ]),
+    );
+  });
+
   test('registar: svi roditelji uvek pre deteta', () {
     final names = [for (final e in syncEntities) e.name];
     for (final e in syncEntities) {
@@ -230,7 +247,7 @@ void main() {
         );
       }
     }
-    expect(names, hasLength(13));
+    expect(names, hasLength(14));
     expect(const SupplyAllocationEntity().parents, [
       'shopping_contribution',
       'pantry_item',

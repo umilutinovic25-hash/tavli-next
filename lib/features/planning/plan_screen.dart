@@ -17,6 +17,7 @@ import 'plan_calendar.dart';
 import 'plan_format.dart';
 import 'plan_generation.dart';
 import 'planning_providers.dart';
+import 'week_templates.dart';
 
 /// Širina od koje Plan prikazuje kalendar i recept jedan pored drugog.
 const planWideWidth = 1000.0;
@@ -52,10 +53,20 @@ class PlanScreen extends ConsumerWidget {
             body:
                 'Izaberi nedelju ili mesec i obroke; predlog pregledaš '
                 'pre čuvanja.',
-            action: FilledButton.icon(
-              onPressed: () => context.go('/plan/new'),
-              icon: const Icon(Icons.add),
-              label: const Text('Napravi plan'),
+            action: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FilledButton.icon(
+                  onPressed: () => context.go('/plan/new'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Napravi plan'),
+                ),
+                TextButton.icon(
+                  onPressed: () => openWeekTemplates(context),
+                  icon: const Icon(Icons.bookmarks_outlined),
+                  label: const Text('Šabloni nedelje'),
+                ),
+              ],
             ),
           );
         }
@@ -257,6 +268,16 @@ class _PlanView extends ConsumerWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
+            OutlinedButton.icon(
+              onPressed: () => saveWeekTemplate(context, ref, plan, selected),
+              icon: const Icon(Icons.bookmark_add_outlined),
+              label: const Text('Sačuvaj nedelju kao šablon'),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => openWeekTemplates(context),
+              icon: const Icon(Icons.bookmarks_outlined),
+              label: const Text('Šabloni nedelje'),
+            ),
             OutlinedButton.icon(
               onPressed: regenerate,
               icon: const Icon(Icons.auto_awesome),

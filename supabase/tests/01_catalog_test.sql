@@ -42,7 +42,8 @@ select is(
     'shopping_lists:delete', 'shopping_lists:insert', 'shopping_lists:select', 'shopping_lists:update',
     'shopping_sources:delete', 'shopping_sources:insert', 'shopping_sources:select', 'shopping_sources:update',
     'supply_allocations:delete', 'supply_allocations:insert', 'supply_allocations:select', 'supply_allocations:update',
-    'taste_profiles:delete', 'taste_profiles:insert', 'taste_profiles:select', 'taste_profiles:update'
+    'taste_profiles:delete', 'taste_profiles:insert', 'taste_profiles:select', 'taste_profiles:update',
+    'week_templates:delete', 'week_templates:insert', 'week_templates:select', 'week_templates:update'
   ],
   'authenticated ima tačno dogovorena prava na tabelama'
 );
