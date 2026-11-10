@@ -12,6 +12,7 @@ import 'package:tavli/ai/model_status_store.dart';
 import 'package:tavli/domain/meal_plan.dart';
 import 'package:tavli/domain/plan_calendar.dart';
 import 'package:tavli/domain/recipe.dart';
+import 'package:tavli/domain/time_budget.dart';
 
 const model = ModelSpec(
   provider: AIProvider.gemini,
@@ -94,17 +95,20 @@ PlanRequest weekRequest({
   String? wishes,
   bool usePantry = true,
   List<String> pantry = const [],
+  List<DayBudget> budgets = const [],
 }) => PlanRequest(
   range: DateRange(monday, monday.addDays(6)),
   mealTypes: types,
   wishes: wishes,
   usePantry: usePantry,
   pantryNames: pantry,
+  budgets: budgets,
 );
 
-Recipe libraryRecipe(String id, String title) => Recipe(
+Recipe libraryRecipe(String id, String title, {int? activeMinutes}) => Recipe(
   id: id,
   title: title,
+  activeMinutes: activeMinutes,
   servings: 4,
   ingredients: const [Ingredient(name: 'pasulj', quantity: 500, unit: 'g')],
   steps: const ['Skuvaj.'],
@@ -608,6 +612,88 @@ void main() {
     test('nastavak drugog zahteva se odbija', () {
       final other = PlanDraft(request: weekRequest());
       expect(() => ai.propose(twoWeeks, resume: other), throwsArgumentError);
+    });
+  });
+
+  group('vreme po danu', () {
+    const mondayLimit = DayBudget(weekday: 1, maxActiveMinutes: 20);
+
+    String libraryAnswer(AIRequest r, String id) => isOutline(r)
+        ? jsonEncode({
+            'meals': [
+              for (final s in slotsIn(r)) {...s, 'recipeId': id, 'title': 'x'},
+            ],
+          })
+        : throw StateError('ne treba sažetak');
+
+    test('ograničenje dana i vreme recepta idu u upit', () async {
+      client.handler = (r) => libraryAnswer(r, 'brzo');
+      await ai.propose(
+        weekRequest(budgets: const [mondayLimit]),
+        library: [libraryRecipe('brzo', 'Omlet', activeMinutes: 10)],
+      );
+      final prompt = client.requests.first.prompt;
+      expect(prompt, contains('$monday: at most 20 min of active work'));
+      expect(prompt, isNot(contains('${monday.addDays(1)}: at most')));
+      expect(prompt, contains('"activeMinutes":10'));
+    });
+
+    test(
+      'recept koji ne staje u vreme se traži ponovo, samo za taj dan',
+      () async {
+        client.handler = (r) {
+          final slots = slotsIn(r);
+          // Prvi raspored svuda stavlja dug pasulj; ponovljeni bira omlet.
+          return libraryAnswer(r, slots.length == 1 ? 'brzo' : 'dugo');
+        };
+        final draft = await ai.propose(
+          weekRequest(budgets: const [mondayLimit]),
+          library: [
+            libraryRecipe('dugo', 'Pasulj', activeMinutes: 60),
+            libraryRecipe('brzo', 'Omlet', activeMinutes: 10),
+          ],
+        );
+        final outlines = client.requests.where(isOutline).toList();
+        expect(outlines, hasLength(2));
+        expect(slotsIn(outlines[1]), [
+          {'date': '$monday', 'meal': 'lunch'},
+        ]);
+        expect(outlines[1].prompt, contains('Pasulj'));
+        expect(
+          draft.snapshotFor(MealSlot(monday, MealType.lunch))!.title,
+          'Omlet',
+        );
+        expect(
+          draft.snapshotFor(MealSlot(monday.addDays(1), MealType.lunch))!.title,
+          'Pasulj',
+        );
+      },
+    );
+
+    test(
+      'ako ni ponovljen predlog ne staje, ostaje i ne pita se dalje',
+      () async {
+        client.handler = (r) => libraryAnswer(r, 'dugo');
+        final draft = await ai.propose(
+          weekRequest(budgets: const [mondayLimit]),
+          library: [libraryRecipe('dugo', 'Pasulj', activeMinutes: 60)],
+        );
+        expect(client.requests.where(isOutline), hasLength(2));
+        expect(draft.isComplete, isTrue);
+        expect(
+          draft.snapshotFor(MealSlot(monday, MealType.lunch))!.title,
+          'Pasulj',
+        );
+      },
+    );
+
+    test('nepoznato vreme recepta ne traži ponovni predlog', () async {
+      client.handler = (r) => libraryAnswer(r, 'nepoznato');
+      await ai.propose(
+        weekRequest(budgets: const [mondayLimit]),
+        library: [libraryRecipe('nepoznato', 'Gulaš')],
+      );
+      expect(client.requests.where(isOutline), hasLength(1));
     });
   });
 }

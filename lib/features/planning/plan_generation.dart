@@ -174,6 +174,7 @@ class PlanGenerationController extends Notifier<PlanGenerationState> {
                     .confirmedPantryNames()
               : const [],
           rules: await ref.read(dayRuleRepositoryProvider).getAll(),
+          budgets: await ref.read(timeBudgetRepositoryProvider).getAll(),
         );
     final run = ++_run;
     final cancel = _cancel = PlanCancellation();
@@ -246,6 +247,7 @@ class PlanGenerationController extends Notifier<PlanGenerationState> {
           ? await repo.confirmedPantryNames()
           : const [],
       rules: await ref.read(dayRuleRepositoryProvider).getAll(),
+      budgets: await ref.read(timeBudgetRepositoryProvider).getAll(),
       only: slots,
     );
     _run++;
@@ -278,6 +280,7 @@ class PlanGenerationController extends Notifier<PlanGenerationState> {
       wishes: wishes,
       pantryNames: base.pantryNames,
       rules: base.rules,
+      budgets: base.budgets,
       only: {slot},
     );
     // Ostala jela idu kao već planirana, da se ne ponavljaju.

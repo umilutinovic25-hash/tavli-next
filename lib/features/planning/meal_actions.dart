@@ -135,6 +135,7 @@ Future<void> replaceMeal(
     wishes: meal.snapshot == null
         ? null
         : 'Nešto drugačije od: ${meal.snapshot!.title}',
+    budgets: await ref.read(timeBudgetRepositoryProvider).getAll(),
     only: {meal.slot},
   );
   if (!context.mounted) return;

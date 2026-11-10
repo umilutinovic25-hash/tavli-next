@@ -3,6 +3,7 @@ import '../domain/plan_calendar.dart';
 import '../domain/recipe.dart';
 import '../domain/shopping_demand.dart' show maxServings, minServings;
 import '../domain/shopping_source.dart';
+import '../domain/time_budget.dart';
 import '../domain/user_preferences.dart';
 import 'ai_models.dart';
 import 'ai_router.dart';
@@ -86,33 +87,58 @@ class MealPlanAI {
       ];
       if (missing.isEmpty) continue;
       final planned = {for (final p in draft.proposals.values) p.title};
-      final result = await step(
+      Future<Map<MealSlot, SlotProposal>> outline(
+        List<MealSlot> slots, {
+        List<String> tooLong = const [],
+      }) async => (await step(
         () => _router.run(
           AIRequest(
             system: mealPlanSystemPrompt,
             prompt: planOutlinePrompt(
-              slots: missing,
+              slots: slots,
               servings: request.servings,
-              library: [for (final r in offered) (id: r.id, title: r.title)],
+              library: [
+                for (final r in offered)
+                  (
+                    id: r.id,
+                    title: r.title,
+                    activeMinutes: r.activeMinutes,
+                    totalMinutes: r.totalMinutes,
+                  ),
+              ],
               alreadyPlanned: planned.toList(),
               wishes: request.wishes,
               pantry: request.usePantry ? request.pantryNames : const [],
               rules: [
                 for (final r in request.rules)
-                  if (missing.any(r.appliesTo)) r.promptLine,
+                  if (slots.any(r.appliesTo)) r.promptLine,
               ],
+              timeLimits: _timeLimits(slots, request.budgets),
+              tooLong: tooLong,
               preferences: prefs,
             ),
             temperature: 0.8,
           ),
           (json) => parseOutline(
             json,
-            slots: missing,
+            slots: slots,
             library: {for (final r in offered) r.id: r.title},
           ),
         ),
-      );
-      final proposals = result.value;
+      )).value;
+
+      var proposals = await outline(missing);
+      // Recept iz biblioteke čije potvrđeno vreme prekoračuje dan traži se
+      // još jednom, samo za ta mesta; ako ni tada ne staje, ostaje sa
+      // oznakom „Preko vremena“ u pregledu.
+      final over = _overBudget(proposals, byId, request.budgets);
+      if (over.isNotEmpty) {
+        final retry = await outline(
+          over.keys.toList(),
+          tooLong: {for (final p in over.values) p.title}.toList(),
+        );
+        proposals = {...proposals, ...retry};
+      }
       draft = draft.copyWith(
         proposals: {...draft.proposals, ...proposals},
         libraryRecipes: {
@@ -151,6 +177,35 @@ class MealPlanAI {
     return draft;
   }
 }
+
+/// Redovi ograničenja za dane traženih mesta (bez dana bez ograničenja).
+List<String> _timeLimits(List<MealSlot> slots, List<DayBudget> budgets) {
+  final dates = {for (final s in slots) s.date}.toList()
+    ..sort((a, b) => a.compareTo(b));
+  return [
+    for (final d in dates)
+      if (budgetFor(budgets, d.weekday) case final b? when !b.isEmpty)
+        timeLimitLine(d.toString(), b),
+  ];
+}
+
+/// Mesta gde recept iz biblioteke sigurno ne staje u vreme svog dana.
+Map<MealSlot, SlotProposal> _overBudget(
+  Map<MealSlot, SlotProposal> proposals,
+  Map<String, Recipe> library,
+  List<DayBudget> budgets,
+) => {
+  for (final MapEntry(key: slot, value: p) in proposals.entries)
+    if (p.libraryRecipeId case final id?)
+      if (library[id] case final r?)
+        if (checkTime(
+              budget: budgetFor(budgets, slot.date.weekday),
+              activeMinutes: r.activeMinutes,
+              totalMinutes: r.totalMinutes,
+            )?.fit ==
+            TimeFit.exceeds)
+          slot: p,
+};
 
 /// Čita raspored: tačno jedan predlog za svako od [slots]. Baca
 /// [FormatException] za mesto koje nedostaje, ponavlja se ili nije traženo,

@@ -18,23 +18,26 @@ class TimeBudgetRepository {
 
   String _id(int weekday) => '${_scope.householdId}-$weekday';
 
-  Stream<List<DayBudget>> watchAll() =>
-      (_db.select(_db.dayTimeBudgets)
-            ..where((t) => t.householdId.equals(_scope.householdId))
-            ..orderBy([(t) => OrderingTerm.asc(t.weekday)]))
-          .watch()
-          .map(
-            (rows) => [
-              for (final r in rows)
-                if (r.weekday >= 1 && r.weekday <= 7)
-                  DayBudget(
-                    weekday: r.weekday,
-                    maxActiveMinutes: r.maxActiveMinutes,
-                    windowStart: r.windowStart,
-                    windowEnd: r.windowEnd,
-                  ),
-            ],
-          );
+  SimpleSelectStatement<$DayTimeBudgetsTable, DayTimeBudgetRow> _query() =>
+      _db.select(_db.dayTimeBudgets)
+        ..where((t) => t.householdId.equals(_scope.householdId))
+        ..orderBy([(t) => OrderingTerm.asc(t.weekday)]);
+
+  static List<DayBudget> _fromRows(List<DayTimeBudgetRow> rows) => [
+    for (final r in rows)
+      if (r.weekday >= 1 && r.weekday <= 7)
+        DayBudget(
+          weekday: r.weekday,
+          maxActiveMinutes: r.maxActiveMinutes,
+          windowStart: r.windowStart,
+          windowEnd: r.windowEnd,
+        ),
+  ];
+
+  Stream<List<DayBudget>> watchAll() => _query().watch().map(_fromRows);
+
+  /// Trenutna ograničenja, jednim upitom (za predlog plana).
+  Future<List<DayBudget>> getAll() async => _fromRows(await _query().get());
 
   /// Čuva ograničenje dana (prazno ga uklanja). Baca [ArgumentError] na
   /// neispravan unos, pre bilo kakvog upisa.
