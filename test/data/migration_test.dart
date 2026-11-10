@@ -154,7 +154,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 5);
+    expect(db.schemaVersion, 6);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -324,4 +324,29 @@ void main() {
     expect((await again.select(again.shoppingLists).get()).single.id, 'l1');
     expect(await again.select(again.shoppingSources).get(), isEmpty);
   });
+  test(
+    'migracija 5 → 6 čuva postojeće podatke i pravi tabelu pretraga',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('tavli-v6-');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File('${directory.path}/cache.sqlite');
+      final first = AppDatabase(NativeDatabase(file));
+      await first.customStatement(
+        "INSERT INTO app_settings (key, value) VALUES ('theme', 'dark')",
+      );
+      await first.customStatement('DROP TABLE saved_recipe_searches');
+      await first.customStatement('PRAGMA user_version = 5');
+      await first.close();
+      final upgraded = AppDatabase(NativeDatabase(file));
+      addTearDown(upgraded.close);
+      expect(
+        (await upgraded.select(upgraded.appSettings).get()).single.value,
+        'dark',
+      );
+      expect(
+        await upgraded.select(upgraded.savedRecipeSearches).get(),
+        isEmpty,
+      );
+    },
+  );
 }

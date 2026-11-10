@@ -142,6 +142,9 @@ class AccountService {
         )..where((t) => t.householdId.equals(hid))).go();
       }
       await (_db.delete(
+        _db.savedRecipeSearches,
+      )..where((t) => t.userId.equals(userId))).go();
+      await (_db.delete(
         _db.ratings,
       )..where((t) => t.userId.equals(userId))).go();
       await (_db.delete(

@@ -7,10 +7,12 @@ import '../../app/tab_app_bar.dart';
 import '../../app/theme/tavli_colors.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
+import '../../domain/saved_recipe_search.dart';
 import 'add_recipe_sheet.dart';
 import 'recipe_detail_screen.dart';
 import 'recipe_photo.dart';
 import 'recipe_providers.dart';
+import 'saved_search_dialog.dart';
 
 /// Od ove širine sadržaja lista i recept stoje jedno pored drugog.
 const splitViewMinWidth = 840.0;
@@ -120,6 +122,7 @@ class _RecipeListState extends ConsumerState<_RecipeList> {
   @override
   Widget build(BuildContext context) {
     final query = ref.watch(recipeSearchProvider);
+    final filters = ref.watch(recipeFiltersProvider);
     return ref
         .watch(recipesProvider)
         .when(
@@ -136,7 +139,12 @@ class _RecipeListState extends ConsumerState<_RecipeList> {
                 body: 'Dodaj prvi recept iz slike, po nazivu jela ili ručno.',
               );
             }
-            final recipes = filterRecipes(all, query);
+            final recipes = RecipeSearchFilter(
+              query: query,
+              maxMinutes: filters.maxMinutes,
+              includeIngredient: filters.includeIngredient,
+              excludeIngredient: filters.excludeIngredient,
+            ).apply(all);
             return Column(
               children: [
                 Padding(
@@ -147,6 +155,29 @@ class _RecipeListState extends ConsumerState<_RecipeList> {
                     leading: const Icon(Icons.search),
                     onChanged: ref.read(recipeSearchProvider.notifier).set,
                     trailing: [
+                      IconButton(
+                        tooltip: 'Filteri',
+                        icon: const Icon(Icons.tune),
+                        onPressed: () async {
+                          final result = await showDialog<RecipeSearchFilter>(
+                            context: context,
+                            builder: (_) => SavedSearchDialog(
+                              initial: RecipeSearchFilter(
+                                query: query,
+                                maxMinutes: filters.maxMinutes,
+                                includeIngredient: filters.includeIngredient,
+                                excludeIngredient: filters.excludeIngredient,
+                              ),
+                            ),
+                          );
+                          if (!mounted || result == null) return;
+                          _search.text = result.query;
+                          ref
+                              .read(recipeSearchProvider.notifier)
+                              .set(result.query);
+                          ref.read(recipeFiltersProvider.notifier).set(result);
+                        },
+                      ),
                       if (query.isNotEmpty)
                         IconButton(
                           tooltip: 'Obriši pretragu',
@@ -163,7 +194,13 @@ class _RecipeListState extends ConsumerState<_RecipeList> {
                   child: recipes.isEmpty
                       ? _Message(
                           icon: Icons.search_off,
-                          title: 'Nema recepata za „${query.trim()}“.',
+                          title:
+                              query.isNotEmpty &&
+                                  filters.maxMinutes == null &&
+                                  filters.includeIngredient.isEmpty &&
+                                  filters.excludeIngredient.isEmpty
+                              ? 'Nema recepata za „${query.trim()}“.'
+                              : 'Nema recepata za izabrane filtere.',
                         )
                       : SpoonRefresh(
                           onRefresh: _refresh,

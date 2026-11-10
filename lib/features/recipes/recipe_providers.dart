@@ -10,6 +10,7 @@ import '../../data/recipe_photo_store.dart';
 import '../../data/recipe_repository.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_version.dart';
+import '../../domain/saved_recipe_search.dart';
 import '../../providers.dart';
 import 'photo_picker.dart';
 
@@ -68,3 +69,17 @@ class RecipeSearch extends Notifier<String> {
 final recipeSearchProvider = NotifierProvider<RecipeSearch, String>(
   RecipeSearch.new,
 );
+
+final savedRecipeSearchesProvider =
+    StreamProvider.autoDispose<List<SavedRecipeSearch>>(
+      (ref) => ref.watch(recipeRepositoryProvider).watchSavedSearches(),
+    );
+
+class RecipeFilters extends Notifier<RecipeSearchFilter> {
+  @override
+  RecipeSearchFilter build() => const RecipeSearchFilter();
+  void set(RecipeSearchFilter filter) => state = filter;
+}
+
+final recipeFiltersProvider =
+    NotifierProvider<RecipeFilters, RecipeSearchFilter>(RecipeFilters.new);
