@@ -527,6 +527,153 @@ void main() {
       expect((await meal(meals[0].id)).isLocked, isFalse);
     });
 
+    group('obrok van kuće', () {
+      Future<int> bought() async =>
+          (await shop.planTotals(planId))
+              .fold<int>(0, (sum, t) => sum + t.boughtMicros);
+
+      test('restoran zauzima mesto i oslobađa samo potrebu tog obroka; '
+          'jelo može da se vrati', () async {
+        await repo.setAway(
+          planId,
+          meals[1].slot,
+          AwayReason.restaurant,
+          note: '  sa kolegama ',
+        );
+
+        final away = await meal(meals[1].id);
+        expect(away.isAway, isTrue);
+        expect(away.awayReason, AwayReason.restaurant);
+        expect(away.awayNote, 'sa kolegama');
+        expect(away.snapshot, isNotNull);
+        expect(await open(), toMicros(1000));
+        final sources = await db.select(db.shoppingSources).get();
+        expect(sources.map((s) => s.planEntryId), isNot(contains(away.id)));
+
+        await repo.restoreMeal(away.id);
+        final back = await meal(meals[1].id);
+        expect(back.isAway, isFalse);
+        expect(back.awayReason, isNull);
+        expect(await open(), toMicros(1500));
+      });
+
+      test('kupljeno ostaje kad obrok postane van kuće', () async {
+        final items = [
+          for (final t in await shop.planTotals(planId)) ...t.itemIds,
+        ];
+        await shop.setBought(items, bought: true);
+        expect(await bought(), toMicros(1500));
+
+        await repo.setAway(planId, meals[0].slot, AwayReason.visiting);
+
+        expect(await bought(), toMicros(1500));
+        expect(await open(), 0);
+      });
+
+      test('prazno mesto: obrok van kuće bez recepta, 0 potražnje', () async {
+        final plan = (await repo.watchPlans().first).single;
+        await repo.removeMeal(meals[2].id);
+        final before = await db.select(db.shoppingContributions).get();
+
+        await repo.setAway(planId, meals[2].slot, AwayReason.skip);
+
+        final away = (await repo.watchMeals(planId).first).singleWhere(
+          (m) => m.slot == meals[2].slot,
+        );
+        expect(away.isAway, isTrue);
+        expect(away.snapshot, isNull);
+        expect(away.recipeId, isNull);
+        expect(
+          (await db.select(db.shoppingContributions).get()).length,
+          before.length,
+        );
+        expect(
+          regenerableSlots(plan, [away], monday),
+          isNot(contains(away.slot)),
+        );
+        await expectLater(
+          repo.restoreMeal(away.id),
+          throwsA(isA<MealNotFoundException>()),
+        );
+        await repo.removeMeal(away.id);
+        expect(await repo.watchMeals(planId).first, hasLength(2));
+      });
+
+      test(
+        'zaključan obrok ne postaje van kuće; tuđi plan ne postoji',
+        () async {
+          await repo.setLocked(meals[0].id, locked: true);
+          await expectLater(
+            repo.setAway(planId, meals[0].slot, AwayReason.restaurant),
+            throwsA(isA<ProtectedMealException>()),
+          );
+          final theirs = makeRepo(
+            const AccountScope(userId: 'two', householdId: 'home-two'),
+            writer,
+          );
+          await expectLater(
+            theirs.setAway(planId, meals[1].slot, AwayReason.restaurant),
+            throwsA(isA<MealNotFoundException>()),
+          );
+          expect(
+            () => repo.setAway(
+              planId,
+              meals[1].slot,
+              AwayReason.restaurant,
+              note: 'x' * 81,
+            ),
+            throwsArgumentError,
+          );
+        },
+      );
+
+      test('stari nečitljiv snimak nije obrok van kuće', () async {
+        await (db.update(
+          db.mealPlanEntries,
+        )..where((t) => t.id.equals(meals[0].id))).write(
+          const MealPlanEntriesCompanion(
+            recipeSnapshotJson: Value('{pokvareno'),
+          ),
+        );
+        final m = await meal(meals[0].id);
+        expect(m.isAway, isFalse);
+        expect(m.snapshot, isNull);
+      });
+
+      test('izričita zamena receptom vraća obrok u kuvanje', () async {
+        await repo.setAway(planId, meals[1].slot, AwayReason.restaurant);
+        final plan = (await repo.watchPlans().first).single;
+        final base = PlanBase(
+          planId: planId,
+          fingerprint: await repo.fingerprint(planId),
+        );
+        final request = PlanRequest(
+          range: plan.range,
+          mealTypes: plan.mealTypes,
+          only: {meals[1].slot},
+        );
+        await repo.approve(
+          PlanDraft(
+            request: request,
+            proposals: {
+              meals[1].slot: const SlotProposal(
+                title: 'Pasulj',
+                libraryRecipeId: 'r1',
+              ),
+            },
+            libraryRecipes: {'r1': snapshot('Pasulj')},
+            base: base,
+          ),
+        );
+        final m = await meal(meals[1].id);
+        expect(m.isAway, isFalse);
+        expect(m.awayReason, isNull);
+        expect(m.snapshot!.title, 'Pasulj');
+        // Pasulj: 1 kg za 4 porcije, obrok zadržava 2 → 0,5 + 0,5 + 0,5.
+        expect(await open(), toMicros(1500));
+      });
+    });
+
     test('mesta za ponovni predlog: bez zaključanih, skuvanih i '
         'prošlih', () async {
       await repo.setLocked(meals[1].id, locked: true);

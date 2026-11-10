@@ -10,6 +10,7 @@ import '../../domain/meal_plan.dart';
 import '../../domain/plan_calendar.dart';
 import '../../domain/recipe_format.dart';
 import '../recipes/recipe_providers.dart';
+import 'meal_away.dart';
 import 'meal_entry_card.dart';
 import 'meal_entry_detail.dart';
 import 'plan_calendar.dart';
@@ -234,6 +235,8 @@ class _PlanView extends ConsumerWidget {
               meal: bySlot[slot],
               selected: wide && bySlot[slot]?.id == view.entryId,
               onTap: () => open(bySlot[slot]!),
+              onEmptyTap: () =>
+                  chooseAway(context, ref, plan: plan, slot: slot),
             ),
         ],
         const SizedBox(height: 24),

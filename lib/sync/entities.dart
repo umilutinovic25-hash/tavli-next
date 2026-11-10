@@ -367,6 +367,9 @@ class MealPlanEntryEntity
     'is_cooked': r.isCooked,
     'servings': r.servings,
     'recipe_snapshot': _decodeOrNull(r.recipeSnapshotJson),
+    'kind': r.kind,
+    'away_reason': r.awayReason,
+    'away_note': r.awayNote,
   };
 
   @override
@@ -382,6 +385,9 @@ class MealPlanEntryEntity
         isCooked: Value(j['is_cooked'] as bool? ?? false),
         servings: Value(j['servings'] as int?),
         recipeSnapshotJson: Value(_jsonOrNull(j['recipe_snapshot'])),
+        kind: Value(j['kind'] as String? ?? 'cook'),
+        awayReason: Value(j['away_reason'] as String?),
+        awayNote: Value(j['away_note'] as String?),
       );
 }
 

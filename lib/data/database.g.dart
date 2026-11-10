@@ -3762,6 +3762,38 @@ class $MealPlanEntriesTable extends MealPlanEntries
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('cook'),
+  );
+  static const VerificationMeta _awayReasonMeta = const VerificationMeta(
+    'awayReason',
+  );
+  @override
+  late final GeneratedColumn<String> awayReason = GeneratedColumn<String>(
+    'away_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _awayNoteMeta = const VerificationMeta(
+    'awayNote',
+  );
+  @override
+  late final GeneratedColumn<String> awayNote = GeneratedColumn<String>(
+    'away_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3774,6 +3806,9 @@ class $MealPlanEntriesTable extends MealPlanEntries
     householdId,
     servings,
     recipeSnapshotJson,
+    kind,
+    awayReason,
+    awayNote,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3858,6 +3893,24 @@ class $MealPlanEntriesTable extends MealPlanEntries
         ),
       );
     }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    }
+    if (data.containsKey('away_reason')) {
+      context.handle(
+        _awayReasonMeta,
+        awayReason.isAcceptableOrUnknown(data['away_reason']!, _awayReasonMeta),
+      );
+    }
+    if (data.containsKey('away_note')) {
+      context.handle(
+        _awayNoteMeta,
+        awayNote.isAcceptableOrUnknown(data['away_note']!, _awayNoteMeta),
+      );
+    }
     return context;
   }
 
@@ -3907,6 +3960,18 @@ class $MealPlanEntriesTable extends MealPlanEntries
         DriftSqlType.string,
         data['${effectivePrefix}recipe_snapshot_json'],
       ),
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      awayReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}away_reason'],
+      ),
+      awayNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}away_note'],
+      ),
     );
   }
 
@@ -3933,6 +3998,13 @@ class MealPlanEntryRow extends DataClass
   /// Odobren recept u trenutku planiranja (RecipeSnapshot JSON, v5). Izmena
   /// recepta u biblioteci ne menja plan.
   final String? recipeSnapshotJson;
+
+  /// `cook` ili `away` (v11): obrok van kuće zauzima mesto bez nabavke.
+  final String kind;
+
+  /// `restaurant`, `visiting` ili `skip` (v11), samo za `away`.
+  final String? awayReason;
+  final String? awayNote;
   const MealPlanEntryRow({
     required this.id,
     required this.planId,
@@ -3944,6 +4016,9 @@ class MealPlanEntryRow extends DataClass
     this.householdId,
     this.servings,
     this.recipeSnapshotJson,
+    required this.kind,
+    this.awayReason,
+    this.awayNote,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3965,6 +4040,13 @@ class MealPlanEntryRow extends DataClass
     }
     if (!nullToAbsent || recipeSnapshotJson != null) {
       map['recipe_snapshot_json'] = Variable<String>(recipeSnapshotJson);
+    }
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || awayReason != null) {
+      map['away_reason'] = Variable<String>(awayReason);
+    }
+    if (!nullToAbsent || awayNote != null) {
+      map['away_note'] = Variable<String>(awayNote);
     }
     return map;
   }
@@ -3989,6 +4071,13 @@ class MealPlanEntryRow extends DataClass
       recipeSnapshotJson: recipeSnapshotJson == null && nullToAbsent
           ? const Value.absent()
           : Value(recipeSnapshotJson),
+      kind: Value(kind),
+      awayReason: awayReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(awayReason),
+      awayNote: awayNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(awayNote),
     );
   }
 
@@ -4010,6 +4099,9 @@ class MealPlanEntryRow extends DataClass
       recipeSnapshotJson: serializer.fromJson<String?>(
         json['recipeSnapshotJson'],
       ),
+      kind: serializer.fromJson<String>(json['kind']),
+      awayReason: serializer.fromJson<String?>(json['awayReason']),
+      awayNote: serializer.fromJson<String?>(json['awayNote']),
     );
   }
   @override
@@ -4026,6 +4118,9 @@ class MealPlanEntryRow extends DataClass
       'householdId': serializer.toJson<String?>(householdId),
       'servings': serializer.toJson<int?>(servings),
       'recipeSnapshotJson': serializer.toJson<String?>(recipeSnapshotJson),
+      'kind': serializer.toJson<String>(kind),
+      'awayReason': serializer.toJson<String?>(awayReason),
+      'awayNote': serializer.toJson<String?>(awayNote),
     };
   }
 
@@ -4040,6 +4135,9 @@ class MealPlanEntryRow extends DataClass
     Value<String?> householdId = const Value.absent(),
     Value<int?> servings = const Value.absent(),
     Value<String?> recipeSnapshotJson = const Value.absent(),
+    String? kind,
+    Value<String?> awayReason = const Value.absent(),
+    Value<String?> awayNote = const Value.absent(),
   }) => MealPlanEntryRow(
     id: id ?? this.id,
     planId: planId ?? this.planId,
@@ -4053,6 +4151,9 @@ class MealPlanEntryRow extends DataClass
     recipeSnapshotJson: recipeSnapshotJson.present
         ? recipeSnapshotJson.value
         : this.recipeSnapshotJson,
+    kind: kind ?? this.kind,
+    awayReason: awayReason.present ? awayReason.value : this.awayReason,
+    awayNote: awayNote.present ? awayNote.value : this.awayNote,
   );
   MealPlanEntryRow copyWithCompanion(MealPlanEntriesCompanion data) {
     return MealPlanEntryRow(
@@ -4070,6 +4171,11 @@ class MealPlanEntryRow extends DataClass
       recipeSnapshotJson: data.recipeSnapshotJson.present
           ? data.recipeSnapshotJson.value
           : this.recipeSnapshotJson,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      awayReason: data.awayReason.present
+          ? data.awayReason.value
+          : this.awayReason,
+      awayNote: data.awayNote.present ? data.awayNote.value : this.awayNote,
     );
   }
 
@@ -4085,7 +4191,10 @@ class MealPlanEntryRow extends DataClass
           ..write('isCooked: $isCooked, ')
           ..write('householdId: $householdId, ')
           ..write('servings: $servings, ')
-          ..write('recipeSnapshotJson: $recipeSnapshotJson')
+          ..write('recipeSnapshotJson: $recipeSnapshotJson, ')
+          ..write('kind: $kind, ')
+          ..write('awayReason: $awayReason, ')
+          ..write('awayNote: $awayNote')
           ..write(')'))
         .toString();
   }
@@ -4102,6 +4211,9 @@ class MealPlanEntryRow extends DataClass
     householdId,
     servings,
     recipeSnapshotJson,
+    kind,
+    awayReason,
+    awayNote,
   );
   @override
   bool operator ==(Object other) =>
@@ -4116,7 +4228,10 @@ class MealPlanEntryRow extends DataClass
           other.isCooked == this.isCooked &&
           other.householdId == this.householdId &&
           other.servings == this.servings &&
-          other.recipeSnapshotJson == this.recipeSnapshotJson);
+          other.recipeSnapshotJson == this.recipeSnapshotJson &&
+          other.kind == this.kind &&
+          other.awayReason == this.awayReason &&
+          other.awayNote == this.awayNote);
 }
 
 class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
@@ -4130,6 +4245,9 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
   final Value<String?> householdId;
   final Value<int?> servings;
   final Value<String?> recipeSnapshotJson;
+  final Value<String> kind;
+  final Value<String?> awayReason;
+  final Value<String?> awayNote;
   final Value<int> rowid;
   const MealPlanEntriesCompanion({
     this.id = const Value.absent(),
@@ -4142,6 +4260,9 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     this.householdId = const Value.absent(),
     this.servings = const Value.absent(),
     this.recipeSnapshotJson = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.awayReason = const Value.absent(),
+    this.awayNote = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MealPlanEntriesCompanion.insert({
@@ -4155,6 +4276,9 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     this.householdId = const Value.absent(),
     this.servings = const Value.absent(),
     this.recipeSnapshotJson = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.awayReason = const Value.absent(),
+    this.awayNote = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        planId = Value(planId),
@@ -4171,6 +4295,9 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     Expression<String>? householdId,
     Expression<int>? servings,
     Expression<String>? recipeSnapshotJson,
+    Expression<String>? kind,
+    Expression<String>? awayReason,
+    Expression<String>? awayNote,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4185,6 +4312,9 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
       if (servings != null) 'servings': servings,
       if (recipeSnapshotJson != null)
         'recipe_snapshot_json': recipeSnapshotJson,
+      if (kind != null) 'kind': kind,
+      if (awayReason != null) 'away_reason': awayReason,
+      if (awayNote != null) 'away_note': awayNote,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4200,6 +4330,9 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     Value<String?>? householdId,
     Value<int?>? servings,
     Value<String?>? recipeSnapshotJson,
+    Value<String>? kind,
+    Value<String?>? awayReason,
+    Value<String?>? awayNote,
     Value<int>? rowid,
   }) {
     return MealPlanEntriesCompanion(
@@ -4213,6 +4346,9 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
       householdId: householdId ?? this.householdId,
       servings: servings ?? this.servings,
       recipeSnapshotJson: recipeSnapshotJson ?? this.recipeSnapshotJson,
+      kind: kind ?? this.kind,
+      awayReason: awayReason ?? this.awayReason,
+      awayNote: awayNote ?? this.awayNote,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4250,6 +4386,15 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     if (recipeSnapshotJson.present) {
       map['recipe_snapshot_json'] = Variable<String>(recipeSnapshotJson.value);
     }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (awayReason.present) {
+      map['away_reason'] = Variable<String>(awayReason.value);
+    }
+    if (awayNote.present) {
+      map['away_note'] = Variable<String>(awayNote.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4269,6 +4414,9 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
           ..write('householdId: $householdId, ')
           ..write('servings: $servings, ')
           ..write('recipeSnapshotJson: $recipeSnapshotJson, ')
+          ..write('kind: $kind, ')
+          ..write('awayReason: $awayReason, ')
+          ..write('awayNote: $awayNote, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11964,6 +12112,9 @@ typedef $$MealPlanEntriesTableCreateCompanionBuilder =
       Value<String?> householdId,
       Value<int?> servings,
       Value<String?> recipeSnapshotJson,
+      Value<String> kind,
+      Value<String?> awayReason,
+      Value<String?> awayNote,
       Value<int> rowid,
     });
 typedef $$MealPlanEntriesTableUpdateCompanionBuilder =
@@ -11978,6 +12129,9 @@ typedef $$MealPlanEntriesTableUpdateCompanionBuilder =
       Value<String?> householdId,
       Value<int?> servings,
       Value<String?> recipeSnapshotJson,
+      Value<String> kind,
+      Value<String?> awayReason,
+      Value<String?> awayNote,
       Value<int> rowid,
     });
 
@@ -12091,6 +12245,21 @@ class $$MealPlanEntriesTableFilterComposer
 
   ColumnFilters<String> get recipeSnapshotJson => $composableBuilder(
     column: $table.recipeSnapshotJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get awayReason => $composableBuilder(
+    column: $table.awayReason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get awayNote => $composableBuilder(
+    column: $table.awayNote,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12215,6 +12384,21 @@ class $$MealPlanEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get awayReason => $composableBuilder(
+    column: $table.awayReason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get awayNote => $composableBuilder(
+    column: $table.awayNote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$MealPlansTableOrderingComposer get planId {
     final $$MealPlansTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -12298,6 +12482,17 @@ class $$MealPlanEntriesTableAnnotationComposer
     column: $table.recipeSnapshotJson,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get awayReason => $composableBuilder(
+    column: $table.awayReason,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get awayNote =>
+      $composableBuilder(column: $table.awayNote, builder: (column) => column);
 
   $$MealPlansTableAnnotationComposer get planId {
     final $$MealPlansTableAnnotationComposer composer = $composerBuilder(
@@ -12415,6 +12610,9 @@ class $$MealPlanEntriesTableTableManager
                 Value<String?> householdId = const Value.absent(),
                 Value<int?> servings = const Value.absent(),
                 Value<String?> recipeSnapshotJson = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> awayReason = const Value.absent(),
+                Value<String?> awayNote = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MealPlanEntriesCompanion(
                 id: id,
@@ -12427,6 +12625,9 @@ class $$MealPlanEntriesTableTableManager
                 householdId: householdId,
                 servings: servings,
                 recipeSnapshotJson: recipeSnapshotJson,
+                kind: kind,
+                awayReason: awayReason,
+                awayNote: awayNote,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -12441,6 +12642,9 @@ class $$MealPlanEntriesTableTableManager
                 Value<String?> householdId = const Value.absent(),
                 Value<int?> servings = const Value.absent(),
                 Value<String?> recipeSnapshotJson = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> awayReason = const Value.absent(),
+                Value<String?> awayNote = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MealPlanEntriesCompanion.insert(
                 id: id,
@@ -12453,6 +12657,9 @@ class $$MealPlanEntriesTableTableManager
                 householdId: householdId,
                 servings: servings,
                 recipeSnapshotJson: recipeSnapshotJson,
+                kind: kind,
+                awayReason: awayReason,
+                awayNote: awayNote,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

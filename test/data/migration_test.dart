@@ -154,7 +154,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 5);
+    expect(db.schemaVersion, 11);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -323,5 +323,50 @@ void main() {
     addTearDown(again.close);
     expect((await again.select(again.shoppingLists).get()).single.id, 'l1');
     expect(await again.select(again.shoppingSources).get(), isEmpty);
+  });
+
+  test(
+    'migracija 5 → 11 dodaje vrstu obroka; stari obroci se kuvaju',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('tavli-v11-');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File('${directory.path}/cache.sqlite');
+      final before = AppDatabase(NativeDatabase(file));
+      await before.customStatement(
+        'INSERT INTO meal_plans (id, start_date, end_date, meal_types_json, '
+        "created_at) VALUES ('p1', 1, 1, '[\"lunch\"]', 1)",
+      );
+      await before.customStatement(
+        'INSERT INTO meal_plan_entries (id, plan_id, date, meal_type) '
+        "VALUES ('e1', 'p1', 1, 'lunch')",
+      );
+      for (final c in ['kind', 'away_reason', 'away_note']) {
+        await before.customStatement(
+          'ALTER TABLE meal_plan_entries DROP COLUMN $c',
+        );
+      }
+      await before.customStatement('PRAGMA user_version = 5');
+      await before.close();
+
+      final after = AppDatabase(NativeDatabase(file));
+      addTearDown(after.close);
+      final e = (await after.select(after.mealPlanEntries).get()).single;
+      expect(e.id, 'e1');
+      expect(e.kind, 'cook');
+      expect(e.awayReason, isNull);
+    },
+  );
+
+  test('ponovljena v11 migracija (kolone već postoje) ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v11b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 10');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.mealPlanEntries).get(), isEmpty);
   });
 }

@@ -151,7 +151,8 @@ Future<void> replaceMeal(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '${meal.snapshot?.title ?? 'Obrok'} → ${next.title}',
+              '${meal.isAway ? meal.awayTitle : meal.snapshot?.title ?? 'Obrok'}'
+              ' → ${next.title}',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),

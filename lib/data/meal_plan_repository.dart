@@ -181,6 +181,10 @@ class MealPlanRepository {
             // Zamena jela ne menja porcije koje je osoba izabrala za obrok.
             servings: Value(current.servings ?? draft.request.servings),
             recipeSnapshotJson: Value(snapshot),
+            // Izričita zamena obroka van kuće receptom: ponovo se kuva.
+            kind: const Value('cook'),
+            awayReason: const Value(null),
+            awayNote: const Value(null),
           ),
         );
         await _writer.upsert(_entry, current.id);
@@ -212,6 +216,77 @@ class MealPlanRepository {
     entryId,
     (_) async => MealPlanEntriesCompanion(isCooked: Value(cooked)),
   );
+
+  /// Mesto plana postaje obrok van kuće: zauzeto, bez nabavke. Postojeće
+  /// jelo se pamti (za [restoreMeal]); njegova neiskorišćena zaliha i
+  /// otvorena potreba se oslobađaju, kupljeno ostaje. Vraća id obroka.
+  Future<String> setAway(
+    String planId,
+    MealSlot slot,
+    AwayReason reason, {
+    String? note,
+  }) => _db.transaction<String>(() async {
+    final trimmed = note?.trim();
+    final cleanNote = trimmed == null || trimmed.isEmpty ? null : trimmed;
+    if ((cleanNote?.length ?? 0) > maxAwayNoteLength) {
+      throw ArgumentError.value(note, 'note');
+    }
+    final plan = await _planQuery(planId).getSingleOrNull();
+    if (plan == null) throw const MealNotFoundException();
+    final mealPlan = _planFromRow(plan);
+    if (!mealPlan.slots.contains(slot)) throw const MealNotFoundException();
+    MealPlanEntryRow? current;
+    for (final e in await _entriesQuery(planId).get()) {
+      if (_slotOf(e) == slot) current = e;
+    }
+    if (current == null) {
+      final id = newId();
+      await _db
+          .into(_db.mealPlanEntries)
+          .insert(
+            MealPlanEntriesCompanion.insert(
+              id: id,
+              planId: planId,
+              date: slot.date.toWire(),
+              mealType: slot.type.name,
+              kind: const Value('away'),
+              awayReason: Value(reason.name),
+              awayNote: Value(cleanNote),
+              householdId: Value(_scope.householdId),
+            ),
+          );
+      await _writer.upsert(_entry, id);
+      await _shopping.reconcilePlan(planId);
+      return id;
+    }
+    if (current.isLocked || current.isCooked) {
+      throw const ProtectedMealException();
+    }
+    final id = current.id;
+    await (_db.update(
+      _db.mealPlanEntries,
+    )..where((t) => t.id.equals(id))).write(
+      MealPlanEntriesCompanion(
+        kind: const Value('away'),
+        awayReason: Value(reason.name),
+        awayNote: Value(cleanNote),
+      ),
+    );
+    await _writer.upsert(_entry, id);
+    await _shopping.reconcilePlan(planId);
+    return id;
+  });
+
+  /// Vraća jelo koje je bilo pre obroka van kuće; nabavka ga ponovo traži.
+  Future<void> restoreMeal(String entryId) => _edit(entryId, (e) async {
+    if (e.recipeSnapshotJson == null) throw const MealNotFoundException();
+    if (e.isLocked || e.isCooked) throw const ProtectedMealException();
+    return const MealPlanEntriesCompanion(
+      kind: Value('cook'),
+      awayReason: Value(null),
+      awayNote: Value(null),
+    );
+  });
 
   /// Uklanja obrok iz plana i oslobađa njegovu potrebu; kupljeno ostaje.
   Future<void> removeMeal(String entryId) => _db.transaction(() async {
@@ -368,6 +443,9 @@ class MealPlanRepository {
       recipeId: e.recipeId,
       isLocked: e.isLocked,
       isCooked: e.isCooked,
+      kind: MealKind.parse(e.kind),
+      awayReason: AwayReason.tryParse(e.awayReason),
+      awayNote: e.awayNote,
     );
   }
 }

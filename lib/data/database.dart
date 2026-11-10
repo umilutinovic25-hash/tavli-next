@@ -158,6 +158,13 @@ class MealPlanEntries extends Table {
   /// recepta u biblioteci ne menja plan.
   TextColumn get recipeSnapshotJson => text().nullable()();
 
+  /// `cook` ili `away` (v11): obrok van kuće zauzima mesto bez nabavke.
+  TextColumn get kind => text().withDefault(const Constant('cook'))();
+
+  /// `restaurant`, `visiting` ili `skip` (v11), samo za `away`.
+  TextColumn get awayReason => text().nullable()();
+  TextColumn get awayNote => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -395,7 +402,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -412,6 +419,24 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) await transaction(() => _migrateToAccounts(m));
       if (from < 5) await transaction(() => _migrateToPlanShopping(m));
+      // v6–v10 koriste druge grane (018–025); obrok van kuće je v11.
+      if (from < 11) {
+        final columns = {
+          for (final c in await customSelect(
+            'PRAGMA table_info(meal_plan_entries)',
+          ).get())
+            c.read<String>('name'),
+        };
+        for (final c in [
+          mealPlanEntries.kind,
+          mealPlanEntries.awayReason,
+          mealPlanEntries.awayNote,
+        ]) {
+          if (!columns.contains(c.$name)) {
+            await m.addColumn(mealPlanEntries, c);
+          }
+        }
+      }
     },
   );
 

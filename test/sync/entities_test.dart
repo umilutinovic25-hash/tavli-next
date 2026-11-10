@@ -254,6 +254,28 @@ void main() {
             'servings': 4,
             'ingredients': <Object?>[],
           });
+          expect(r['kind'], 'cook');
+          expect(r['away_reason'], isNull);
+        },
+      );
+      await roundTrip(
+        const MealPlanEntryEntity(),
+        MealPlanEntriesCompanion.insert(
+          id: 'e2',
+          planId: 'p1',
+          date: DateTime.utc(2026, 11, 4),
+          mealType: 'lunch',
+          kind: const Value('away'),
+          awayReason: const Value('restaurant'),
+          awayNote: const Value('sa kolegama'),
+          householdId: const Value('h1'),
+        ),
+        'e2',
+        (r) {
+          expect(r['kind'], 'away');
+          expect(r['away_reason'], 'restaurant');
+          expect(r['away_note'], 'sa kolegama');
+          expect(r['recipe_snapshot'], isNull);
         },
       );
       await roundTrip(
