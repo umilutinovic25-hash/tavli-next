@@ -87,6 +87,12 @@ Historical specs retain their delivered acceptance criteria.
    leave/remove/transfer ownership. Share plans, recipes, shopping and pantry;
    keep taste profiles, ratings, AI keys and themes personal. Solo planning
    does not wait for invitations.
+   **Delivered as [034](../specs/034-household-members/spec.md):** owner-only
+   invite codes (8 characters, 7 days, 5 uses) with copy/share, join by code,
+   member list (name and role, no email), remove, leave, transfer ownership,
+   and choosing the active household when a user belongs to several. Still
+   open: invite link and QR (need a domain and new dependencies), a preview of
+   the household before joining, and an IP-based redeem limit.
 3. **009 Realtime sharing** (number retained): household change notifications
    and simultaneous-edit conflict handling. Until then retain 006a record-level
    last-write-wins/delete-wins behavior; do not claim realtime or conflict-free
@@ -121,13 +127,14 @@ Decided (2026-10-30):
 - Account mandatory; all user data on the server, drift as offline cache with an
   outbox; sign-out keeps data; deletion only by the user (item or account).
 - Sign-in methods: email code (006a), Apple + Google (006b).
-- One household per user in the first version (schema allows more).
+- A user can belong to several households; one is active at a time (latest
+  joined by default, manual choice kept on the device) — 034.
 - AI keys stay on the device on sign-out, deleted on account deletion.
 
 Still open:
 
 - Recipes shared by default with a "private" option (008).
-- Whether members (not only the owner) can invite (008).
+- Whether members (not only the owner) can invite (008; 034 keeps owner-only).
 - App domain (for invite links, sign-in emails and the privacy policy).
 
 Prerequisites: Supabase account and EU project (006a), app domain and a custom

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../account/auth_controller.dart';
 import '../features/account/name_screen.dart';
 import '../features/account/sign_in_screen.dart';
+import '../features/household/household_screen.dart';
+import '../features/household/join_household_screen.dart';
 import '../features/pantry/pantry_edit_screen.dart';
 import '../features/pantry/pantry_form_screen.dart';
 import '../features/pantry/pantry_screen.dart';
@@ -93,6 +95,16 @@ GoRouter createRouter({
         GoRoute(
           path: 'preferences',
           builder: (context, state) => const PreferencesScreen(),
+        ),
+        GoRoute(
+          path: 'household',
+          builder: (context, state) => const HouseholdScreen(),
+          routes: [
+            GoRoute(
+              path: 'join',
+              builder: (context, state) => const JoinHouseholdScreen(),
+            ),
+          ],
         ),
         GoRoute(
           path: 'animations',

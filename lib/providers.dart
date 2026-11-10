@@ -22,14 +22,18 @@ import 'ai/meal_plan_ai.dart';
 import 'ai/recipe_ai.dart';
 import 'data/database.dart';
 import 'data/drift_model_status_store.dart';
+import 'data/household_invite_repository.dart';
+import 'data/household_membership_repository.dart';
 import 'data/preferences_repository.dart';
 import 'data/shopping_repository.dart';
+import 'domain/household.dart';
 import 'domain/user_preferences.dart';
 import 'features/recipes/recipe_providers.dart';
 import 'sync/downloader.dart';
 import 'sync/legacy_mover.dart';
 import 'sync/photo_sync.dart';
 import 'sync/sync_engine.dart';
+import 'sync/sync_epoch.dart';
 import 'sync/sync_remote.dart';
 import 'sync/synced_writer.dart';
 import 'sync/uploader.dart';
@@ -94,6 +98,9 @@ final accountApiProvider = Provider<AccountApi>((ref) {
 });
 
 /// Nalog na uređaju: keš profila i domaćinstva, ime, brisanje.
+/// Zajednički brojač pozicija preuzimanja (nalog ↔ preuzimanje).
+final syncEpochProvider = Provider<SyncEpoch>((ref) => SyncEpoch());
+
 final accountServiceProvider = Provider<AccountService>(
   (ref) => AccountService(
     ref.watch(databaseProvider),
@@ -101,6 +108,8 @@ final accountServiceProvider = Provider<AccountService>(
     photos: ref.watch(recipePhotoStoreProvider),
     keys: ref.watch(keyStoreProvider),
     onChange: () => ref.read(syncEngineProvider)?.kick(),
+    epoch: ref.watch(syncEpochProvider),
+    onMembershipsChanged: () => unawaited(ref.read(syncEngineProvider)?.pull()),
   ),
 );
 
@@ -170,6 +179,7 @@ final syncEngineProvider = Provider<SyncEngine?>((ref) {
       remote: remote,
       scope: scope,
       photoStore: ref.watch(recipePhotoStoreProvider),
+      epoch: ref.watch(syncEpochProvider),
     ),
     photoSync: PhotoSync(
       db: db,
@@ -283,3 +293,50 @@ final preferencesRepositoryProvider = Provider<PreferencesRepository>(
 final preferencesProvider = StreamProvider.autoDispose<UserPreferences>(
   (ref) => ref.watch(preferencesRepositoryProvider).watch(),
 );
+
+/// Pozivnice za domaćinstvo na serveru (u testovima lažni server).
+final householdInviteRemoteProvider = Provider<HouseholdInviteRemote>((ref) {
+  final client = ref.watch(supabaseClientProvider);
+  return client == null
+      ? const UnconfiguredHouseholdInviteRemote()
+      : SupabaseHouseholdInviteRemote(client);
+});
+
+final householdInviteRepositoryProvider = Provider<HouseholdInviteRepository>(
+  (ref) => HouseholdInviteRepository(ref.watch(householdInviteRemoteProvider)),
+);
+
+/// Članstvo u domaćinstvu na serveru (u testovima lažni server).
+final householdMembershipRemoteProvider = Provider<HouseholdMembershipRemote>((
+  ref,
+) {
+  final client = ref.watch(supabaseClientProvider);
+  return client == null
+      ? const UnconfiguredHouseholdMembershipRemote()
+      : SupabaseHouseholdMembershipRemote(client);
+});
+
+final householdMembershipRepositoryProvider =
+    Provider<HouseholdMembershipRepository>(
+      (ref) => HouseholdMembershipRepository(
+        ref.watch(householdMembershipRemoteProvider),
+      ),
+    );
+
+/// Domaćinstva prijavljenog korisnika iz keša, poslednje pridruženo prvo.
+final householdMembershipsProvider =
+    StreamProvider.autoDispose<List<Membership>>((ref) {
+      final scope = ref.watch(accountScopeProvider);
+      if (scope == null) return Stream.value(const []);
+      return ref.watch(accountServiceProvider).watchMemberships(scope.userId);
+    });
+
+/// Članovi aktivnog domaćinstva iz keša.
+final householdMembersProvider =
+    StreamProvider.autoDispose<List<HouseholdMember>>((ref) {
+      final scope = ref.watch(accountScopeProvider);
+      if (scope == null) return Stream.value(const []);
+      return ref
+          .watch(accountServiceProvider)
+          .watchMembers(scope.userId, scope.householdId);
+    });

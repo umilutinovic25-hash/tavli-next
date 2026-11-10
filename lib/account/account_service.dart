@@ -6,7 +6,10 @@ import '../ai/key_store.dart';
 import '../data/database.dart';
 import '../data/recipe_photo_store.dart';
 import '../domain/account.dart';
+import '../domain/household.dart';
+import '../domain/household_role.dart';
 import '../sync/entities.dart';
+import '../sync/sync_epoch.dart';
 import '../sync/synced_writer.dart';
 import 'account_api.dart';
 import 'auth_gateway.dart';
@@ -21,7 +24,15 @@ class AccountService {
     this._keys,
     DateTime Function()? clock,
     this._onChange,
+    this.epoch,
+    this.onMembershipsChanged,
   }) : _clock = clock ?? DateTime.now;
+
+  /// Povećava se kad se pozicije preuzimanja obrišu (vidi [refresh]).
+  final SyncEpoch? epoch;
+
+  /// Posle promene skupa članstava (preuzimanje treba pokrenuti odmah).
+  final void Function()? onMembershipsChanged;
 
   final AppDatabase _db;
   final AccountApi _api;
@@ -43,22 +54,203 @@ class AccountService {
   Future<Account> loadOrFetch(AuthSession session) async {
     final local = await cached(session.userId);
     if (local != null) return local;
+    return refresh();
+  }
+
+  /// Nalog i članstva uvek sa servera. Kad se skup članstava promeni, kursori
+  /// preuzimanja se prazne (podaci novog domaćinstva mogu biti stariji od
+  /// kursora), a lokalni podaci domaćinstava kojih više nema se brišu.
+  /// Baca `AuthFailure`; tada se na uređaju ništa ne menja.
+  Future<Account> refresh() async {
     final remote = await _api.fetch();
-    await _db
-        .into(_db.accounts)
-        .insertOnConflictUpdate(
-          AccountsCompanion.insert(
-            userId: remote.userId,
-            email: normalizeEmail(remote.email),
-            displayName: Value(remote.displayName),
-            householdId: remote.householdId,
-            householdName: remote.householdName,
-            role: remote.role,
-            createdAt: _clock(),
+    final userId = remote.userId;
+    final memberships = remote.memberships.isNotEmpty
+        ? remote.memberships
+        : [
+            Membership(
+              householdId: remote.householdId,
+              householdName: remote.householdName,
+              role: HouseholdRole.parse(remote.role),
+              joinedAt: _clock(),
+            ),
+          ];
+    final photos = <String>{};
+    var notify = false;
+    await _db.transaction(() async {
+      final existing = await (_db.select(
+        _db.accounts,
+      )..where((t) => t.userId.equals(userId))).getSingleOrNull();
+      final oldIds = {
+        for (final m in await (_db.select(
+          _db.householdMemberships,
+        )..where((t) => t.accountId.equals(userId))).get())
+          m.householdId,
+      };
+      if (oldIds.isEmpty && existing != null) oldIds.add(existing.householdId);
+      final newIds = {for (final m in memberships) m.householdId};
+      var preferred = existing?.preferredHouseholdId;
+      if (preferred != null && !newIds.contains(preferred)) preferred = null;
+      final active = pickActiveHousehold(memberships, preferredId: preferred);
+
+      for (final gone in oldIds.difference(newIds)) {
+        photos.addAll(await _purgeHousehold(userId, gone));
+        await (_db.delete(_db.householdMemberCache)..where(
+              (t) => t.accountId.equals(userId) & t.householdId.equals(gone),
+            ))
+            .go();
+      }
+      final changed =
+          oldIds.length != newIds.length || !oldIds.containsAll(newIds);
+      if (existing == null) {
+        await _db
+            .into(_db.accounts)
+            .insert(
+              AccountsCompanion.insert(
+                userId: userId,
+                email: normalizeEmail(remote.email),
+                displayName: Value(remote.displayName),
+                householdId: active.householdId,
+                householdName: active.householdName,
+                role: active.role.wire,
+                createdAt: _clock(),
+              ),
+            );
+      } else {
+        await (_db.update(
+          _db.accounts,
+        )..where((t) => t.userId.equals(userId))).write(
+          // Ime i e-pošta se ovde ne diraju: ime koje još čeka slanje
+          // (outbox) ne sme da se prepiše starijim stanjem sa servera.
+          AccountsCompanion(
+            householdId: Value(active.householdId),
+            householdName: Value(active.householdName),
+            role: Value(active.role.wire),
+            preferredHouseholdId: Value(preferred),
+            initialDownloadDone: changed
+                ? const Value(false)
+                : const Value.absent(),
           ),
         );
-    return (await cached(remote.userId))!;
+        if (changed) {
+          await (_db.delete(
+            _db.syncCursors,
+          )..where((t) => t.accountId.equals(userId))).go();
+          epoch?.bump();
+          notify = true;
+        }
+      }
+      await (_db.delete(
+        _db.householdMemberships,
+      )..where((t) => t.accountId.equals(userId))).go();
+      for (final m in memberships) {
+        await _db
+            .into(_db.householdMemberships)
+            .insert(
+              HouseholdMembershipsCompanion.insert(
+                accountId: userId,
+                householdId: m.householdId,
+                householdName: m.householdName,
+                role: m.role.wire,
+                joinedAt: m.joinedAt,
+              ),
+            );
+      }
+    });
+    for (final p in photos) {
+      await _photos?.delete(p);
+    }
+    if (notify) onMembershipsChanged?.call();
+    return (await cached(userId))!;
   }
+
+  /// Sačuvani ručni izbor aktivnog domaćinstva (null = nema izbora).
+  Future<String?> cachedPreferred(String userId) async =>
+      (await (_db.select(
+            _db.accounts,
+          )..where((t) => t.userId.equals(userId))).getSingleOrNull())
+          ?.preferredHouseholdId;
+
+  /// Ručni izbor aktivnog domaćinstva (null = poslednje pridruženo). Važi
+  /// od sledećeg [refresh]; mreža se ne zove.
+  Future<void> setPreferredHousehold(String userId, String? householdId) =>
+      (_db.update(_db.accounts)..where((t) => t.userId.equals(userId))).write(
+        AccountsCompanion(preferredHouseholdId: Value(householdId)),
+      );
+
+  /// Članovi [householdId] sa servera, kao ceo skup za taj nalog.
+  Future<void> cacheMembers(
+    String userId,
+    String householdId,
+    List<HouseholdMember> members,
+    DateTime fetchedAt,
+  ) => _db.transaction(() async {
+    await (_db.delete(_db.householdMemberCache)..where(
+          (t) => t.accountId.equals(userId) & t.householdId.equals(householdId),
+        ))
+        .go();
+    for (final m in members) {
+      await _db
+          .into(_db.householdMemberCache)
+          .insert(
+            HouseholdMemberCacheCompanion.insert(
+              accountId: userId,
+              householdId: householdId,
+              userId: m.userId,
+              displayName: Value(m.displayName),
+              role: m.role.wire,
+              joinedAt: m.joinedAt,
+              fetchedAt: fetchedAt,
+            ),
+          );
+    }
+  });
+
+  /// Domaćinstva korisnika, poslednje pridruženo prvo.
+  Stream<List<Membership>> watchMemberships(String userId) =>
+      (_db.select(_db.householdMemberships)
+            ..where((t) => t.accountId.equals(userId))
+            ..orderBy([(t) => OrderingTerm.desc(t.joinedAt)]))
+          .watch()
+          .map(
+            (rows) => [
+              for (final r in rows)
+                Membership(
+                  householdId: r.householdId,
+                  householdName: r.householdName,
+                  role: HouseholdRole.parse(r.role),
+                  joinedAt: r.joinedAt,
+                ),
+            ],
+          );
+
+  /// Članovi domaćinstva iz keša: vlasnik prvi, pa po pridruživanju.
+  Stream<List<HouseholdMember>> watchMembers(
+    String userId,
+    String householdId,
+  ) =>
+      (_db.select(_db.householdMemberCache)
+            ..where(
+              (t) =>
+                  t.accountId.equals(userId) &
+                  t.householdId.equals(householdId),
+            )
+            ..orderBy([(t) => OrderingTerm.asc(t.joinedAt)]))
+          .watch()
+          .map((rows) {
+            final members = [
+              for (final r in rows)
+                HouseholdMember(
+                  userId: r.userId,
+                  displayName: r.displayName,
+                  role: HouseholdRole.parse(r.role),
+                  joinedAt: r.joinedAt,
+                ),
+            ];
+            return [
+              ...members.where((m) => m.role == HouseholdRole.owner),
+              ...members.where((m) => m.role != HouseholdRole.owner),
+            ];
+          });
 
   /// Čuva ime (1–40 znakova posle skidanja razmaka) lokalno i u redu za
   /// slanje. Baca [ArgumentError] za neispravno ime.
@@ -90,70 +282,23 @@ class AccountService {
   }
 
   /// Briše sa uređaja sve što pripada nalogu (i kad je nalog obrisan na
-  /// drugom uređaju). Podaci drugih naloga ostaju.
+  /// drugom uređaju), uključujući sva domaćinstva iz keša. Podaci drugih
+  /// naloga ostaju.
   Future<void> wipeLocal(String userId) async {
-    final account = await (_db.select(
-      _db.accounts,
-    )..where((t) => t.userId.equals(userId))).getSingleOrNull();
-    final hid = account?.householdId;
     final photos = <String>{};
     await _db.transaction(() async {
-      if (hid != null) {
-        for (final r in await (_db.select(
-          _db.recipes,
-        )..where((t) => t.householdId.equals(hid))).get()) {
-          if (r.imagePath case final p?) photos.add(p);
-        }
-        for (final v in await (_db.select(
-          _db.recipeVersions,
-        )..where((t) => t.householdId.equals(hid))).get()) {
-          if (_imagePath(v.recipeJson) case final p?) photos.add(p);
-        }
-        for (final item in await (_db.select(
-          _db.shoppingItems,
-        )..where((t) => t.householdId.equals(hid))).get()) {
-          if (item.photoPath case final p?) photos.add(p);
-        }
-        // Deca pre roditelja: raspodela, doprinosi, izvori, pa liste i ostava.
-        await (_db.delete(
-          _db.supplyAllocations,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.shoppingContributions,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.shoppingSources,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.cookSoonItems,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.dayTimeBudgets,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.dayRules,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.recipeVersions,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.recipes,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.shoppingItems,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.shoppingLists,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.pantryItems,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.mealPlanEntries,
-        )..where((t) => t.householdId.equals(hid))).go();
-        await (_db.delete(
-          _db.mealPlans,
-        )..where((t) => t.householdId.equals(hid))).go();
+      final account = await (_db.select(
+        _db.accounts,
+      )..where((t) => t.userId.equals(userId))).getSingleOrNull();
+      final households = {
+        ?account?.householdId,
+        for (final m in await (_db.select(
+          _db.householdMemberships,
+        )..where((t) => t.accountId.equals(userId))).get())
+          m.householdId,
+      };
+      for (final hid in households) {
+        photos.addAll(await _purgeHousehold(userId, hid));
       }
       await (_db.delete(
         _db.savedRecipeSearches,
@@ -178,12 +323,105 @@ class AccountService {
         _db.syncCursors,
       )..where((t) => t.accountId.equals(userId))).go();
       await (_db.delete(
+        _db.householdMemberCache,
+      )..where((t) => t.accountId.equals(userId))).go();
+      await (_db.delete(
+        _db.householdMemberships,
+      )..where((t) => t.accountId.equals(userId))).go();
+      await (_db.delete(
         _db.accounts,
       )..where((t) => t.userId.equals(userId))).go();
     });
     for (final p in photos) {
       await _photos?.delete(p);
     }
+  }
+
+  /// Briše lokalne podatke domaćinstva [householdId] i izmene naloga
+  /// [userId] koje na njih čekaju slanje. Vraća putanje slika za brisanje
+  /// (posle transakcije). Zove se unutar transakcije.
+  Future<Set<String>> _purgeHousehold(String userId, String householdId) async {
+    // Drugi nalog na ovom uređaju i dalje koristi domaćinstvo: njegovi redovi
+    // i izmene ostaju, briše se samo ono što čeka slanje za [userId].
+    final keepRows = await _usedByOtherAccount(userId, householdId);
+    final photos = <String>{};
+    if (!keepRows) {
+      for (final r in await (_db.select(
+        _db.recipes,
+      )..where((t) => t.householdId.equals(householdId))).get()) {
+        if (r.imagePath case final p?) photos.add(p);
+      }
+      for (final v in await (_db.select(
+        _db.recipeVersions,
+      )..where((t) => t.householdId.equals(householdId))).get()) {
+        if (_imagePath(v.recipeJson) case final p?) photos.add(p);
+      }
+      for (final item in await (_db.select(
+        _db.shoppingItems,
+      )..where((t) => t.householdId.equals(householdId))).get()) {
+        if (item.photoPath case final p?) photos.add(p);
+      }
+    }
+    // Deca pre roditelja: registar drži roditelje pre dece.
+    for (final e in syncEntities.reversed) {
+      if (e.scope != EntityScope.household) continue;
+      final table = e.table(_db);
+      final ids = [
+        for (final r
+            in await _db
+                .customSelect(
+                  'SELECT id FROM ${table.actualTableName} WHERE household_id = ?',
+                  variables: [Variable.withString(householdId)],
+                  readsFrom: {table},
+                )
+                .get())
+          r.read<String>('id'),
+      ];
+      if (ids.isEmpty) continue;
+      await (_db.delete(_db.syncOutbox)..where(
+            (t) =>
+                t.accountId.equals(userId) &
+                t.entity.equals(e.name) &
+                t.recordId.isIn(ids),
+          ))
+          .go();
+      if (keepRows) continue;
+      await _db.customUpdate(
+        'DELETE FROM ${table.actualTableName} WHERE household_id = ?',
+        variables: [Variable.withString(householdId)],
+        updates: {table},
+        updateKind: UpdateKind.delete,
+      );
+    }
+    if (photos.isNotEmpty) {
+      await (_db.delete(_db.syncOutbox)..where(
+            (t) =>
+                t.accountId.equals(userId) &
+                t.entity.equals('photo') &
+                t.recordId.isIn(photos),
+          ))
+          .go();
+    }
+    return photos;
+  }
+
+  Future<bool> _usedByOtherAccount(String userId, String householdId) async {
+    final active =
+        await (_db.select(_db.accounts)..where(
+              (t) =>
+                  t.userId.equals(userId).not() &
+                  t.householdId.equals(householdId),
+            ))
+            .get();
+    if (active.isNotEmpty) return true;
+    final member =
+        await (_db.select(_db.householdMemberships)..where(
+              (t) =>
+                  t.accountId.equals(userId).not() &
+                  t.householdId.equals(householdId),
+            ))
+            .get();
+    return member.isNotEmpty;
   }
 
   static String? _imagePath(String recipeJson) {

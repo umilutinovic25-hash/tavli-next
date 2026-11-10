@@ -16,6 +16,8 @@ import 'package:tavli/ai/ai_models.dart';
 import 'package:tavli/ai/key_store.dart';
 import 'package:tavli/data/database.dart';
 import 'package:tavli/domain/account.dart';
+import 'package:tavli/domain/household.dart';
+import 'package:tavli/domain/household_role.dart';
 
 import '../helpers/fake_backend.dart';
 import '../helpers/fake_photo_store.dart';
@@ -53,6 +55,7 @@ void main() {
     final membership = {
       'household_id': 'h1',
       'role': 'owner',
+      'joined_at': '2026-11-01T10:00:00Z',
       'households': {'name': 'Moje domaćinstvo'},
     };
 
@@ -114,6 +117,40 @@ void main() {
       expect(a.householdId, 'h2');
       expect(a.householdName, 'Kod Marka');
       expect(a.role, 'member');
+    });
+
+    test('vraća sva članstva redom sa servera, bez limita', () async {
+      handler = (r) {
+        if (!r.url.path.endsWith('/household_members')) {
+          return jsonResponse([profile]);
+        }
+        return jsonResponse([
+          {
+            'household_id': 'h2',
+            'role': 'member',
+            'joined_at': '2026-11-10T10:00:00Z',
+            'households': {'name': 'Kod Marka'},
+          },
+          {
+            'household_id': 'h1',
+            'role': 'owner',
+            'joined_at': '2026-11-01T10:00:00Z',
+            'households': {'name': 'Moje domaćinstvo'},
+          },
+        ]);
+      };
+      final a = await api().fetch();
+      expect(a.memberships.map((m) => m.householdId), ['h2', 'h1']);
+      expect(a.memberships.first.householdName, 'Kod Marka');
+      expect(a.memberships.first.role, HouseholdRole.member);
+      expect(a.memberships.last.joinedAt, DateTime.utc(2026, 11, 1, 10));
+      expect(a.householdId, 'h2');
+      final m = requests.lastWhere(
+        (r) => r.url.path.endsWith('/household_members'),
+      );
+      expect(m.url.queryParameters['order'], startsWith('joined_at.desc'));
+      expect(m.url.queryParameters.containsKey('limit'), isFalse);
+      expect(m.url.queryParameters['select'], contains('joined_at'));
     });
 
     test('ponavlja dok red iz okidača ne postane vidljiv', () async {
@@ -482,5 +519,224 @@ void main() {
         expect(await keys.list(), hasLength(1));
       });
     }
+  });
+
+  group('AccountService.refresh', () {
+    late AppDatabase db;
+    late FakeBackend backend;
+    late FakePhotoStore photos;
+    late AccountService service;
+    late AuthSession session;
+    late Account a;
+    final t = DateTime.utc(2026);
+
+    setUp(() async {
+      db = AppDatabase(NativeDatabase.memory());
+      backend = FakeBackend();
+      photos = FakePhotoStore();
+      service = AccountService(db, backend.accounts, photos: photos);
+      session = await backend.auth.verifyCode('ana@mail.com', FakeServer.code);
+      a = await service.loadOrFetch(session);
+    });
+    tearDown(() => db.close());
+
+    Future<void> recipe(String id, String home, {String? image}) => db
+        .into(db.recipes)
+        .insert(
+          RecipesCompanion.insert(
+            id: id,
+            title: id,
+            servings: 1,
+            source: 'manual',
+            ingredientsJson: '[]',
+            stepsJson: '[]',
+            createdAt: t,
+            updatedAt: t,
+            imagePath: Value(image),
+            householdId: Value(home),
+          ),
+        );
+
+    Future<void> outbox(String entity, String recordId) => db
+        .into(db.syncOutbox)
+        .insert(
+          SyncOutboxCompanion.insert(
+            accountId: a.userId,
+            entity: entity,
+            recordId: recordId,
+            op: 'upsert',
+            createdAt: t,
+          ),
+        );
+
+    Future<void> cursor() => db
+        .into(db.syncCursors)
+        .insert(
+          SyncCursorsCompanion.insert(
+            accountId: a.userId,
+            entity: 'recipe',
+            updatedAt: t,
+            lastId: 'x',
+          ),
+        );
+
+    Future<AccountRow> row() => (db.select(
+      db.accounts,
+    )..where((r) => r.userId.equals(a.userId))).getSingle();
+
+    test('uvek pita server, i kad je nalog u kešu', () async {
+      backend.server.addMember('home-9', a.userId);
+      final fresh = await service.refresh();
+      expect(fresh.householdId, 'home-9');
+      expect(fresh.role, 'member');
+      expect((await row()).householdId, 'home-9');
+      expect(
+        (await service.watchMemberships(a.userId).first).map(
+          (m) => m.householdId,
+        ),
+        ['home-9', a.householdId],
+      );
+    });
+
+    test('nov skup članstava prazni kursore za puno preuzimanje', () async {
+      await cursor();
+      await (db.update(db.accounts)..where((r) => r.userId.equals(a.userId)))
+          .write(const AccountsCompanion(initialDownloadDone: Value(true)));
+      backend.server.addMember('home-9', a.userId);
+      await service.refresh();
+      expect(await db.select(db.syncCursors).get(), isEmpty);
+      expect((await row()).initialDownloadDone, isFalse);
+    });
+
+    test('isti skup članstava ne dira kursore', () async {
+      await service.refresh();
+      await cursor();
+      await (db.update(db.accounts)..where((r) => r.userId.equals(a.userId)))
+          .write(const AccountsCompanion(initialDownloadDone: Value(true)));
+      await service.refresh();
+      expect(await db.select(db.syncCursors).get(), hasLength(1));
+      expect((await row()).initialDownloadDone, isTrue);
+    });
+
+    test('podaci domaćinstva koje je nestalo brišu se sa uređaja', () async {
+      backend.server.addMember('home-9', a.userId);
+      await service.refresh();
+      photos.saved['recipe_photos/zajednicka.jpg'] = Uint8List(1);
+      photos.saved['recipe_photos/moja.jpg'] = Uint8List(1);
+      await recipe(
+        'zajednicki',
+        'home-9',
+        image: 'recipe_photos/zajednicka.jpg',
+      );
+      await recipe('moj', a.householdId, image: 'recipe_photos/moja.jpg');
+      await outbox('recipe', 'zajednicki');
+      await outbox('recipe', 'moj');
+
+      backend.server.members['home-9']!.remove(a.userId);
+      final fresh = await service.refresh();
+
+      expect(fresh.householdId, a.householdId);
+      expect((await db.select(db.recipes).get()).map((r) => r.id), ['moj']);
+      expect((await db.select(db.syncOutbox).get()).map((r) => r.recordId), [
+        'moj',
+      ]);
+      expect(photos.saved.keys, ['recipe_photos/moja.jpg']);
+    });
+
+    test('domaćinstvo koje koristi drugi nalog na uređaju ostaje', () async {
+      backend.server.addMember('home-9', a.userId);
+      await service.refresh();
+      // Marko je na istom uređaju i aktivan u istom domaćinstvu.
+      await db
+          .into(db.accounts)
+          .insert(
+            AccountsCompanion.insert(
+              userId: 'marko',
+              email: 'marko@mail.com',
+              householdId: 'home-9',
+              householdName: 'Zajedničko',
+              role: 'member',
+              createdAt: t,
+            ),
+          );
+      await recipe('zajednicki', 'home-9');
+      await outbox('recipe', 'zajednicki');
+      await db
+          .into(db.syncOutbox)
+          .insert(
+            SyncOutboxCompanion.insert(
+              accountId: 'marko',
+              entity: 'recipe',
+              recordId: 'zajednicki',
+              op: 'upsert',
+              createdAt: t,
+            ),
+          );
+
+      backend.server.members['home-9']!.remove(a.userId);
+      await service.refresh();
+
+      expect((await db.select(db.recipes).get()).map((r) => r.id), [
+        'zajednicki',
+      ]);
+      // Anina izmena se odbacuje (server bi je odbio), Markova ostaje.
+      expect((await db.select(db.syncOutbox).get()).map((r) => r.accountId), [
+        'marko',
+      ]);
+    });
+
+    test('izbor koji više nije dostupan se briše', () async {
+      backend.server.addMember('home-9', a.userId);
+      await service.refresh();
+      await service.setPreferredHousehold(a.userId, 'home-9');
+      backend.server.members['home-9']!.remove(a.userId);
+      final fresh = await service.refresh();
+      expect(fresh.householdId, a.householdId);
+      expect((await row()).preferredHouseholdId, isNull);
+    });
+
+    test('ručni izbor ima prednost nad poslednjim pridruživanjem', () async {
+      backend.server.addMember('home-9', a.userId);
+      await service.refresh();
+      await service.setPreferredHousehold(a.userId, a.householdId);
+      final fresh = await service.refresh();
+      expect(fresh.householdId, a.householdId);
+      expect(fresh.role, 'owner');
+    });
+
+    test('lokalno ime koje čeka slanje se ne prepisuje', () async {
+      await (db.update(db.accounts)..where((r) => r.userId.equals(a.userId)))
+          .write(const AccountsCompanion(displayName: Value('Ana')));
+      final fresh = await service.refresh();
+      expect(fresh.displayName, 'Ana');
+    });
+
+    test('bez mreže baca Offline i ništa ne menja', () async {
+      await cursor();
+      backend.server.offline = true;
+      await expectLater(service.refresh(), throwsA(isA<Offline>()));
+      expect(await db.select(db.syncCursors).get(), hasLength(1));
+      expect((await row()).householdId, a.householdId);
+    });
+
+    test('keš članova zamenjuje skup samo za to domaćinstvo', () async {
+      HouseholdMember member(String id) => HouseholdMember(
+        userId: id,
+        displayName: id,
+        role: HouseholdRole.member,
+        joinedAt: t,
+      );
+      await service.cacheMembers(a.userId, 'h1', [member('x'), member('y')], t);
+      await service.cacheMembers(a.userId, 'h2', [member('z')], t);
+      await service.cacheMembers(a.userId, 'h1', [member('y')], t);
+      expect(
+        (await service.watchMembers(a.userId, 'h1').first).map((m) => m.userId),
+        ['y'],
+      );
+      expect(
+        (await service.watchMembers(a.userId, 'h2').first).map((m) => m.userId),
+        ['z'],
+      );
+    });
   });
 }

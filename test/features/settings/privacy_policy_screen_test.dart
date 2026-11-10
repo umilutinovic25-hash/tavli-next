@@ -38,6 +38,9 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).first,
     );
+    // Izgrađen red može biti ispod ivice ekrana; dovede se u vidno polje.
+    await tester.ensureVisible(find.text('Politika privatnosti'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Politika privatnosti'));
     await tester.pumpAndSettle();
 

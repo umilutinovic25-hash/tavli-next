@@ -147,12 +147,36 @@ class AuthController extends Notifier<AuthState> {
     try {
       final session = await gateway.restore(json);
       if (ref.mounted) await store.write(session.json);
+      // Članstvo je moglo da se promeni na drugom uređaju (uklanjanje,
+      // pridruživanje); sa obnovljenom sesijom nalog se čita sa servera.
+      if (ref.mounted) await refreshAccount();
     } on Offline {
       // Pokušava se ponovo pri povratku u aplikaciju.
     } on Unavailable {
       // Isto.
     } on AuthFailure catch (f) {
       if (ref.mounted) await sessionExpired(accountGone: f is AccountGone);
+    }
+  }
+
+  /// Čita nalog i članstva sa servera i, ako je uspelo, otvara novo aktivno
+  /// domaćinstvo. Bez mreže vraća false i stanje ostaje; opozvana sesija
+  /// vodi na prijavu. Ne baca.
+  Future<bool> refreshAccount() async {
+    if (state is! SignedIn && state is! NeedsName) return false;
+    final service = _service;
+    try {
+      final fresh = await service.refresh();
+      _set(_signedIn(fresh));
+      return true;
+    } on SessionRevoked {
+      if (ref.mounted) await sessionExpired();
+      return false;
+    } on AccountGone {
+      if (ref.mounted) await sessionExpired(accountGone: true);
+      return false;
+    } on AuthFailure {
+      return false;
     }
   }
 

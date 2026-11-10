@@ -180,7 +180,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 15);
+    expect(db.schemaVersion, 16);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -715,7 +715,7 @@ void main() {
         (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
           'user_version',
         ),
-        15,
+        16,
       );
     },
   );
@@ -731,5 +731,51 @@ void main() {
     final again = AppDatabase(NativeDatabase(file));
     addTearDown(again.close);
     expect(await again.select(again.householdPreferences).get(), isEmpty);
+  });
+
+  test('migracija 15 → 16 dodaje keš domaćinstava; nalog ostaje', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v16-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      'INSERT INTO accounts (user_id, email, household_id, household_name, '
+      "role, created_at) VALUES ('u1', 'a@b.c', 'h1', 'Moje', 'owner', 1)",
+    );
+    await before.customStatement('DROP TABLE household_memberships');
+    await before.customStatement('DROP TABLE household_member_cache');
+    await before.customStatement(
+      'ALTER TABLE accounts DROP COLUMN preferred_household_id',
+    );
+    await before.customStatement('PRAGMA user_version = 15');
+    await before.close();
+
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final account = (await after.select(after.accounts).get()).single;
+    expect(account.userId, 'u1');
+    expect(account.householdId, 'h1');
+    expect(account.preferredHouseholdId, isNull);
+    expect(await after.select(after.householdMemberships).get(), isEmpty);
+    expect(await after.select(after.householdMemberCache).get(), isEmpty);
+    expect(
+      (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
+        'user_version',
+      ),
+      16,
+    );
+  });
+
+  test('ponovljena v16 migracija ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v16b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 15');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.householdMemberships).get(), isEmpty);
   });
 }

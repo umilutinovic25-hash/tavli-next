@@ -73,7 +73,7 @@ select is(
         where n.nspname in ('public', 'private')
           and has_function_privilege('authenticated', p.oid, 'execute')
         order by 1),
-  array['private.is_household_owner', 'private.is_member', 'private.is_text_list', 'public.create_household_invite', 'public.leave_household', 'public.redeem_household_invite', 'public.remove_household_member', 'public.transfer_household_ownership'],
+  array['private.is_household_owner', 'private.is_member', 'private.is_text_list', 'public.create_household_invite', 'public.household_member_list', 'public.leave_household', 'public.redeem_household_invite', 'public.remove_household_member', 'public.transfer_household_ownership'],
   'authenticated izvršava samo dogovorene funkcije'
 );
 

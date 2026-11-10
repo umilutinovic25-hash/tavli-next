@@ -182,6 +182,14 @@ void main() {
       );
     });
 
+    test('istekla sesija (401 / PGRST301) je opozvana sesija', () async {
+      handler = (_) => jsonResponse(pgError('PGRST301', 'JWT expired'), 401);
+      await expectLater(
+        remote.redeem('K7P2MDXN'),
+        throwsA(isA<InviteUnauthorized>()),
+      );
+    });
+
     test('nepoznata greška je greška servera', () async {
       handler = (_) => jsonResponse(pgError('XX000', 'boom'), 500);
       await expectLater(
@@ -208,6 +216,32 @@ void main() {
       expect(r.url.path, '/rest/v1/rpc/create_household_invite');
       expect(jsonDecode(r.body), {'p_household_id': 'home-1'});
       expect(code, 'K7P2MDXN');
+    });
+
+    Map<String, Object?> inviteRow({int? maxUses, int uses = 0}) => {
+      'id': 'inv-1',
+      'household_id': 'home-1',
+      'code': 'K7P2MDXN',
+      'created_at': '2026-11-10T12:00:00Z',
+      'expires_at': '2026-11-17T12:00:00Z',
+      'revoked_at': null,
+      'uses': uses,
+      'max_uses': ?maxUses,
+    };
+
+    test('pregled čita max_uses i preostale upotrebe', () async {
+      handler = (_) => jsonResponse([inviteRow(maxUses: 3, uses: 1)]);
+
+      final invite = (await remote.listForHousehold('home-1')).single;
+
+      expect(invite.maxUses, 3);
+      expect(invite.usesLeft, 2);
+    });
+
+    test('red bez max_uses daje podrazumevanih 5', () async {
+      handler = (_) => jsonResponse([inviteRow()]);
+
+      expect((await remote.listForHousehold('home-1')).single.maxUses, 5);
     });
   });
 }

@@ -463,8 +463,41 @@ class Accounts extends Table {
   DateTimeColumn get lastPullAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
 
+  /// Ručni izbor aktivnog domaćinstva (samo na ovom uređaju); null znači
+  /// domaćinstvo kome se korisnik poslednje pridružio.
+  TextColumn get preferredHouseholdId => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {userId};
+}
+
+/// Domaćinstva čiji je korisnik član (keš sa servera, bez outbox-a: menja ih
+/// samo server). Ceo skup se zamenjuje pri svakom osvežavanju naloga.
+@DataClassName('HouseholdMembershipRow')
+class HouseholdMemberships extends Table {
+  TextColumn get accountId => text()();
+  TextColumn get householdId => text()();
+  TextColumn get householdName => text()();
+  TextColumn get role => text()();
+  DateTimeColumn get joinedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {accountId, householdId};
+}
+
+/// Članovi domaćinstva sa imenima (keš sa servera, bez imejla i outbox-a).
+@DataClassName('HouseholdMemberCacheRow')
+class HouseholdMemberCache extends Table {
+  TextColumn get accountId => text()();
+  TextColumn get householdId => text()();
+  TextColumn get userId => text()();
+  TextColumn get displayName => text().nullable()();
+  TextColumn get role => text()();
+  DateTimeColumn get joinedAt => dateTime()();
+  DateTimeColumn get fetchedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {accountId, householdId, userId};
 }
 
 /// Izmene koje čekaju slanje na server, redom. Čuva samo šta je promenjeno;
@@ -528,6 +561,8 @@ class SyncCursors extends Table {
     AppSettings,
     ModelStatuses,
     Accounts,
+    HouseholdMemberships,
+    HouseholdMemberCache,
     SyncOutbox,
     SyncCursors,
   ],
@@ -537,7 +572,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -660,6 +695,25 @@ class AppDatabase extends _$AppDatabase {
           "AND name = 'household_preferences'",
         ).get();
         if (tables.isEmpty) await m.createTable(householdPreferences);
+      }
+      if (from < 16) {
+        final columns = await customSelect('PRAGMA table_info(accounts)').get();
+        if (!columns.any(
+          (c) => c.read<String>('name') == 'preferred_household_id',
+        )) {
+          await m.addColumn(accounts, accounts.preferredHouseholdId);
+        }
+        final existing = await customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table' "
+          "AND name IN ('household_memberships', 'household_member_cache')",
+        ).get();
+        final names = {for (final r in existing) r.read<String>('name')};
+        if (!names.contains('household_memberships')) {
+          await m.createTable(householdMemberships);
+        }
+        if (!names.contains('household_member_cache')) {
+          await m.createTable(householdMemberCache);
+        }
       }
     },
   );

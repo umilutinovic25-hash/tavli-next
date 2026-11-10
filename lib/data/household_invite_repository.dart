@@ -31,6 +31,11 @@ class InviteForbidden extends HouseholdInviteFailure {
   const InviteForbidden();
 }
 
+/// Sesija je istekla ili opozvana: nazad na prijavu.
+class InviteUnauthorized extends HouseholdInviteFailure {
+  const InviteUnauthorized();
+}
+
 class InviteOffline extends HouseholdInviteFailure {
   const InviteOffline();
 }
@@ -108,15 +113,19 @@ class SupabaseHouseholdInviteRemote implements HouseholdInviteRemote {
         ? null
         : DateTime.parse(r['revoked_at'] as String),
     uses: r['uses'] as int,
+    maxUses: r['max_uses'] as int? ?? 5,
   );
 
   static Future<T> _guard<T>(Future<T> Function() action) async {
     try {
       return await action();
     } on PostgrestException catch (e) {
-      throw switch (e.code) {
+      final code = e.code ?? '';
+      throw switch (code) {
         'P0429' => const InviteTooManyAttempts(),
         '42501' => const InviteForbidden(),
+        _ when code == '401' || code.startsWith('PGRST3') =>
+          const InviteUnauthorized(),
         _ => const InviteServerError(),
       };
     } on SocketException {
@@ -127,6 +136,25 @@ class SupabaseHouseholdInviteRemote implements HouseholdInviteRemote {
       throw const InviteOffline();
     }
   }
+}
+
+/// Build bez Supabase podešavanja: pozivnice nisu dostupne (kao bez mreže).
+class UnconfiguredHouseholdInviteRemote implements HouseholdInviteRemote {
+  const UnconfiguredHouseholdInviteRemote();
+
+  @override
+  Future<String> create(String householdId) async =>
+      throw const InviteOffline();
+
+  @override
+  Future<List<HouseholdInvite>> listForHousehold(String householdId) async =>
+      throw const InviteOffline();
+
+  @override
+  Future<void> revoke(String id) async => throw const InviteOffline();
+
+  @override
+  Future<String?> redeem(String code) async => throw const InviteOffline();
 }
 
 /// Pozivnice za domaćinstvo: pravljenje (kod pravi server), pregled,

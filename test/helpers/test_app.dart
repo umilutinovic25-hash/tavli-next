@@ -171,6 +171,8 @@ class TestApp {
   /// Nalog kao da je već bio prijavljen na uređaju (sesija + keš).
   Future<void> signIn({String? name = 'Ana Petrović'}) async {
     secrets.values[SessionStore.key] = session.json;
+    // Server ima isto ime kao uređaj (preuzimanje profila ga ne briše).
+    backend.server.profiles[scope.userId]!['display_name'] = name;
     await db
         .into(db.accounts)
         .insertOnConflictUpdate(
@@ -244,6 +246,10 @@ Future<TestApp> pumpTavli(
         authClockProvider.overrideWithValue(() => app.now),
         syncRemoteProvider.overrideWithValue(app.backend.sync),
         photoRemoteProvider.overrideWithValue(app.backend.photos),
+        householdInviteRemoteProvider.overrideWithValue(app.backend.invites),
+        householdMembershipRemoteProvider.overrideWithValue(
+          app.backend.membership,
+        ),
         keyStoreProvider.overrideWithValue(app.keys),
         builtInKeysProvider.overrideWithValue(
           const BuiltInKeys({AIProvider.gemini: 'fake-test-key'}),
