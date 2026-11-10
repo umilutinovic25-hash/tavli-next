@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../../data/database.dart';
 
+enum PantryCheck {
+  have('Imam'),
+  empty('Nestalo'),
+  unknown('Ne znam količinu');
+
+  const PantryCheck(this.label);
+  final String label;
+}
+
 enum PantryFilter {
   all('Sve'),
   soon('Uskoro ističe'),
@@ -39,10 +48,12 @@ class PantryItemTile extends StatelessWidget {
     required this.item,
     required this.now,
     required this.onEdit,
+    this.onCheck,
   });
   final PantryItemRow item;
   final DateTime now;
   final VoidCallback onEdit;
+  final ValueChanged<PantryCheck>? onCheck;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +71,9 @@ class PantryItemTile extends StatelessWidget {
             ? 'Uskoro ističe'
             : 'Rok'}: ${pantryDate(date)}',
       if (item.sourceShoppingItemId != null) 'Iz nabavke',
+      item.confirmedAt == null
+          ? 'Još nije provereno'
+          : 'Provereno: ${pantryDate(item.confirmedAt!)}',
     ];
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -73,10 +87,17 @@ class PantryItemTile extends StatelessWidget {
             color: expired ? colors.error : colors.onSurfaceVariant,
           ),
         ),
-        trailing: const Icon(
-          Icons.edit_outlined,
-          semanticLabel: 'Izmeni namirnicu',
-        ),
+        trailing: onCheck == null
+            ? const Icon(Icons.edit_outlined, semanticLabel: 'Izmeni namirnicu')
+            : PopupMenuButton<PantryCheck>(
+                tooltip: 'Proveri namirnicu',
+                icon: const Icon(Icons.fact_check_outlined),
+                onSelected: onCheck,
+                itemBuilder: (_) => [
+                  for (final check in PantryCheck.values)
+                    PopupMenuItem(value: check, child: Text(check.label)),
+                ],
+              ),
         onTap: onEdit,
       ),
     );

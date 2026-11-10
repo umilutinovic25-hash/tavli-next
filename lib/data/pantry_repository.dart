@@ -105,6 +105,33 @@ class PantryRepository {
     });
   }
 
+  /// Provera jedne ture bez prepisivanja naziva, roka ili porekla iz UI-ja.
+  /// Null znači provereno, ali nepoznato; nula čuva identitet nestale zalihe.
+  Future<void> checkQuantity(
+    String id, {
+    required double? quantity,
+    String? unit,
+  }) {
+    if (quantity != null && (!quantity.isFinite || quantity < 0)) {
+      throw ArgumentError.value(quantity, 'quantity');
+    }
+    return _db.transaction(() async {
+      final item = await _existing(id);
+      await (_db.update(_db.pantryItems)..where(
+            (t) => t.id.equals(id) & t.householdId.equals(_scope.householdId),
+          ))
+          .write(
+            PantryItemsCompanion(
+              quantity: Value(quantity),
+              unit: Value(unit == null ? item.unit : _unit(unit)),
+              confirmedAt: Value(_clock().toUtc()),
+            ),
+          );
+      await _writer.upsert(_pantryItem, id);
+      await _shopping.reconcileInventory();
+    });
+  }
+
   Future<void> remove(String id) => _db.transaction(() async {
     final item = await _existing(id);
     if (item.sourceShoppingItemId != null) {

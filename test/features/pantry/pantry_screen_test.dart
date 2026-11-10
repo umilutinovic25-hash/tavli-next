@@ -80,6 +80,109 @@ void main() {
     await icons.load();
   });
 
+  for (final width in [320.0, 1200.0]) {
+    testTavli('brza provera, nepoznato i nestalo na $width px uz tekst 2×', (
+      tester,
+    ) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      final app = await pumpTavli(
+        tester,
+        location: '/pantry',
+        size: Size(width, 1200),
+        setup: (db) async {
+          final (pantry, _) = await repositories(db);
+          await pantry.create(name: 'Mleko', quantity: 1, unit: 'l');
+        },
+      );
+      expect(find.textContaining('Provereno: 9.11.2026.'), findsOneWidget);
+      Future<void> check(String label) async {
+        await tester.ensureVisible(find.byTooltip('Proveri namirnicu'));
+        await tester.tap(find.byTooltip('Proveri namirnicu'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(label));
+        await tester.pumpAndSettle();
+      }
+
+      await check('Imam');
+      await tester.enterText(
+        find.byKey(const ValueKey('check-quantity')),
+        '0,5',
+      );
+      await tapButton(tester, 'Potvrdi');
+      expect(find.textContaining('0,5 l'), findsOneWidget);
+      await check('Ne znam količinu');
+      expect(find.textContaining('Količina nije potvrđena'), findsOneWidget);
+      final unknown = (await app.db.select(app.db.pantryItems).get()).single;
+      expect(unknown.quantity, isNull);
+      expect(unknown.confirmedAt, isNotNull);
+      await check('Nestalo');
+      expect(find.text('Još nema unetih namirnica'), findsOneWidget);
+      expect(
+        (await app.db.select(app.db.pantryItems).get()).single.quantity,
+        0,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testTavli('provera ne pretpostavlja količinu; odustajanje ništa ne upisuje', (
+    tester,
+  ) async {
+    final app = await pumpTavli(
+      tester,
+      location: '/pantry',
+      setup: (db) async {
+        final (pantry, _) = await repositories(db);
+        await pantry.create(name: 'So');
+      },
+    );
+    expect(find.textContaining('Još nije provereno'), findsOneWidget);
+    await tester.tap(find.byTooltip('Proveri namirnicu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Imam'));
+    await tester.pumpAndSettle();
+    await tapButton(tester, 'Potvrdi');
+    expect(find.text('Unesi broj veći od nule.'), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('check-quantity')), '25');
+    await tapButton(tester, 'Odustani');
+    final row = (await app.db.select(app.db.pantryItems).get()).single;
+    expect(row.quantity, isNull);
+    expect(row.confirmedAt, isNull);
+  });
+
+  testTavli('greška provere čuva količinu za ponovni pokušaj', (tester) async {
+    final app = await pumpTavli(
+      tester,
+      location: '/pantry',
+      setup: (db) async {
+        final (pantry, _) = await repositories(db);
+        await pantry.create(name: 'Mleko', quantity: 1, unit: 'l');
+      },
+    );
+    await tester.runAsync(
+      () => app.db.customStatement(
+        "CREATE TRIGGER reject_check BEFORE UPDATE ON pantry_items BEGIN SELECT RAISE(ABORT, 'test'); END",
+      ),
+    );
+    await tester.tap(find.byTooltip('Proveri namirnicu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Imam'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('check-quantity')),
+      '0,25',
+    );
+    await tapButton(tester, 'Potvrdi');
+    expect(find.text('Provera nije sačuvana. Pokušaj ponovo.'), findsOneWidget);
+    expect((await app.db.select(app.db.pantryItems).get()).single.quantity, 1);
+    await tester.runAsync(
+      () => app.db.customStatement('DROP TRIGGER reject_check'),
+    );
+    await tapButton(tester, 'Potvrdi');
+    expect(find.textContaining('0,25 l'), findsOneWidget);
+  });
+
   testTavli('dodavanje, decimalni zarez, izmena i potvrđeno brisanje', (
     tester,
   ) async {

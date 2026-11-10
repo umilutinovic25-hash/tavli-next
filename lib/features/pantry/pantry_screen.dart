@@ -5,9 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../app/animations/empty_fridge.dart';
 import '../../app/placeholder_screen.dart';
 import '../../app/tab_app_bar.dart';
+import '../../data/database.dart';
+import '../../data/pantry_repository.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
 import '../recipes/recipe_providers.dart';
+import '../shopping/shopping_providers.dart';
+import 'pantry_check_dialog.dart';
 import 'pantry_item_tile.dart';
 import 'pantry_providers.dart';
 
@@ -25,6 +29,47 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
   void dispose() {
     _search.dispose();
     super.dispose();
+  }
+
+  final _checking = <String>{};
+
+  Future<void> _check(PantryItemRow item, PantryCheck check) async {
+    if (_checking.contains(item.id)) return;
+    setState(() => _checking.add(item.id));
+    final repo = ref.read(pantryRepositoryProvider);
+    try {
+      if (check == PantryCheck.have) {
+        final saved = await showDialog<bool>(
+          context: context,
+          builder: (_) => PantryCheckDialog(item: item, repository: repo),
+        );
+        if (saved != true) return;
+      } else {
+        await repo.checkQuantity(
+          item.id,
+          quantity: check == PantryCheck.empty ? 0 : null,
+        );
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Stanje je provereno.')));
+    } on PantryItemMissing {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Namirnica nije pronađena.')),
+        );
+      }
+    } on Exception {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Provera nije sačuvana. Pokušaj ponovo.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _checking.remove(item.id));
+    }
   }
 
   Widget _addButton() => FilledButton.icon(
@@ -85,6 +130,9 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
                       item: item,
                       now: now,
                       onEdit: () => context.go('/pantry/${item.id}/edit'),
+                      onCheck: _checking.contains(item.id)
+                          ? null
+                          : (check) => _check(item, check),
                     ),
                   );
             }
