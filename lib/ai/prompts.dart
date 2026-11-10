@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../domain/recipe.dart';
+import '../domain/user_preferences.dart';
 
 final _recipeSchema =
     '''
@@ -28,8 +29,35 @@ Use metric units. Ingredient names are lowercase base names without quantities.
 Recipe JSON schema:
 $_recipeSchema''';
 
-String recipeFromImagePrompt() => '''
-Read the recipe from this image (printed, handwritten or a screenshot) and
+String _dietForPrompt(FoodDiet diet) => switch (diet) {
+  FoodDiet.vegetarian => 'vegetarian',
+  FoodDiet.vegan => 'vegan',
+  FoodDiet.glutenFree => 'gluten-free',
+  FoodDiet.lactoseFree => 'lactose-free',
+};
+
+/// Blok sa preferencijama domaćinstva za AI upit. Alergije su prve i
+/// zabranjene su; prazno kad nema unosa (null ili podrazumevano stanje).
+String preferencesBlock(UserPreferences? preferences) {
+  final p = preferences;
+  if (p == null || p.isEmpty) return '';
+  final lines = [
+    if (p.allergies.isNotEmpty)
+      'ALLERGIES: the dish must NOT contain any of these, not as an ingredient '
+          'and not hidden in another ingredient: ${jsonEncode(p.allergies)}.',
+    if (p.diet.isNotEmpty)
+      'Diet: every dish must be ${p.diet.map(_dietForPrompt).join(', ')}.',
+    if (p.dislikes.isNotEmpty)
+      'Dislikes: avoid these when possible: ${jsonEncode(p.dislikes)}.',
+    'Household size: ${p.servings} people (the servings requested below '
+        'still set the quantities).',
+  ];
+  return 'Household preferences (follow them):\n'
+      '${lines.map((l) => '- $l').join('\n')}\n\n';
+}
+
+String recipeFromImagePrompt({UserPreferences? preferences}) =>
+    '''${preferencesBlock(preferences)}Read the recipe from this image (printed, handwritten or a screenshot) and
 return it in the recipe JSON schema. Keep the original quantities; translate
 to Serbian if needed. If something is unreadable, make a sensible guess and
 mention it in that ingredient's "note".
@@ -39,16 +67,19 @@ String recipeFromNamePrompt(
   String dishName, {
   required int servings,
   String? notes,
+  UserPreferences? preferences,
 }) =>
-    '''
-Create a home-cooking recipe for: "$dishName".
+    '''${preferencesBlock(preferences)}Create a home-cooking recipe for: "$dishName".
 Servings: $servings.
 ${notes == null || notes.isEmpty ? '' : 'Extra wishes: $notes\n'}Use ingredients that are easy to find in Serbian supermarkets.
 Return it in the recipe JSON schema.''';
 
-String refineRecipePrompt(Recipe current, String instruction) =>
-    '''
-Here is the current recipe:
+String refineRecipePrompt(
+  Recipe current,
+  String instruction, {
+  UserPreferences? preferences,
+}) =>
+    '''${preferencesBlock(preferences)}Here is the current recipe:
 ${jsonEncode(current.toAiJson())}
 
 Change it according to this request: "$instruction"

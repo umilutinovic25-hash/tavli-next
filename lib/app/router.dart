@@ -21,6 +21,8 @@ import '../features/recipes/recipes_screen.dart';
 import '../features/settings/ai_keys_screen.dart';
 import '../features/settings/animations_gallery_screen.dart';
 import '../features/settings/appearance_screen.dart';
+import '../features/settings/preferences_screen.dart';
+import '../features/settings/privacy_policy_screen.dart';
 import '../features/settings/profile_screen.dart';
 import '../features/shopping/shopping_screen.dart';
 import '../features/use_first/use_first_screen.dart';
@@ -83,6 +85,14 @@ GoRouter createRouter({
         GoRoute(
           path: 'appearance',
           builder: (context, state) => const AppearanceScreen(),
+        ),
+        GoRoute(
+          path: 'privacy',
+          builder: (context, state) => const PrivacyPolicyScreen(),
+        ),
+        GoRoute(
+          path: 'preferences',
+          builder: (context, state) => const PreferencesScreen(),
         ),
         GoRoute(
           path: 'animations',

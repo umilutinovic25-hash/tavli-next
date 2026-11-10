@@ -6707,6 +6707,440 @@ class DayRulesCompanion extends UpdateCompanion<DayRuleRow> {
   }
 }
 
+class $HouseholdPreferencesTable extends HouseholdPreferences
+    with TableInfo<$HouseholdPreferencesTable, HouseholdPreferenceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HouseholdPreferencesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _householdIdMeta = const VerificationMeta(
+    'householdId',
+  );
+  @override
+  late final GeneratedColumn<String> householdId = GeneratedColumn<String>(
+    'household_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dietJsonMeta = const VerificationMeta(
+    'dietJson',
+  );
+  @override
+  late final GeneratedColumn<String> dietJson = GeneratedColumn<String>(
+    'diet_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _dislikesJsonMeta = const VerificationMeta(
+    'dislikesJson',
+  );
+  @override
+  late final GeneratedColumn<String> dislikesJson = GeneratedColumn<String>(
+    'dislikes_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _allergiesJsonMeta = const VerificationMeta(
+    'allergiesJson',
+  );
+  @override
+  late final GeneratedColumn<String> allergiesJson = GeneratedColumn<String>(
+    'allergies_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _servingsMeta = const VerificationMeta(
+    'servings',
+  );
+  @override
+  late final GeneratedColumn<int> servings = GeneratedColumn<int>(
+    'servings',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    householdId,
+    dietJson,
+    dislikesJson,
+    allergiesJson,
+    servings,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'household_preferences';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HouseholdPreferenceRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('household_id')) {
+      context.handle(
+        _householdIdMeta,
+        householdId.isAcceptableOrUnknown(
+          data['household_id']!,
+          _householdIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('diet_json')) {
+      context.handle(
+        _dietJsonMeta,
+        dietJson.isAcceptableOrUnknown(data['diet_json']!, _dietJsonMeta),
+      );
+    }
+    if (data.containsKey('dislikes_json')) {
+      context.handle(
+        _dislikesJsonMeta,
+        dislikesJson.isAcceptableOrUnknown(
+          data['dislikes_json']!,
+          _dislikesJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('allergies_json')) {
+      context.handle(
+        _allergiesJsonMeta,
+        allergiesJson.isAcceptableOrUnknown(
+          data['allergies_json']!,
+          _allergiesJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('servings')) {
+      context.handle(
+        _servingsMeta,
+        servings.isAcceptableOrUnknown(data['servings']!, _servingsMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HouseholdPreferenceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HouseholdPreferenceRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      householdId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}household_id'],
+      ),
+      dietJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}diet_json'],
+      )!,
+      dislikesJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dislikes_json'],
+      )!,
+      allergiesJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}allergies_json'],
+      )!,
+      servings: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}servings'],
+      )!,
+    );
+  }
+
+  @override
+  $HouseholdPreferencesTable createAlias(String alias) {
+    return $HouseholdPreferencesTable(attachedDatabase, alias);
+  }
+}
+
+class HouseholdPreferenceRow extends DataClass
+    implements Insertable<HouseholdPreferenceRow> {
+  final String id;
+  final String? householdId;
+
+  /// Niz FoodDiet.name: vegetarian, vegan, glutenFree, lactoseFree.
+  final String dietJson;
+
+  /// Namirnice koje domaćinstvo ne voli (niz stringova, mala slova).
+  final String dislikesJson;
+
+  /// Alergije (niz stringova); AI ih nikad ne sme koristiti.
+  final String allergiesJson;
+
+  /// Broj osoba u domaćinstvu (1–20).
+  final int servings;
+  const HouseholdPreferenceRow({
+    required this.id,
+    this.householdId,
+    required this.dietJson,
+    required this.dislikesJson,
+    required this.allergiesJson,
+    required this.servings,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || householdId != null) {
+      map['household_id'] = Variable<String>(householdId);
+    }
+    map['diet_json'] = Variable<String>(dietJson);
+    map['dislikes_json'] = Variable<String>(dislikesJson);
+    map['allergies_json'] = Variable<String>(allergiesJson);
+    map['servings'] = Variable<int>(servings);
+    return map;
+  }
+
+  HouseholdPreferencesCompanion toCompanion(bool nullToAbsent) {
+    return HouseholdPreferencesCompanion(
+      id: Value(id),
+      householdId: householdId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(householdId),
+      dietJson: Value(dietJson),
+      dislikesJson: Value(dislikesJson),
+      allergiesJson: Value(allergiesJson),
+      servings: Value(servings),
+    );
+  }
+
+  factory HouseholdPreferenceRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HouseholdPreferenceRow(
+      id: serializer.fromJson<String>(json['id']),
+      householdId: serializer.fromJson<String?>(json['householdId']),
+      dietJson: serializer.fromJson<String>(json['dietJson']),
+      dislikesJson: serializer.fromJson<String>(json['dislikesJson']),
+      allergiesJson: serializer.fromJson<String>(json['allergiesJson']),
+      servings: serializer.fromJson<int>(json['servings']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'householdId': serializer.toJson<String?>(householdId),
+      'dietJson': serializer.toJson<String>(dietJson),
+      'dislikesJson': serializer.toJson<String>(dislikesJson),
+      'allergiesJson': serializer.toJson<String>(allergiesJson),
+      'servings': serializer.toJson<int>(servings),
+    };
+  }
+
+  HouseholdPreferenceRow copyWith({
+    String? id,
+    Value<String?> householdId = const Value.absent(),
+    String? dietJson,
+    String? dislikesJson,
+    String? allergiesJson,
+    int? servings,
+  }) => HouseholdPreferenceRow(
+    id: id ?? this.id,
+    householdId: householdId.present ? householdId.value : this.householdId,
+    dietJson: dietJson ?? this.dietJson,
+    dislikesJson: dislikesJson ?? this.dislikesJson,
+    allergiesJson: allergiesJson ?? this.allergiesJson,
+    servings: servings ?? this.servings,
+  );
+  HouseholdPreferenceRow copyWithCompanion(HouseholdPreferencesCompanion data) {
+    return HouseholdPreferenceRow(
+      id: data.id.present ? data.id.value : this.id,
+      householdId: data.householdId.present
+          ? data.householdId.value
+          : this.householdId,
+      dietJson: data.dietJson.present ? data.dietJson.value : this.dietJson,
+      dislikesJson: data.dislikesJson.present
+          ? data.dislikesJson.value
+          : this.dislikesJson,
+      allergiesJson: data.allergiesJson.present
+          ? data.allergiesJson.value
+          : this.allergiesJson,
+      servings: data.servings.present ? data.servings.value : this.servings,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HouseholdPreferenceRow(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('dietJson: $dietJson, ')
+          ..write('dislikesJson: $dislikesJson, ')
+          ..write('allergiesJson: $allergiesJson, ')
+          ..write('servings: $servings')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    householdId,
+    dietJson,
+    dislikesJson,
+    allergiesJson,
+    servings,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HouseholdPreferenceRow &&
+          other.id == this.id &&
+          other.householdId == this.householdId &&
+          other.dietJson == this.dietJson &&
+          other.dislikesJson == this.dislikesJson &&
+          other.allergiesJson == this.allergiesJson &&
+          other.servings == this.servings);
+}
+
+class HouseholdPreferencesCompanion
+    extends UpdateCompanion<HouseholdPreferenceRow> {
+  final Value<String> id;
+  final Value<String?> householdId;
+  final Value<String> dietJson;
+  final Value<String> dislikesJson;
+  final Value<String> allergiesJson;
+  final Value<int> servings;
+  final Value<int> rowid;
+  const HouseholdPreferencesCompanion({
+    this.id = const Value.absent(),
+    this.householdId = const Value.absent(),
+    this.dietJson = const Value.absent(),
+    this.dislikesJson = const Value.absent(),
+    this.allergiesJson = const Value.absent(),
+    this.servings = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HouseholdPreferencesCompanion.insert({
+    required String id,
+    this.householdId = const Value.absent(),
+    this.dietJson = const Value.absent(),
+    this.dislikesJson = const Value.absent(),
+    this.allergiesJson = const Value.absent(),
+    this.servings = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<HouseholdPreferenceRow> custom({
+    Expression<String>? id,
+    Expression<String>? householdId,
+    Expression<String>? dietJson,
+    Expression<String>? dislikesJson,
+    Expression<String>? allergiesJson,
+    Expression<int>? servings,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (householdId != null) 'household_id': householdId,
+      if (dietJson != null) 'diet_json': dietJson,
+      if (dislikesJson != null) 'dislikes_json': dislikesJson,
+      if (allergiesJson != null) 'allergies_json': allergiesJson,
+      if (servings != null) 'servings': servings,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HouseholdPreferencesCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? householdId,
+    Value<String>? dietJson,
+    Value<String>? dislikesJson,
+    Value<String>? allergiesJson,
+    Value<int>? servings,
+    Value<int>? rowid,
+  }) {
+    return HouseholdPreferencesCompanion(
+      id: id ?? this.id,
+      householdId: householdId ?? this.householdId,
+      dietJson: dietJson ?? this.dietJson,
+      dislikesJson: dislikesJson ?? this.dislikesJson,
+      allergiesJson: allergiesJson ?? this.allergiesJson,
+      servings: servings ?? this.servings,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (householdId.present) {
+      map['household_id'] = Variable<String>(householdId.value);
+    }
+    if (dietJson.present) {
+      map['diet_json'] = Variable<String>(dietJson.value);
+    }
+    if (dislikesJson.present) {
+      map['dislikes_json'] = Variable<String>(dislikesJson.value);
+    }
+    if (allergiesJson.present) {
+      map['allergies_json'] = Variable<String>(allergiesJson.value);
+    }
+    if (servings.present) {
+      map['servings'] = Variable<int>(servings.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HouseholdPreferencesCompanion(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('dietJson: $dietJson, ')
+          ..write('dislikesJson: $dislikesJson, ')
+          ..write('allergiesJson: $allergiesJson, ')
+          ..write('servings: $servings, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ShoppingSourcesTable extends ShoppingSources
     with TableInfo<$ShoppingSourcesTable, ShoppingSourceRow> {
   @override
@@ -12084,6 +12518,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $CookSoonItemsTable cookSoonItems = $CookSoonItemsTable(this);
   late final $DayRulesTable dayRules = $DayRulesTable(this);
+  late final $HouseholdPreferencesTable householdPreferences =
+      $HouseholdPreferencesTable(this);
   late final $ShoppingSourcesTable shoppingSources = $ShoppingSourcesTable(
     this,
   );
@@ -12140,6 +12576,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     mealPlanEntries,
     cookSoonItems,
     dayRules,
+    householdPreferences,
     shoppingSources,
     shoppingContributions,
     supplyAllocations,
@@ -16887,6 +17324,259 @@ typedef $$DayRulesTableProcessedTableManager =
       DayRuleRow,
       PrefetchHooks Function()
     >;
+typedef $$HouseholdPreferencesTableCreateCompanionBuilder =
+    HouseholdPreferencesCompanion Function({
+      required String id,
+      Value<String?> householdId,
+      Value<String> dietJson,
+      Value<String> dislikesJson,
+      Value<String> allergiesJson,
+      Value<int> servings,
+      Value<int> rowid,
+    });
+typedef $$HouseholdPreferencesTableUpdateCompanionBuilder =
+    HouseholdPreferencesCompanion Function({
+      Value<String> id,
+      Value<String?> householdId,
+      Value<String> dietJson,
+      Value<String> dislikesJson,
+      Value<String> allergiesJson,
+      Value<int> servings,
+      Value<int> rowid,
+    });
+
+class $$HouseholdPreferencesTableFilterComposer
+    extends Composer<_$AppDatabase, $HouseholdPreferencesTable> {
+  $$HouseholdPreferencesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dietJson => $composableBuilder(
+    column: $table.dietJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dislikesJson => $composableBuilder(
+    column: $table.dislikesJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get allergiesJson => $composableBuilder(
+    column: $table.allergiesJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get servings => $composableBuilder(
+    column: $table.servings,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HouseholdPreferencesTableOrderingComposer
+    extends Composer<_$AppDatabase, $HouseholdPreferencesTable> {
+  $$HouseholdPreferencesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dietJson => $composableBuilder(
+    column: $table.dietJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dislikesJson => $composableBuilder(
+    column: $table.dislikesJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get allergiesJson => $composableBuilder(
+    column: $table.allergiesJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get servings => $composableBuilder(
+    column: $table.servings,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HouseholdPreferencesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HouseholdPreferencesTable> {
+  $$HouseholdPreferencesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get dietJson =>
+      $composableBuilder(column: $table.dietJson, builder: (column) => column);
+
+  GeneratedColumn<String> get dislikesJson => $composableBuilder(
+    column: $table.dislikesJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get allergiesJson => $composableBuilder(
+    column: $table.allergiesJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get servings =>
+      $composableBuilder(column: $table.servings, builder: (column) => column);
+}
+
+class $$HouseholdPreferencesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HouseholdPreferencesTable,
+          HouseholdPreferenceRow,
+          $$HouseholdPreferencesTableFilterComposer,
+          $$HouseholdPreferencesTableOrderingComposer,
+          $$HouseholdPreferencesTableAnnotationComposer,
+          $$HouseholdPreferencesTableCreateCompanionBuilder,
+          $$HouseholdPreferencesTableUpdateCompanionBuilder,
+          (
+            HouseholdPreferenceRow,
+            BaseReferences<
+              _$AppDatabase,
+              $HouseholdPreferencesTable,
+              HouseholdPreferenceRow
+            >,
+          ),
+          HouseholdPreferenceRow,
+          PrefetchHooks Function()
+        > {
+  $$HouseholdPreferencesTableTableManager(
+    _$AppDatabase db,
+    $HouseholdPreferencesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HouseholdPreferencesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HouseholdPreferencesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$HouseholdPreferencesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> householdId = const Value.absent(),
+                Value<String> dietJson = const Value.absent(),
+                Value<String> dislikesJson = const Value.absent(),
+                Value<String> allergiesJson = const Value.absent(),
+                Value<int> servings = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HouseholdPreferencesCompanion(
+                id: id,
+                householdId: householdId,
+                dietJson: dietJson,
+                dislikesJson: dislikesJson,
+                allergiesJson: allergiesJson,
+                servings: servings,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> householdId = const Value.absent(),
+                Value<String> dietJson = const Value.absent(),
+                Value<String> dislikesJson = const Value.absent(),
+                Value<String> allergiesJson = const Value.absent(),
+                Value<int> servings = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HouseholdPreferencesCompanion.insert(
+                id: id,
+                householdId: householdId,
+                dietJson: dietJson,
+                dislikesJson: dislikesJson,
+                allergiesJson: allergiesJson,
+                servings: servings,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $HouseholdPreferencesTable,
+                    HouseholdPreferenceRow
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $HouseholdPreferencesTable,
+                    HouseholdPreferenceRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HouseholdPreferencesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HouseholdPreferencesTable,
+      HouseholdPreferenceRow,
+      $$HouseholdPreferencesTableFilterComposer,
+      $$HouseholdPreferencesTableOrderingComposer,
+      $$HouseholdPreferencesTableAnnotationComposer,
+      $$HouseholdPreferencesTableCreateCompanionBuilder,
+      $$HouseholdPreferencesTableUpdateCompanionBuilder,
+      (
+        HouseholdPreferenceRow,
+        BaseReferences<
+          _$AppDatabase,
+          $HouseholdPreferencesTable,
+          HouseholdPreferenceRow
+        >,
+      ),
+      HouseholdPreferenceRow,
+      PrefetchHooks Function()
+    >;
 typedef $$ShoppingSourcesTableCreateCompanionBuilder =
     ShoppingSourcesCompanion Function({
       required String id,
@@ -20598,6 +21288,8 @@ class $AppDatabaseManager {
       $$CookSoonItemsTableTableManager(_db, _db.cookSoonItems);
   $$DayRulesTableTableManager get dayRules =>
       $$DayRulesTableTableManager(_db, _db.dayRules);
+  $$HouseholdPreferencesTableTableManager get householdPreferences =>
+      $$HouseholdPreferencesTableTableManager(_db, _db.householdPreferences);
   $$ShoppingSourcesTableTableManager get shoppingSources =>
       $$ShoppingSourcesTableTableManager(_db, _db.shoppingSources);
   $$ShoppingContributionsTableTableManager get shoppingContributions =>

@@ -31,11 +31,25 @@ class ProfileScreen extends StatelessWidget {
             onTap: () => context.go('/profile/appearance'),
           ),
           ListTile(
+            leading: const Icon(Icons.restaurant_menu_outlined),
+            title: const Text('Preferencije'),
+            subtitle: const Text('Ishrana, namirnice koje ne volimo, alergije'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go('/profile/preferences'),
+          ),
+          ListTile(
             leading: const Icon(Icons.key),
             title: const Text('AI ključevi'),
             subtitle: const Text('Gemini, Groq, OpenRouter'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.go('/profile/ai-keys'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: const Text('Politika privatnosti'),
+            subtitle: const Text('Koje podatke čuvamo i zašto'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go('/profile/privacy'),
           ),
           if (kDebugMode)
             ListTile(
