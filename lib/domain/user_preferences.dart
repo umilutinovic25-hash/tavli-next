@@ -16,8 +16,8 @@ enum FoodDiet {
   final String label;
 }
 
-const minServings = 1;
-const maxServings = 20;
+const minHouseholdServings = 1;
+const maxHouseholdServings = 20;
 const defaultServings = 2;
 
 /// Najviše stavki u jednoj listi (ne volim, alergije).
@@ -63,7 +63,7 @@ class UserPreferences {
   }) : diet = Set.unmodifiable(diet),
        dislikes = normalizeItems(dislikes),
        allergies = normalizeItems(allergies) {
-    if (servings < minServings || servings > maxServings) {
+    if (servings < minHouseholdServings || servings > maxHouseholdServings) {
       throw ArgumentError.value(servings, 'servings', 'Od 1 do 20');
     }
   }

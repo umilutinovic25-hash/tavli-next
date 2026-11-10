@@ -239,11 +239,17 @@ final aiRouterProvider = Provider<AIRouter>(
 );
 
 final recipeAIProvider = Provider<RecipeAI>(
-  (ref) => RecipeAI(ref.watch(aiRouterProvider)),
+  (ref) => RecipeAI(
+    ref.watch(aiRouterProvider),
+    preferences: () => ref.read(preferencesRepositoryProvider).current(),
+  ),
 );
 
 final mealPlanAIProvider = Provider<MealPlanAI>(
-  (ref) => MealPlanAI(ref.watch(aiRouterProvider)),
+  (ref) => MealPlanAI(
+    ref.watch(aiRouterProvider),
+    preferences: () => ref.read(preferencesRepositoryProvider).current(),
+  ),
 );
 
 /// Lista prijavljenog domaćinstva; demo koristi zasebnu bazu u memoriji.
