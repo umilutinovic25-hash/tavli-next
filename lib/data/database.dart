@@ -162,6 +162,27 @@ class MealPlanEntries extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Recept koji osoba želi uskoro da skuva, još bez datuma (v10). Snimak
+/// recepta ostaje i kad se recept obriše; potražnju za nabavku pravi tek
+/// raspoređivanje u plan.
+@DataClassName('CookSoonItemRow')
+class CookSoonItems extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+  TextColumn get recipeId => text().nullable().references(Recipes, #id)();
+  TextColumn get recipeSnapshotJson => text()();
+
+  /// Porcije pri raspoređivanju (1–20).
+  IntColumn get servings => integer()();
+
+  /// Redosled u redu (manji je pre).
+  IntColumn get position => integer()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Izvor potražnje u listi (v5): planirani obrok ili samostalna priprema
 /// recepta. Id samostalnog izvora je id pripreme.
 @DataClassName('ShoppingSourceRow')
@@ -378,6 +399,7 @@ class SyncCursors extends Table {
     ShoppingItems,
     MealPlans,
     MealPlanEntries,
+    CookSoonItems,
     ShoppingSources,
     ShoppingContributions,
     SupplyAllocations,
@@ -395,7 +417,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -412,6 +434,14 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) await transaction(() => _migrateToAccounts(m));
       if (from < 5) await transaction(() => _migrateToPlanShopping(m));
+      // v6–v9 koriste druge grane (018–023); red "Uskoro kuvam" je v10.
+      if (from < 10) {
+        final exists = await customSelect(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'cook_soon_items'",
+        ).get();
+        if (exists.isEmpty) await m.createTable(cookSoonItems);
+      }
     },
   );
 

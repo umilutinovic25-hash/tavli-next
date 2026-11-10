@@ -211,6 +211,7 @@ void main() {
       'fetch:recipe_versions',
       'fetch:meal_plans',
       'fetch:meal_plan_entries',
+      'fetch:cook_soon_items',
       'fetch:shopping_lists',
       'fetch:shopping_items',
       'fetch:pantry_items',

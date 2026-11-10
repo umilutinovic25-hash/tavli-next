@@ -172,6 +172,15 @@ class RecipeRepository {
       for (final e in entries) {
         await _writer.upsert('meal_plan_entry', e.id);
       }
+      // Red "Uskoro kuvam" zadržava snimak recepta.
+      final queued = await (_db.select(
+        _db.cookSoonItems,
+      )..where((t) => t.recipeId.equals(id))).get();
+      await (_db.update(_db.cookSoonItems)..where((t) => t.recipeId.equals(id)))
+          .write(const CookSoonItemsCompanion(recipeId: Value(null)));
+      for (final q in queued) {
+        await _writer.upsert('cook_soon_item', q.id);
+      }
       await (_db.delete(_db.recipes)..where((t) => t.id.equals(id))).go();
       await _writer.delete(_recipe, id);
       // Slika se briše samo ako je nijedan drugi recept ni verzija ne koristi.

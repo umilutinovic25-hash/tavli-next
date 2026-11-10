@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../account/auth_controller.dart';
+import '../../data/cook_soon_repository.dart';
 import '../../data/meal_plan_repository.dart';
+import '../../domain/cook_soon.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/plan_calendar.dart';
 import '../../providers.dart';
@@ -16,6 +18,21 @@ final mealPlanRepositoryProvider = Provider<MealPlanRepository>(
     shopping: ref.watch(shoppingRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+/// Red "Uskoro kuvam" prijavljenog domaćinstva.
+final cookSoonRepositoryProvider = Provider<CookSoonRepository>(
+  (ref) => CookSoonRepository(
+    ref.watch(databaseProvider),
+    scope: ref.watch(accountScopeProvider) ?? noAccountScope,
+    writer: ref.watch(syncedWriterProvider),
+    plans: ref.watch(mealPlanRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final cookSoonItemsProvider = StreamProvider.autoDispose<List<CookSoonItem>>(
+  (ref) => ref.watch(cookSoonRepositoryProvider).watchAll(),
 );
 
 /// Svi sačuvani planovi, noviji prvi.

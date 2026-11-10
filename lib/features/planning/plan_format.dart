@@ -47,3 +47,14 @@ String rangeLabel(DateRange r) {
 /// "1 obrok", "3 obroka", "21 obrok".
 String mealsCount(int n) =>
     '$n ${n % 10 == 1 && n % 100 != 11 ? 'obrok' : 'obroka'}';
+
+/// "1 recept", "3 recepta", "5 recepata".
+String recipesCount(int n) {
+  final lastTwo = n % 100;
+  final last = n % 10;
+  if (last == 1 && lastTwo != 11) return '$n recept';
+  if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) {
+    return '$n recepta';
+  }
+  return '$n recepata';
+}

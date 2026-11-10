@@ -154,7 +154,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 5);
+    expect(db.schemaVersion, 10);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -323,5 +323,50 @@ void main() {
     addTearDown(again.close);
     expect((await again.select(again.shoppingLists).get()).single.id, 'l1');
     expect(await again.select(again.shoppingSources).get(), isEmpty);
+  });
+
+  test(
+    'migracija 5 → 10 dodaje red „Uskoro kuvam“ i čuva postojeće redove',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('tavli-v10-');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File('${directory.path}/cache.sqlite');
+      final before = AppDatabase(NativeDatabase(file));
+      await before.customStatement(
+        'INSERT INTO recipes (id, title, servings, source, ingredients_json, '
+        "steps_json, created_at, updated_at, household_id) VALUES ('r1', "
+        "'Sarma', 4, 'manual', '[]', '[]', 1, 2, 'h1')",
+      );
+      await before.customStatement('DROP TABLE cook_soon_items');
+      await before.customStatement('PRAGMA user_version = 5');
+      await before.close();
+
+      final after = AppDatabase(NativeDatabase(file));
+      addTearDown(after.close);
+      expect((await after.select(after.recipes).get()).single.id, 'r1');
+      await after.customStatement(
+        'INSERT INTO cook_soon_items (id, household_id, recipe_id, '
+        'recipe_snapshot_json, servings, position, created_at) VALUES '
+        "('q1', 'h1', 'r1', '{}', 4, 0, 1)",
+      );
+      expect((await after.select(after.cookSoonItems).get()).single.id, 'q1');
+    },
+  );
+
+  test('ponovljena v10 migracija (tabela već postoji) ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v10b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement(
+      'INSERT INTO cook_soon_items (id, recipe_snapshot_json, servings, '
+      "position, created_at) VALUES ('q1', '{}', 2, 0, 1)",
+    );
+    await first.customStatement('PRAGMA user_version = 9');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect((await again.select(again.cookSoonItems).get()).single.id, 'q1');
   });
 }
