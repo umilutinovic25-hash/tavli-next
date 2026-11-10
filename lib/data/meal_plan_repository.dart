@@ -84,7 +84,10 @@ class MealPlanRepository {
               ..where(
                 (t) =>
                     t.householdId.equals(_scope.householdId) &
-                    t.confirmedAt.isNotNull(),
+                    t.confirmedAt.isNotNull() &
+                    (t.quantity.isNull() | t.quantity.isBiggerThanValue(0)) &
+                    (t.expiresAt.isNull() |
+                        t.expiresAt.isBiggerOrEqualValue(_clock().toUtc())),
               )
               ..orderBy([(t) => OrderingTerm.asc(t.name)]))
             .get())

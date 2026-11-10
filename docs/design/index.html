@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="sr-Latn">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tavli — pregled frontenda</title>
+<link rel="icon" href="data:,">
+<style>
+@font-face{font-family:Jakarta;src:url('../../assets/fonts/PlusJakartaSans-Regular.ttf')}
+@font-face{font-family:Jakarta;src:url('../../assets/fonts/PlusJakartaSans-Bold.ttf');font-weight:700}
+:root{color-scheme:light;--bg:#f8f7f2;--surface:#fff;--text:#1b1f1c;--muted:#5c6660;--green:#3d7a57;--line:#e5e3db;--tint:#e2efe6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 Jakarta,system-ui,sans-serif}
+header{padding:28px clamp(20px,5vw,72px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.brand{font-size:24px;font-weight:700;color:var(--green)}header p{margin:0;color:var(--muted);font-size:14px}
+main{max-width:1600px;margin:auto;padding:40px clamp(20px,5vw,72px)}h1{font-size:clamp(28px,4vw,44px);line-height:1.2;letter-spacing:-.04em;margin:0 0 16px}h2{font-size:18px;margin:0}p{color:var(--muted);max-width:760px}nav{display:flex;gap:8px;flex-wrap:wrap;margin:28px 0}
+button{font:inherit;font-weight:700;border:1px solid var(--line);border-radius:14px;padding:12px 22px;background:var(--surface);color:var(--text);cursor:pointer;min-height:48px}button[aria-pressed=true]{background:var(--green);color:white;border-color:var(--green)}button:focus-visible,a:focus-visible{outline:3px solid var(--green);outline-offset:4px}
+.preview-grid{display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);gap:32px;align-items:start}.frame{margin:16px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden}.frame img{width:100%;height:auto;display:block}.note{font-size:14px;margin-top:16px}a{color:var(--green)}footer{margin-top:40px;border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:14px}
+@media(max-width:850px){.preview-grid{grid-template-columns:1fr}.phone{max-width:390px;margin:auto}.wide{width:100%}main{padding-top:28px}}
+@media(prefers-reduced-motion:no-preference){.frame{animation:appear .2s ease-out}@keyframes appear{from{opacity:.5}to{opacity:1}}}
+</style>
+<header><span class="brand">Tavli</span><p>Pregled frontenda · 011 · novembar 2026.</p></header>
+<main>
+<h1>Tvoja kuhinja.<br>Jasniji svakodnevni tok.</h1>
+<p>Prva primena vizuelnog pravca u postojećoj Flutter aplikaciji. Izaberi ekran da uporediš telefon i široki prikaz. Slike prikazuju stvarne widgete sa probnim podacima.</p>
+<nav aria-label="Izaberi ekran">
+<button type="button" data-screen="plan" aria-pressed="true">Plan</button>
+<button type="button" data-screen="shopping" aria-pressed="false">Nabavka</button>
+<button type="button" data-screen="recipes" aria-pressed="false">Recepti</button>
+<button type="button" data-screen="pantry" aria-pressed="false">Ostava</button>
+</nav>
+<div class="preview-grid">
+<section class="phone"><h2>Telefon · 390 px</h2><div class="frame"><img id="phone" src="screens/plan-390.png" alt="Plan na telefonu"></div></section>
+<section class="wide"><h2>Široki ekran · 1440 px</h2><div class="frame"><img id="wide" src="screens/plan-1440.png" alt="Plan na širokom ekranu"></div><p id="note" class="note" aria-live="polite">Plan povezuje kalendar, obroke i postojeću akciju za nabavku.</p></section>
+</div>
+<footer>Galerija služi za pregled izgleda; akcije aplikacije proverene su u Flutter testovima. Ostava je postojeći prazan prikaz, a implementacija njenih funkcija sledi zasebno. <a href="README.md">Dizajn, provere i ograničenja</a></footer>
+</main>
+<script>
+const notes={plan:'Plan povezuje kalendar, obroke i postojeću akciju za nabavku.',shopping:'Postojeća nabavka grupiše sastojke i čuva količine, čekiranje i poreklo stavki.',recipes:'Telefon prikazuje kolekciju; široki ekran prikazuje otvoreni recept. Pretraga i dodavanje ostaju povezani sa postojećim stanjem.',pantry:'Postojeća animacija ostave ostaje sačuvana. Upravljanje namirnicama još nije implementirano u ovom ekranu.'};
+document.querySelectorAll('button[data-screen]').forEach(button=>button.addEventListener('click',()=>{
+ document.querySelectorAll('button[data-screen]').forEach(other=>other.setAttribute('aria-pressed',String(other===button)));
+ const screen=button.dataset.screen,label=button.textContent;
+ document.querySelector('#phone').src=`screens/${screen}-390.png`;
+ document.querySelector('#wide').src=screen==='recipes'?'screens/recipe-detail-1440.png':`screens/${screen}-1440.png`;
+ document.querySelector('#phone').alt=`${label} na telefonu`;
+ document.querySelector('#wide').alt=`${label} na širokom ekranu`;
+ document.querySelector('#note').textContent=notes[screen];
+}));
+</script>
+</html>
