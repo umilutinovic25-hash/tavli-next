@@ -144,4 +144,56 @@ void main() {
     await expectLater(ctrl().verify(FakeServer.code), throwsA(isA<Offline>()));
     expect(state(), isA<CodeSent>());
   });
+
+  group('refreshAccount', () {
+    Future<AuthSession> signedIn() async {
+      final s = backend.auth.sessionFor('ana@mail.com');
+      secrets.values[SessionStore.key] = s.json;
+      await cacheAccount(s, name: 'Ana');
+      await ctrl().start();
+      await pumpEventQueue();
+      return s;
+    }
+
+    test('prijavljen: novo članstvo postaje aktivno domaćinstvo', () async {
+      final s = await signedIn();
+      backend.server.addMember('home-9', s.userId);
+
+      expect(await ctrl().refreshAccount(), isTrue);
+
+      final st = state() as SignedIn;
+      expect(st.account.householdId, 'home-9');
+      expect(c.read(accountScopeProvider)?.householdId, 'home-9');
+    });
+
+    test('bez mreže vraća false i stanje ostaje', () async {
+      final s = await signedIn();
+      backend.server.addMember('home-9', s.userId);
+      backend.server.offline = true;
+
+      expect(await ctrl().refreshAccount(), isFalse);
+
+      final st = state() as SignedIn;
+      expect(st.account.householdId, backend.server.households[s.userId]);
+    });
+
+    test('pokretanje sa keširanim nalogom osvežava ga u pozadini', () async {
+      final s = backend.auth.sessionFor('ana@mail.com');
+      secrets.values[SessionStore.key] = s.json;
+      await cacheAccount(s, name: 'Ana');
+      backend.server.addMember('home-9', s.userId);
+
+      await ctrl().start();
+      expect((state() as SignedIn).account.householdId, isNot('home-9'));
+      await pumpEventQueue();
+
+      expect((state() as SignedIn).account.householdId, 'home-9');
+    });
+
+    test('odjavljen: ništa ne radi', () async {
+      await ctrl().start();
+      expect(await ctrl().refreshAccount(), isFalse);
+      expect(state(), isA<SignedOut>());
+    });
+  });
 }

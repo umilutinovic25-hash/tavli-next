@@ -586,7 +586,7 @@ void main() {
 
     test('uvek pita server, i kad je nalog u kešu', () async {
       backend.server.addMember('home-9', a.userId);
-      final fresh = await service.refresh(session);
+      final fresh = await service.refresh();
       expect(fresh.householdId, 'home-9');
       expect(fresh.role, 'member');
       expect((await row()).householdId, 'home-9');
@@ -603,24 +603,24 @@ void main() {
       await (db.update(db.accounts)..where((r) => r.userId.equals(a.userId)))
           .write(const AccountsCompanion(initialDownloadDone: Value(true)));
       backend.server.addMember('home-9', a.userId);
-      await service.refresh(session);
+      await service.refresh();
       expect(await db.select(db.syncCursors).get(), isEmpty);
       expect((await row()).initialDownloadDone, isFalse);
     });
 
     test('isti skup članstava ne dira kursore', () async {
-      await service.refresh(session);
+      await service.refresh();
       await cursor();
       await (db.update(db.accounts)..where((r) => r.userId.equals(a.userId)))
           .write(const AccountsCompanion(initialDownloadDone: Value(true)));
-      await service.refresh(session);
+      await service.refresh();
       expect(await db.select(db.syncCursors).get(), hasLength(1));
       expect((await row()).initialDownloadDone, isTrue);
     });
 
     test('podaci domaćinstva koje je nestalo brišu se sa uređaja', () async {
       backend.server.addMember('home-9', a.userId);
-      await service.refresh(session);
+      await service.refresh();
       photos.saved['recipe_photos/zajednicka.jpg'] = Uint8List(1);
       photos.saved['recipe_photos/moja.jpg'] = Uint8List(1);
       await recipe(
@@ -633,7 +633,7 @@ void main() {
       await outbox('recipe', 'moj');
 
       backend.server.members['home-9']!.remove(a.userId);
-      final fresh = await service.refresh(session);
+      final fresh = await service.refresh();
 
       expect(fresh.householdId, a.householdId);
       expect((await db.select(db.recipes).get()).map((r) => r.id), ['moj']);
@@ -645,27 +645,34 @@ void main() {
 
     test('izbor koji više nije dostupan se briše', () async {
       backend.server.addMember('home-9', a.userId);
-      await service.refresh(session);
+      await service.refresh();
       await service.setPreferredHousehold(a.userId, 'home-9');
       backend.server.members['home-9']!.remove(a.userId);
-      final fresh = await service.refresh(session);
+      final fresh = await service.refresh();
       expect(fresh.householdId, a.householdId);
       expect((await row()).preferredHouseholdId, isNull);
     });
 
     test('ručni izbor ima prednost nad poslednjim pridruživanjem', () async {
       backend.server.addMember('home-9', a.userId);
-      await service.refresh(session);
+      await service.refresh();
       await service.setPreferredHousehold(a.userId, a.householdId);
-      final fresh = await service.refresh(session);
+      final fresh = await service.refresh();
       expect(fresh.householdId, a.householdId);
       expect(fresh.role, 'owner');
+    });
+
+    test('lokalno ime koje čeka slanje se ne prepisuje', () async {
+      await (db.update(db.accounts)..where((r) => r.userId.equals(a.userId)))
+          .write(const AccountsCompanion(displayName: Value('Ana')));
+      final fresh = await service.refresh();
+      expect(fresh.displayName, 'Ana');
     });
 
     test('bez mreže baca Offline i ništa ne menja', () async {
       await cursor();
       backend.server.offline = true;
-      await expectLater(service.refresh(session), throwsA(isA<Offline>()));
+      await expectLater(service.refresh(), throwsA(isA<Offline>()));
       expect(await db.select(db.syncCursors).get(), hasLength(1));
       expect((await row()).householdId, a.householdId);
     });

@@ -45,14 +45,14 @@ class AccountService {
   Future<Account> loadOrFetch(AuthSession session) async {
     final local = await cached(session.userId);
     if (local != null) return local;
-    return refresh(session);
+    return refresh();
   }
 
   /// Nalog i članstva uvek sa servera. Kad se skup članstava promeni, kursori
   /// preuzimanja se prazne (podaci novog domaćinstva mogu biti stariji od
   /// kursora), a lokalni podaci domaćinstava kojih više nema se brišu.
   /// Baca `AuthFailure`; tada se na uređaju ništa ne menja.
-  Future<Account> refresh(AuthSession session) async {
+  Future<Account> refresh() async {
     final remote = await _api.fetch();
     final userId = remote.userId;
     final memberships = remote.memberships.isNotEmpty
@@ -109,9 +109,9 @@ class AccountService {
         await (_db.update(
           _db.accounts,
         )..where((t) => t.userId.equals(userId))).write(
+          // Ime i e-pošta se ovde ne diraju: ime koje još čeka slanje
+          // (outbox) ne sme da se prepiše starijim stanjem sa servera.
           AccountsCompanion(
-            email: Value(normalizeEmail(remote.email)),
-            displayName: Value(remote.displayName),
             householdId: Value(active.householdId),
             householdName: Value(active.householdName),
             role: Value(active.role.wire),

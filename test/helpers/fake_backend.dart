@@ -4,7 +4,10 @@ import 'dart:typed_data';
 
 import 'package:tavli/account/account_api.dart';
 import 'package:tavli/account/auth_gateway.dart';
+import 'package:tavli/data/household_invite_repository.dart';
+import 'package:tavli/data/household_membership_repository.dart';
 import 'package:tavli/domain/household.dart';
+import 'package:tavli/domain/household_invite.dart';
 import 'package:tavli/domain/household_role.dart';
 import 'package:tavli/sync/sync_remote.dart';
 
@@ -249,7 +252,9 @@ class FakeServer {
   }
 
   bool _visible(Map<String, Object?> row, String userId) {
-    if (row['household_id'] case final h?) return households[userId] == h;
+    if (row['household_id'] case final h?) {
+      return members[h]?.containsKey(userId) ?? false;
+    }
     if (row['user_id'] case final u?) return u == userId;
     return row['id'] == userId; // profiles
   }
@@ -554,6 +559,8 @@ class FakeBackend {
     accounts = FakeAccountApi(server, auth);
     sync = FakeSyncRemote(server, auth);
     photos = FakePhotoRemote(server);
+    invites = FakeInviteRemote(server, auth);
+    membership = FakeMembershipRemote(server, auth);
   }
 
   final server = FakeServer();
@@ -561,4 +568,188 @@ class FakeBackend {
   late final FakeAccountApi accounts;
   late final FakeSyncRemote sync;
   late final FakePhotoRemote photos;
+  late final FakeInviteRemote invites;
+  late final FakeMembershipRemote membership;
+}
+
+/// Pozivnice na lažnom serveru, po pravilima iz migracije
+/// 20261111130000_household_invites.sql.
+class FakeInviteRemote implements HouseholdInviteRemote {
+  FakeInviteRemote(this.server, this.auth);
+
+  final FakeServer server;
+  final FakeAuth auth;
+  final invites = <HouseholdInvite>[];
+  final calls = <String>[];
+
+  /// Ako nije null, svaki poziv čeka ovaj Completer (za test duplog dodira).
+  Completer<void>? gate;
+
+  /// Neuspeli pokušaji po korisniku (bez vremena: test je kratak).
+  final _failures = <String, int>{};
+  var _n = 0;
+
+  String get _uid => auth.current!.userId;
+
+  Future<void> _enter(String call) async {
+    calls.add(call);
+    if (gate case final g?) await g.future;
+    if (server.offline) throw const InviteOffline();
+  }
+
+  bool _owner(String householdId) =>
+      server.members[householdId]?[_uid]?.role == 'owner';
+
+  @override
+  Future<String> create(String householdId) async {
+    await _enter('create');
+    if (!_owner(householdId)) throw const InviteForbidden();
+    final code = 'K7P2MDX${++_n}'.padRight(8, 'N').substring(0, 8);
+    final now = DateTime.utc(2026, 11, 10, 12);
+    invites.add(
+      HouseholdInvite(
+        id: 'inv-$_n',
+        householdId: householdId,
+        code: code,
+        createdAt: now,
+        expiresAt: now.add(const Duration(days: 7)),
+        uses: 0,
+      ),
+    );
+    return code;
+  }
+
+  @override
+  Future<List<HouseholdInvite>> listForHousehold(String householdId) async {
+    await _enter('list');
+    if (!_owner(householdId)) return const [];
+    return [
+      for (final i in invites.reversed)
+        if (i.householdId == householdId) i,
+    ];
+  }
+
+  @override
+  Future<void> revoke(String id) async {
+    await _enter('revoke');
+    final i = invites.indexWhere((x) => x.id == id);
+    if (i < 0 || !_owner(invites[i].householdId)) return;
+    final old = invites[i];
+    invites[i] = HouseholdInvite(
+      id: old.id,
+      householdId: old.householdId,
+      code: old.code,
+      createdAt: old.createdAt,
+      expiresAt: old.expiresAt,
+      uses: old.uses,
+      maxUses: old.maxUses,
+      revokedAt: DateTime.utc(2026, 11, 10, 13),
+    );
+  }
+
+  @override
+  Future<String?> redeem(String code) async {
+    await _enter('redeem');
+    if ((_failures[_uid] ?? 0) >= 5) throw const InviteTooManyAttempts();
+    final i = invites.indexWhere(
+      (x) => x.code == code && x.revokedAt == null && x.usesLeft > 0,
+    );
+    if (i < 0) {
+      _failures[_uid] = (_failures[_uid] ?? 0) + 1;
+      return null;
+    }
+    final inv = invites[i];
+    if (server.members[inv.householdId]?.containsKey(_uid) != true) {
+      server.addMember(inv.householdId, _uid, joinedAt: DateTime.utc(2026, 12));
+      invites[i] = HouseholdInvite(
+        id: inv.id,
+        householdId: inv.householdId,
+        code: inv.code,
+        createdAt: inv.createdAt,
+        expiresAt: inv.expiresAt,
+        uses: inv.uses + 1,
+        maxUses: inv.maxUses,
+      );
+    }
+    return inv.householdId;
+  }
+}
+
+/// Članstvo na lažnom serveru, po pravilima iz migracija
+/// 20261111130100_household_membership_ops.sql i 20261111130300.
+class FakeMembershipRemote implements HouseholdMembershipRemote {
+  FakeMembershipRemote(this.server, this.auth);
+
+  final FakeServer server;
+  final FakeAuth auth;
+  final calls = <String>[];
+
+  String get _uid => auth.current!.userId;
+
+  void _enter(String call) {
+    calls.add(call);
+    if (server.offline) throw const MembershipOffline();
+  }
+
+  Map<String, ({String role, DateTime joinedAt})> _household(String id) =>
+      server.members[id] ?? {};
+
+  void _requireOwner(String householdId) {
+    if (_household(householdId)[_uid]?.role != 'owner') {
+      throw const NotHouseholdOwner();
+    }
+  }
+
+  @override
+  Future<void> removeMember(String householdId, String userId) async {
+    _enter('remove');
+    _requireOwner(householdId);
+    if (userId == _uid) throw const CannotRemoveSelf();
+    if (_household(householdId).remove(userId) == null) {
+      throw const NotHouseholdMember();
+    }
+  }
+
+  @override
+  Future<void> leave(String householdId) async {
+    _enter('leave');
+    final me = _household(householdId)[_uid];
+    if (me == null) throw const NotHouseholdMember();
+    if (me.role == 'owner') throw const OwnerMustTransfer();
+    _household(householdId).remove(_uid);
+  }
+
+  @override
+  Future<void> transferOwnership(String householdId, String userId) async {
+    _enter('transfer');
+    _requireOwner(householdId);
+    if (userId == _uid) throw const CannotTransferToSelf();
+    final h = _household(householdId);
+    final target = h[userId];
+    if (target == null) throw const NotHouseholdMember();
+    h[userId] = (role: 'owner', joinedAt: target.joinedAt);
+    final me = h[_uid]!;
+    h[_uid] = (role: 'member', joinedAt: me.joinedAt);
+  }
+
+  @override
+  Future<List<HouseholdMember>> listMembers(String householdId) async {
+    _enter('list');
+    final h = _household(householdId);
+    if (!h.containsKey(_uid)) throw const NotHouseholdMember();
+    final out =
+        [
+          for (final MapEntry(key: uid, value: m) in h.entries)
+            HouseholdMember(
+              userId: uid,
+              displayName: server.profiles[uid]?['display_name'] as String?,
+              role: HouseholdRole.parse(m.role),
+              joinedAt: m.joinedAt,
+            ),
+        ]..sort((a, b) {
+          if (a.role != b.role) return a.role == HouseholdRole.owner ? -1 : 1;
+          return a.joinedAt.compareTo(b.joinedAt);
+        });
+    return out;
+  }
 }
