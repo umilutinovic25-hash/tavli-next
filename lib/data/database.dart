@@ -288,6 +288,19 @@ class UserProfiles extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('SavedRecipeSearchRow')
+class SavedRecipeSearches extends Table {
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get name => text()();
+  TextColumn get query => text()();
+  IntColumn get maxMinutes => integer().nullable()();
+  TextColumn get includeIngredient => text()();
+  TextColumn get excludeIngredient => text()();
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DataClassName('AppSettingRow')
 class AppSettings extends Table {
   TextColumn get key => text()();
@@ -384,6 +397,7 @@ class SyncCursors extends Table {
     SupplyAllocations,
     Ratings,
     UserProfiles,
+    SavedRecipeSearches,
     AppSettings,
     ModelStatuses,
     Accounts,
@@ -413,6 +427,12 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) await transaction(() => _migrateToAccounts(m));
       if (from < 5) await transaction(() => _migrateToPlanShopping(m));
+      if (from < 6) {
+        final rows = await customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'saved_recipe_searches'",
+        ).get();
+        if (rows.isEmpty) await m.createTable(savedRecipeSearches);
+      }
       if (from < 7) {
         final columns = await customSelect('PRAGMA table_info("recipes")')
             .get();

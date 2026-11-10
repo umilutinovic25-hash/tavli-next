@@ -7020,6 +7020,481 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
   }
 }
 
+class $SavedRecipeSearchesTable extends SavedRecipeSearches
+    with TableInfo<$SavedRecipeSearchesTable, SavedRecipeSearchRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SavedRecipeSearchesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _queryMeta = const VerificationMeta('query');
+  @override
+  late final GeneratedColumn<String> query = GeneratedColumn<String>(
+    'query',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _maxMinutesMeta = const VerificationMeta(
+    'maxMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> maxMinutes = GeneratedColumn<int>(
+    'max_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _includeIngredientMeta = const VerificationMeta(
+    'includeIngredient',
+  );
+  @override
+  late final GeneratedColumn<String> includeIngredient =
+      GeneratedColumn<String>(
+        'include_ingredient',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _excludeIngredientMeta = const VerificationMeta(
+    'excludeIngredient',
+  );
+  @override
+  late final GeneratedColumn<String> excludeIngredient =
+      GeneratedColumn<String>(
+        'exclude_ingredient',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    name,
+    query,
+    maxMinutes,
+    includeIngredient,
+    excludeIngredient,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'saved_recipe_searches';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SavedRecipeSearchRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('query')) {
+      context.handle(
+        _queryMeta,
+        query.isAcceptableOrUnknown(data['query']!, _queryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_queryMeta);
+    }
+    if (data.containsKey('max_minutes')) {
+      context.handle(
+        _maxMinutesMeta,
+        maxMinutes.isAcceptableOrUnknown(data['max_minutes']!, _maxMinutesMeta),
+      );
+    }
+    if (data.containsKey('include_ingredient')) {
+      context.handle(
+        _includeIngredientMeta,
+        includeIngredient.isAcceptableOrUnknown(
+          data['include_ingredient']!,
+          _includeIngredientMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_includeIngredientMeta);
+    }
+    if (data.containsKey('exclude_ingredient')) {
+      context.handle(
+        _excludeIngredientMeta,
+        excludeIngredient.isAcceptableOrUnknown(
+          data['exclude_ingredient']!,
+          _excludeIngredientMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_excludeIngredientMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SavedRecipeSearchRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SavedRecipeSearchRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      query: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}query'],
+      )!,
+      maxMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}max_minutes'],
+      ),
+      includeIngredient: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}include_ingredient'],
+      )!,
+      excludeIngredient: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}exclude_ingredient'],
+      )!,
+    );
+  }
+
+  @override
+  $SavedRecipeSearchesTable createAlias(String alias) {
+    return $SavedRecipeSearchesTable(attachedDatabase, alias);
+  }
+}
+
+class SavedRecipeSearchRow extends DataClass
+    implements Insertable<SavedRecipeSearchRow> {
+  final String id;
+  final String userId;
+  final String name;
+  final String query;
+  final int? maxMinutes;
+  final String includeIngredient;
+  final String excludeIngredient;
+  const SavedRecipeSearchRow({
+    required this.id,
+    required this.userId,
+    required this.name,
+    required this.query,
+    this.maxMinutes,
+    required this.includeIngredient,
+    required this.excludeIngredient,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['name'] = Variable<String>(name);
+    map['query'] = Variable<String>(query);
+    if (!nullToAbsent || maxMinutes != null) {
+      map['max_minutes'] = Variable<int>(maxMinutes);
+    }
+    map['include_ingredient'] = Variable<String>(includeIngredient);
+    map['exclude_ingredient'] = Variable<String>(excludeIngredient);
+    return map;
+  }
+
+  SavedRecipeSearchesCompanion toCompanion(bool nullToAbsent) {
+    return SavedRecipeSearchesCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      name: Value(name),
+      query: Value(query),
+      maxMinutes: maxMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maxMinutes),
+      includeIngredient: Value(includeIngredient),
+      excludeIngredient: Value(excludeIngredient),
+    );
+  }
+
+  factory SavedRecipeSearchRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SavedRecipeSearchRow(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      name: serializer.fromJson<String>(json['name']),
+      query: serializer.fromJson<String>(json['query']),
+      maxMinutes: serializer.fromJson<int?>(json['maxMinutes']),
+      includeIngredient: serializer.fromJson<String>(json['includeIngredient']),
+      excludeIngredient: serializer.fromJson<String>(json['excludeIngredient']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'name': serializer.toJson<String>(name),
+      'query': serializer.toJson<String>(query),
+      'maxMinutes': serializer.toJson<int?>(maxMinutes),
+      'includeIngredient': serializer.toJson<String>(includeIngredient),
+      'excludeIngredient': serializer.toJson<String>(excludeIngredient),
+    };
+  }
+
+  SavedRecipeSearchRow copyWith({
+    String? id,
+    String? userId,
+    String? name,
+    String? query,
+    Value<int?> maxMinutes = const Value.absent(),
+    String? includeIngredient,
+    String? excludeIngredient,
+  }) => SavedRecipeSearchRow(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    name: name ?? this.name,
+    query: query ?? this.query,
+    maxMinutes: maxMinutes.present ? maxMinutes.value : this.maxMinutes,
+    includeIngredient: includeIngredient ?? this.includeIngredient,
+    excludeIngredient: excludeIngredient ?? this.excludeIngredient,
+  );
+  SavedRecipeSearchRow copyWithCompanion(SavedRecipeSearchesCompanion data) {
+    return SavedRecipeSearchRow(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      name: data.name.present ? data.name.value : this.name,
+      query: data.query.present ? data.query.value : this.query,
+      maxMinutes: data.maxMinutes.present
+          ? data.maxMinutes.value
+          : this.maxMinutes,
+      includeIngredient: data.includeIngredient.present
+          ? data.includeIngredient.value
+          : this.includeIngredient,
+      excludeIngredient: data.excludeIngredient.present
+          ? data.excludeIngredient.value
+          : this.excludeIngredient,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SavedRecipeSearchRow(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('name: $name, ')
+          ..write('query: $query, ')
+          ..write('maxMinutes: $maxMinutes, ')
+          ..write('includeIngredient: $includeIngredient, ')
+          ..write('excludeIngredient: $excludeIngredient')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    name,
+    query,
+    maxMinutes,
+    includeIngredient,
+    excludeIngredient,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SavedRecipeSearchRow &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.name == this.name &&
+          other.query == this.query &&
+          other.maxMinutes == this.maxMinutes &&
+          other.includeIngredient == this.includeIngredient &&
+          other.excludeIngredient == this.excludeIngredient);
+}
+
+class SavedRecipeSearchesCompanion
+    extends UpdateCompanion<SavedRecipeSearchRow> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> name;
+  final Value<String> query;
+  final Value<int?> maxMinutes;
+  final Value<String> includeIngredient;
+  final Value<String> excludeIngredient;
+  final Value<int> rowid;
+  const SavedRecipeSearchesCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.query = const Value.absent(),
+    this.maxMinutes = const Value.absent(),
+    this.includeIngredient = const Value.absent(),
+    this.excludeIngredient = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SavedRecipeSearchesCompanion.insert({
+    required String id,
+    required String userId,
+    required String name,
+    required String query,
+    this.maxMinutes = const Value.absent(),
+    required String includeIngredient,
+    required String excludeIngredient,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       name = Value(name),
+       query = Value(query),
+       includeIngredient = Value(includeIngredient),
+       excludeIngredient = Value(excludeIngredient);
+  static Insertable<SavedRecipeSearchRow> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? name,
+    Expression<String>? query,
+    Expression<int>? maxMinutes,
+    Expression<String>? includeIngredient,
+    Expression<String>? excludeIngredient,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (name != null) 'name': name,
+      if (query != null) 'query': query,
+      if (maxMinutes != null) 'max_minutes': maxMinutes,
+      if (includeIngredient != null) 'include_ingredient': includeIngredient,
+      if (excludeIngredient != null) 'exclude_ingredient': excludeIngredient,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SavedRecipeSearchesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? name,
+    Value<String>? query,
+    Value<int?>? maxMinutes,
+    Value<String>? includeIngredient,
+    Value<String>? excludeIngredient,
+    Value<int>? rowid,
+  }) {
+    return SavedRecipeSearchesCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      query: query ?? this.query,
+      maxMinutes: maxMinutes ?? this.maxMinutes,
+      includeIngredient: includeIngredient ?? this.includeIngredient,
+      excludeIngredient: excludeIngredient ?? this.excludeIngredient,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (query.present) {
+      map['query'] = Variable<String>(query.value);
+    }
+    if (maxMinutes.present) {
+      map['max_minutes'] = Variable<int>(maxMinutes.value);
+    }
+    if (includeIngredient.present) {
+      map['include_ingredient'] = Variable<String>(includeIngredient.value);
+    }
+    if (excludeIngredient.present) {
+      map['exclude_ingredient'] = Variable<String>(excludeIngredient.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SavedRecipeSearchesCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('name: $name, ')
+          ..write('query: $query, ')
+          ..write('maxMinutes: $maxMinutes, ')
+          ..write('includeIngredient: $includeIngredient, ')
+          ..write('excludeIngredient: $excludeIngredient, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AppSettingsTable extends AppSettings
     with TableInfo<$AppSettingsTable, AppSettingRow> {
   @override
@@ -9231,6 +9706,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $SupplyAllocationsTable(this);
   late final $RatingsTable ratings = $RatingsTable(this);
   late final $UserProfilesTable userProfiles = $UserProfilesTable(this);
+  late final $SavedRecipeSearchesTable savedRecipeSearches =
+      $SavedRecipeSearchesTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final $ModelStatusesTable modelStatuses = $ModelStatusesTable(this);
   late final $AccountsTable accounts = $AccountsTable(this);
@@ -9277,6 +9754,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     supplyAllocations,
     ratings,
     userProfiles,
+    savedRecipeSearches,
     appSettings,
     modelStatuses,
     accounts,
@@ -14872,6 +15350,277 @@ typedef $$UserProfilesTableProcessedTableManager =
       UserProfileRow,
       PrefetchHooks Function()
     >;
+typedef $$SavedRecipeSearchesTableCreateCompanionBuilder =
+    SavedRecipeSearchesCompanion Function({
+      required String id,
+      required String userId,
+      required String name,
+      required String query,
+      Value<int?> maxMinutes,
+      required String includeIngredient,
+      required String excludeIngredient,
+      Value<int> rowid,
+    });
+typedef $$SavedRecipeSearchesTableUpdateCompanionBuilder =
+    SavedRecipeSearchesCompanion Function({
+      Value<String> id,
+      Value<String> userId,
+      Value<String> name,
+      Value<String> query,
+      Value<int?> maxMinutes,
+      Value<String> includeIngredient,
+      Value<String> excludeIngredient,
+      Value<int> rowid,
+    });
+
+class $$SavedRecipeSearchesTableFilterComposer
+    extends Composer<_$AppDatabase, $SavedRecipeSearchesTable> {
+  $$SavedRecipeSearchesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get query => $composableBuilder(
+    column: $table.query,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get maxMinutes => $composableBuilder(
+    column: $table.maxMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get includeIngredient => $composableBuilder(
+    column: $table.includeIngredient,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get excludeIngredient => $composableBuilder(
+    column: $table.excludeIngredient,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SavedRecipeSearchesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SavedRecipeSearchesTable> {
+  $$SavedRecipeSearchesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get query => $composableBuilder(
+    column: $table.query,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get maxMinutes => $composableBuilder(
+    column: $table.maxMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get includeIngredient => $composableBuilder(
+    column: $table.includeIngredient,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get excludeIngredient => $composableBuilder(
+    column: $table.excludeIngredient,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SavedRecipeSearchesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SavedRecipeSearchesTable> {
+  $$SavedRecipeSearchesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get query =>
+      $composableBuilder(column: $table.query, builder: (column) => column);
+
+  GeneratedColumn<int> get maxMinutes => $composableBuilder(
+    column: $table.maxMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get includeIngredient => $composableBuilder(
+    column: $table.includeIngredient,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get excludeIngredient => $composableBuilder(
+    column: $table.excludeIngredient,
+    builder: (column) => column,
+  );
+}
+
+class $$SavedRecipeSearchesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SavedRecipeSearchesTable,
+          SavedRecipeSearchRow,
+          $$SavedRecipeSearchesTableFilterComposer,
+          $$SavedRecipeSearchesTableOrderingComposer,
+          $$SavedRecipeSearchesTableAnnotationComposer,
+          $$SavedRecipeSearchesTableCreateCompanionBuilder,
+          $$SavedRecipeSearchesTableUpdateCompanionBuilder,
+          (
+            SavedRecipeSearchRow,
+            BaseReferences<
+              _$AppDatabase,
+              $SavedRecipeSearchesTable,
+              SavedRecipeSearchRow
+            >,
+          ),
+          SavedRecipeSearchRow,
+          PrefetchHooks Function()
+        > {
+  $$SavedRecipeSearchesTableTableManager(
+    _$AppDatabase db,
+    $SavedRecipeSearchesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SavedRecipeSearchesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SavedRecipeSearchesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$SavedRecipeSearchesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> query = const Value.absent(),
+                Value<int?> maxMinutes = const Value.absent(),
+                Value<String> includeIngredient = const Value.absent(),
+                Value<String> excludeIngredient = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SavedRecipeSearchesCompanion(
+                id: id,
+                userId: userId,
+                name: name,
+                query: query,
+                maxMinutes: maxMinutes,
+                includeIngredient: includeIngredient,
+                excludeIngredient: excludeIngredient,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String userId,
+                required String name,
+                required String query,
+                Value<int?> maxMinutes = const Value.absent(),
+                required String includeIngredient,
+                required String excludeIngredient,
+                Value<int> rowid = const Value.absent(),
+              }) => SavedRecipeSearchesCompanion.insert(
+                id: id,
+                userId: userId,
+                name: name,
+                query: query,
+                maxMinutes: maxMinutes,
+                includeIngredient: includeIngredient,
+                excludeIngredient: excludeIngredient,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SavedRecipeSearchesTable, SavedRecipeSearchRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $SavedRecipeSearchesTable,
+                    SavedRecipeSearchRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SavedRecipeSearchesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SavedRecipeSearchesTable,
+      SavedRecipeSearchRow,
+      $$SavedRecipeSearchesTableFilterComposer,
+      $$SavedRecipeSearchesTableOrderingComposer,
+      $$SavedRecipeSearchesTableAnnotationComposer,
+      $$SavedRecipeSearchesTableCreateCompanionBuilder,
+      $$SavedRecipeSearchesTableUpdateCompanionBuilder,
+      (
+        SavedRecipeSearchRow,
+        BaseReferences<
+          _$AppDatabase,
+          $SavedRecipeSearchesTable,
+          SavedRecipeSearchRow
+        >,
+      ),
+      SavedRecipeSearchRow,
+      PrefetchHooks Function()
+    >;
 typedef $$AppSettingsTableCreateCompanionBuilder =
     AppSettingsCompanion Function({
       required String key,
@@ -16073,6 +16822,8 @@ class $AppDatabaseManager {
       $$RatingsTableTableManager(_db, _db.ratings);
   $$UserProfilesTableTableManager get userProfiles =>
       $$UserProfilesTableTableManager(_db, _db.userProfiles);
+  $$SavedRecipeSearchesTableTableManager get savedRecipeSearches =>
+      $$SavedRecipeSearchesTableTableManager(_db, _db.savedRecipeSearches);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
   $$ModelStatusesTableTableManager get modelStatuses =>

@@ -12,35 +12,37 @@ Future<void> showAddRecipeSheet(BuildContext context) {
     context: context,
     showDragHandle: true,
     builder: (sheetContext) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.link),
-            title: const Text('Sa internet adrese'),
-            subtitle: const Text('Uvezi recept sa javne stranice'),
-            onTap: () => open(sheetContext, '/recipes/new/url'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.photo_camera_outlined),
-            title: const Text('Iz slike'),
-            subtitle: const Text('Slikaj ili izaberi sliku recepta'),
-            onTap: () => open(sheetContext, '/recipes/new/photo'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.auto_awesome_outlined),
-            title: const Text('Po nazivu jela'),
-            subtitle: const Text('AI pravi recept za jelo koje upišeš'),
-            onTap: () => open(sheetContext, '/recipes/new/name'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.edit_note),
-            title: const Text('Ručno'),
-            subtitle: const Text('Upiši recept sam'),
-            onTap: () => open(sheetContext, '/recipes/new/manual'),
-          ),
-          const SizedBox(height: 8),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.link),
+              title: const Text('Sa internet adrese'),
+              subtitle: const Text('Uvezi recept sa javne stranice'),
+              onTap: () => open(sheetContext, '/recipes/new/url'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Iz slike'),
+              subtitle: const Text('Slikaj ili izaberi sliku recepta'),
+              onTap: () => open(sheetContext, '/recipes/new/photo'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.auto_awesome_outlined),
+              title: const Text('Po nazivu jela'),
+              subtitle: const Text('AI pravi recept za jelo koje upišeš'),
+              onTap: () => open(sheetContext, '/recipes/new/name'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_note),
+              title: const Text('Ručno'),
+              subtitle: const Text('Upiši recept sam'),
+              onTap: () => open(sheetContext, '/recipes/new/manual'),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     ),
   );

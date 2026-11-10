@@ -6,6 +6,7 @@ import '../account/auth_controller.dart';
 import '../domain/ids.dart';
 import '../domain/recipe.dart';
 import '../domain/recipe_version.dart';
+import '../domain/saved_recipe_search.dart';
 import '../sync/synced_writer.dart';
 import 'database.dart';
 import 'recipe_photo_store.dart';
@@ -30,6 +31,57 @@ class RecipeRepository {
 
   static const _recipe = 'recipe';
   static const _version = 'recipe_version';
+
+  Stream<List<SavedRecipeSearch>> watchSavedSearches() =>
+      (_db.select(_db.savedRecipeSearches)
+            ..where((t) => t.userId.equals(_scope.userId))
+            ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+          .watch()
+          .map(
+            (rows) => [
+              for (final r in rows)
+                SavedRecipeSearch(
+                  id: r.id,
+                  name: r.name,
+                  filter: RecipeSearchFilter(
+                    query: r.query,
+                    maxMinutes: r.maxMinutes,
+                    includeIngredient: r.includeIngredient,
+                    excludeIngredient: r.excludeIngredient,
+                  ),
+                ),
+            ],
+          );
+
+  Future<void> saveSearch(String name, RecipeSearchFilter filter) =>
+      _db.transaction(() async {
+        if (name.trim().isEmpty ||
+            (filter.maxMinutes != null && filter.maxMinutes! <= 0)) {
+          throw ArgumentError('Neispravna pretraga');
+        }
+        final id = newId();
+        await _db
+            .into(_db.savedRecipeSearches)
+            .insert(
+              SavedRecipeSearchesCompanion.insert(
+                id: id,
+                userId: _scope.userId,
+                name: name.trim(),
+                query: filter.query.trim(),
+                maxMinutes: Value(filter.maxMinutes),
+                includeIngredient: filter.includeIngredient.trim(),
+                excludeIngredient: filter.excludeIngredient.trim(),
+              ),
+            );
+        await _writer.upsert('saved_recipe_search', id);
+      });
+
+  Future<void> deleteSearch(String id) => _db.transaction(() async {
+    final deleted = await (_db.delete(
+      _db.savedRecipeSearches,
+    )..where((t) => t.id.equals(id) & t.userId.equals(_scope.userId))).go();
+    if (deleted > 0) await _writer.delete('saved_recipe_search', id);
+  });
 
   /// Redosled umetanja: id-jevi verzija su slučajni, pa rowid razrešava
   /// verzije sa istim vremenom.

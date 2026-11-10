@@ -9,6 +9,8 @@ analyzer:
     - ios/**
     - macos/**
     - "**/*.g.dart"
+    # Preuzet tuđi kod kao referenca (docs/expansion), nije deo aplikacije.
+    - research/**
   language:
     strict-casts: true
     strict-inference: true

@@ -84,7 +84,10 @@ class MealPlanRepository {
               ..where(
                 (t) =>
                     t.householdId.equals(_scope.householdId) &
-                    t.confirmedAt.isNotNull(),
+                    t.confirmedAt.isNotNull() &
+                    (t.quantity.isNull() | t.quantity.isBiggerThanValue(0)) &
+                    (t.expiresAt.isNull() |
+                        t.expiresAt.isBiggerOrEqualValue(_clock().toUtc())),
               )
               ..orderBy([(t) => OrderingTerm.asc(t.name)]))
             .get())
@@ -144,7 +147,9 @@ class MealPlanRepository {
       final today = CivilDate.today(_clock);
       for (final slot in ready) {
         final proposal = draft.proposals[slot]!;
-        final snapshot = jsonEncode(draft.snapshotFor(slot)!.toJson());
+        final snapshot = jsonEncode(
+          draft.snapshotFor(slot)!.withCurrentDictionary().toJson(),
+        );
         final recipeId = proposal.isNew
             ? created[proposal.draftRecipeKey]
             : library.contains(proposal.libraryRecipeId)

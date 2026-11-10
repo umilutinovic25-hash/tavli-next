@@ -1,0 +1,120 @@
+{
+  "query_url": "https://www.youtube.com/results?search_query=ai+cookbook",
+  "observed_date": "2026-11-09",
+  "method": "Read-only browser DOM inspection",
+  "limitations": [
+    "Search rankings are personalized and mutable.",
+    "Video/transcript content not watched or verified.",
+    "Revenue or quality claims in titles are not validated."
+  ],
+  "results": [
+    {
+      "title": "How to Make a Cookbook or Recipe Book with Inkfluence AI",
+      "url": "https://www.youtube.com/watch?v=zPZ8RZ4tqZY",
+      "channel": "Inkfluence AI",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "How to Create BEAUTIFUL Cookbooks in 10 Minutes Using Artistly AI  (No Cooking Required)",
+      "url": "https://www.youtube.com/watch?v=s92S4XHwClc",
+      "channel": "Smart Webpreneur",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "How to Make Money with Digital Cookbooks Using AI",
+      "url": "https://www.youtube.com/watch?v=7TdZ1VKswxc",
+      "channel": "Side Hustle Mastery",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "How To Create 10/10 AI Recipes That WORK",
+      "url": "https://www.youtube.com/watch?v=b8J-RiHT1fI",
+      "channel": "David Kowalski",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "I turned a 222-yr-old cookbook into an AI knowledge base (made $10K)",
+      "url": "https://www.youtube.com/watch?v=pO4otuMr5tc",
+      "channel": "Scott Bartnick",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "Create Your Own Cookbook with AI | eBookWriter.ai Cookbook Add-on",
+      "url": "https://www.youtube.com/watch?v=kADxTCYm_Xo",
+      "channel": "DarkCoreAI",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "I Tested AI Generated Recipes!",
+      "url": "https://www.youtube.com/watch?v=Ci-Evf8nQH4",
+      "channel": "Honeysuckle",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "HEINZ - AI Cookbook",
+      "url": "https://www.youtube.com/watch?v=ObI9coesvCM",
+      "channel": "VML Spain",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "AI Cooking Disasters: Debunking Facebook’s Fake Recipes",
+      "url": "https://www.youtube.com/watch?v=SVaYJgmPvCg",
+      "channel": "How To Cook That",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "I Let AI Create a Cookbook… Then I Sold It",
+      "url": "https://www.youtube.com/watch?v=DzG7cx6OGJo",
+      "channel": "DoAiEasy",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "Agenti AI CookBook -  Intoduction",
+      "url": "https://www.youtube.com/watch?v=hhbzdmXvQyU",
+      "channel": "bottleNeck",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "I Tested AI SLOP Recipes In Real Life! 🤖",
+      "url": "https://www.youtube.com/watch?v=3W6uG7mh9aU",
+      "channel": "Honeysuckle",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "Create Profitable Amazon KDP Cookbooks Using AI (Free GPT + Artistly)",
+      "url": "https://www.youtube.com/watch?v=ai9zdH4CNV0",
+      "channel": "Automated Affluence",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "Create Professional Cookbook PDFs with AI – Automate Ebook Creation in Bulk",
+      "url": "https://www.youtube.com/watch?v=0SkSFQU7XEo",
+      "channel": "AI Content Labs",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "How I Created & Published a Cookbook with AI Step by Step Amazon KDP Guide",
+      "url": "https://www.youtube.com/watch?v=VlrJao6egpY",
+      "channel": "Automated Affluence",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "How I Created a High Protein 75 Page Cookbook with AI In Artistly | Step by Step KDP Guide",
+      "url": "https://www.youtube.com/watch?v=aErswD1kRe4",
+      "channel": "Automated Affluence",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "I Tested TikTok vs AI Generated Recipes! 🤖",
+      "url": "https://www.youtube.com/watch?v=fcLzrFbWRUQ",
+      "channel": "Honeysuckle",
+      "evidence_level": "search-result metadata only; video content not verified"
+    },
+    {
+      "title": "AI Cookbook Launch Announcement with captions",
+      "url": "https://www.youtube.com/watch?v=lhLnFEG4U-o",
+      "channel": "Firestarter Marketing",
+      "evidence_level": "search-result metadata only; video content not verified"
+    }
+  ]
+}

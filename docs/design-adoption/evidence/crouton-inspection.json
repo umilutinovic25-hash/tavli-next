@@ -1,0 +1,7098 @@
+{
+  "evidence_id": "ev_f035060499d56be70153862717f7df0ac8413f18e12d9d2560f5b088e40314fd",
+  "subject": null,
+  "provider": {
+    "id": "rea-cdp-browser",
+    "name": "REA Chrome DevTools Protocol observation provider",
+    "version": "2"
+  },
+  "analysis_profile": null,
+  "predicate_type": "rea.web-page-inspection",
+  "operation": "inspect_web_page",
+  "parameters": {
+    "cdp_endpoint": "http://127.0.0.1:9333",
+    "allowed_origins": [
+      "https://crouton.app"
+    ],
+    "target_id": "B9A386C3D413719727009EA250A93A0F",
+    "observation_ms": 1000,
+    "include_accessibility_text": true,
+    "include_console_text": false,
+    "include_json_body_shapes": false,
+    "include_websocket_shapes": false,
+    "include_storage_keys": false,
+    "include_storage_fingerprints": false,
+    "include_script_sources": false
+  },
+  "raw_result": null,
+  "normalized_result": {
+    "browser": {
+      "product": "HeadlessChrome/152.0.7928.2",
+      "protocol_version": "1.3",
+      "revision": "537.36 (@8e122fd6ce1b7bb7bcef0fd0b2e96018ff110c4d)",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.7928.2 Safari/537.36",
+      "js_version": "15.2.11"
+    },
+    "target": {
+      "target_id": "B9A386C3D413719727009EA250A93A0F",
+      "type": "page",
+      "title": "Crouton",
+      "url": "https://crouton.app/",
+      "origin": "https://crouton.app",
+      "attached": null
+    },
+    "capture_window": {
+      "started_at": "2026-11-09T18:14:47.329Z",
+      "ended_at": "2026-11-09T18:14:48.450Z",
+      "observation_ms": 1000
+    },
+    "completeness": {
+      "status": "policy_filtered",
+      "conditions": [
+        "attach_limited",
+        "policy_filtered"
+      ],
+      "policy_filtered_sections": [
+        "console_text",
+        "json_body_shapes",
+        "metadata",
+        "resources",
+        "script_sources",
+        "storage_keys",
+        "websocket_shapes"
+      ],
+      "attach_limited_sections": [
+        "console_events",
+        "metadata",
+        "network_requests",
+        "websocket_connections",
+        "websocket_frames"
+      ],
+      "truncated_sections": [],
+      "unavailable_sections": [],
+      "excluded": [
+        {
+          "section": "console_text",
+          "reason": "not_approved",
+          "count": null
+        },
+        {
+          "section": "json_body_shapes",
+          "reason": "not_approved",
+          "count": null
+        },
+        {
+          "section": "metadata",
+          "reason": "disallowed_origin",
+          "count": 4
+        },
+        {
+          "section": "metadata",
+          "reason": "unsupported_url",
+          "count": 2
+        },
+        {
+          "section": "resources",
+          "reason": "disallowed_origin",
+          "count": 2
+        },
+        {
+          "section": "script_sources",
+          "reason": "not_approved",
+          "count": 13
+        },
+        {
+          "section": "storage_keys",
+          "reason": "not_approved",
+          "count": null
+        },
+        {
+          "section": "websocket_shapes",
+          "reason": "not_approved",
+          "count": null
+        }
+      ],
+      "dropped_events": {
+        "scripts": 0,
+        "network_requests": 0,
+        "console_events": 0,
+        "websocket_connections": 0,
+        "websocket_frames": 0,
+        "webmcp_tools": 0,
+        "timeline_events": 0,
+        "total": 0
+      }
+    },
+    "frames": [
+      {
+        "frame_id": "B9A386C3D413719727009EA250A93A0F",
+        "parent_frame_id": null,
+        "url": "https://crouton.app/",
+        "origin": "https://crouton.app"
+      }
+    ],
+    "dom": {
+      "total_nodes": 433,
+      "nodes": [
+        {
+          "index": 0,
+          "parent_index": -1,
+          "node_type": 9,
+          "node_name": "#document",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 1,
+          "parent_index": 0,
+          "node_type": 10,
+          "node_name": "html",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 2,
+          "parent_index": 0,
+          "node_type": 1,
+          "node_name": "HTML",
+          "node_value_length": 0,
+          "attribute_names": [
+            "lang"
+          ]
+        },
+        {
+          "index": 3,
+          "parent_index": 2,
+          "node_type": 1,
+          "node_name": "HEAD",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 4,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 5,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "TITLE",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 6,
+          "parent_index": 5,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 7,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 8,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "type",
+            "href"
+          ]
+        },
+        {
+          "index": 9,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 10,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "META",
+          "node_value_length": 0,
+          "attribute_names": [
+            "charset"
+          ]
+        },
+        {
+          "index": 11,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 12,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "META",
+          "node_value_length": 0,
+          "attribute_names": [
+            "name",
+            "content"
+          ]
+        },
+        {
+          "index": 13,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 14,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "href",
+            "rel"
+          ]
+        },
+        {
+          "index": 15,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 16,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 17,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 6,
+          "attribute_names": []
+        },
+        {
+          "index": 18,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 19,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 20,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 21,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 22,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 23,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 24,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 25,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 26,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 27,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 6,
+          "attribute_names": []
+        },
+        {
+          "index": 28,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 29,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 6,
+          "attribute_names": []
+        },
+        {
+          "index": 30,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 31,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 6,
+          "attribute_names": []
+        },
+        {
+          "index": 32,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 33,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 6,
+          "attribute_names": []
+        },
+        {
+          "index": 34,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 35,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 6,
+          "attribute_names": []
+        },
+        {
+          "index": 36,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 37,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 38,
+          "parent_index": 3,
+          "node_type": 1,
+          "node_name": "LINK",
+          "node_value_length": 0,
+          "attribute_names": [
+            "rel",
+            "href"
+          ]
+        },
+        {
+          "index": 39,
+          "parent_index": 3,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 14,
+          "attribute_names": []
+        },
+        {
+          "index": 40,
+          "parent_index": 2,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 41,
+          "parent_index": 2,
+          "node_type": 1,
+          "node_name": "BODY",
+          "node_value_length": 0,
+          "attribute_names": [
+            "data-aos-easing",
+            "data-aos-duration",
+            "data-aos-delay"
+          ]
+        },
+        {
+          "index": 42,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 43,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "id",
+            "style"
+          ]
+        },
+        {
+          "index": 44,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 4,
+          "attribute_names": []
+        },
+        {
+          "index": 45,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class",
+            "id"
+          ]
+        },
+        {
+          "index": 46,
+          "parent_index": 45,
+          "node_type": 1,
+          "node_name": "::before",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 47,
+          "parent_index": 45,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 6,
+          "attribute_names": []
+        },
+        {
+          "index": 48,
+          "parent_index": 45,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 49,
+          "parent_index": 48,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 50,
+          "parent_index": 48,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 51,
+          "parent_index": 50,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 52,
+          "parent_index": 50,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 53,
+          "parent_index": 52,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 54,
+          "parent_index": 52,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 55,
+          "parent_index": 54,
+          "node_type": 1,
+          "node_name": "::before",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 56,
+          "parent_index": 52,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 57,
+          "parent_index": 50,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 58,
+          "parent_index": 48,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 59,
+          "parent_index": 48,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 60,
+          "parent_index": 59,
+          "node_type": 1,
+          "node_name": "UL",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 61,
+          "parent_index": 60,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 62,
+          "parent_index": 60,
+          "node_type": 1,
+          "node_name": "LI",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 63,
+          "parent_index": 62,
+          "node_type": 1,
+          "node_name": "A",
+          "node_value_length": 0,
+          "attribute_names": [
+            "href",
+            "class"
+          ]
+        },
+        {
+          "index": 64,
+          "parent_index": 63,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 8,
+          "attribute_names": []
+        },
+        {
+          "index": 65,
+          "parent_index": 60,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 66,
+          "parent_index": 60,
+          "node_type": 1,
+          "node_name": "LI",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 67,
+          "parent_index": 66,
+          "node_type": 1,
+          "node_name": "A",
+          "node_value_length": 0,
+          "attribute_names": [
+            "href",
+            "target",
+            "class"
+          ]
+        },
+        {
+          "index": 68,
+          "parent_index": 67,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 8,
+          "attribute_names": []
+        },
+        {
+          "index": 69,
+          "parent_index": 60,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 70,
+          "parent_index": 60,
+          "node_type": 1,
+          "node_name": "LI",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 71,
+          "parent_index": 70,
+          "node_type": 1,
+          "node_name": "A",
+          "node_value_length": 0,
+          "attribute_names": [
+            "href",
+            "class"
+          ]
+        },
+        {
+          "index": 72,
+          "parent_index": 71,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 73,
+          "parent_index": 60,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 74,
+          "parent_index": 60,
+          "node_type": 1,
+          "node_name": "LI",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 75,
+          "parent_index": 74,
+          "node_type": 1,
+          "node_name": "A",
+          "node_value_length": 0,
+          "attribute_names": [
+            "href",
+            "class"
+          ]
+        },
+        {
+          "index": 76,
+          "parent_index": 75,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 77,
+          "parent_index": 60,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 78,
+          "parent_index": 48,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 79,
+          "parent_index": 45,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 80,
+          "parent_index": 45,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "id",
+            "class",
+            "style"
+          ]
+        },
+        {
+          "index": 81,
+          "parent_index": 80,
+          "node_type": 1,
+          "node_name": "HEADER",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class",
+            "role"
+          ]
+        },
+        {
+          "index": 82,
+          "parent_index": 81,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 8,
+          "attribute_names": []
+        },
+        {
+          "index": 83,
+          "parent_index": 81,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 84,
+          "parent_index": 83,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 85,
+          "parent_index": 83,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 86,
+          "parent_index": 85,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 22,
+          "attribute_names": []
+        },
+        {
+          "index": 87,
+          "parent_index": 85,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 88,
+          "parent_index": 87,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 89,
+          "parent_index": 87,
+          "node_type": 1,
+          "node_name": "H1",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 90,
+          "parent_index": 89,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 91,
+          "parent_index": 89,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 92,
+          "parent_index": 91,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 93,
+          "parent_index": 91,
+          "node_type": 1,
+          "node_name": "IMG",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src",
+            "alt",
+            "class"
+          ]
+        },
+        {
+          "index": 94,
+          "parent_index": 91,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 95,
+          "parent_index": 89,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 30,
+          "attribute_names": []
+        },
+        {
+          "index": 96,
+          "parent_index": 89,
+          "node_type": 1,
+          "node_name": "A",
+          "node_value_length": 0,
+          "attribute_names": [
+            "href",
+            "class"
+          ]
+        },
+        {
+          "index": 97,
+          "parent_index": 96,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 98,
+          "parent_index": 89,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 99,
+          "parent_index": 87,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 100,
+          "parent_index": 85,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 12,
+          "attribute_names": []
+        },
+        {
+          "index": 101,
+          "parent_index": 85,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 102,
+          "parent_index": 101,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 103,
+          "parent_index": 101,
+          "node_type": 1,
+          "node_name": "NAV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class",
+            "role"
+          ]
+        },
+        {
+          "index": 104,
+          "parent_index": 103,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 105,
+          "parent_index": 103,
+          "node_type": 1,
+          "node_name": "UL",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 106,
+          "parent_index": 105,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 107,
+          "parent_index": 105,
+          "node_type": 1,
+          "node_name": "LI",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 108,
+          "parent_index": 107,
+          "node_type": 1,
+          "node_name": "A",
+          "node_value_length": 0,
+          "attribute_names": [
+            "href",
+            "class"
+          ]
+        },
+        {
+          "index": 109,
+          "parent_index": 108,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 8,
+          "attribute_names": []
+        },
+        {
+          "index": 110,
+          "parent_index": 105,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 111,
+          "parent_index": 105,
+          "node_type": 1,
+          "node_name": "LI",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 112,
+          "parent_index": 111,
+          "node_type": 1,
+          "node_name": "A",
+          "node_value_length": 0,
+          "attribute_names": [
+            "href",
+            "target",
+            "class"
+          ]
+        },
+        {
+          "index": 113,
+          "parent_index": 112,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 8,
+          "attribute_names": []
+        },
+        {
+          "index": 114,
+          "parent_index": 105,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 115,
+          "parent_index": 105,
+          "node_type": 1,
+          "node_name": "LI",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 116,
+          "parent_index": 115,
+          "node_type": 1,
+          "node_name": "A",
+          "node_value_length": 0,
+          "attribute_names": [
+            "href",
+            "class"
+          ]
+        },
+        {
+          "index": 117,
+          "parent_index": 116,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 118,
+          "parent_index": 105,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 119,
+          "parent_index": 105,
+          "node_type": 1,
+          "node_name": "LI",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 120,
+          "parent_index": 119,
+          "node_type": 1,
+          "node_name": "A",
+          "node_value_length": 0,
+          "attribute_names": [
+            "href",
+            "class"
+          ]
+        },
+        {
+          "index": 121,
+          "parent_index": 120,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 122,
+          "parent_index": 105,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 123,
+          "parent_index": 103,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 124,
+          "parent_index": 101,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 125,
+          "parent_index": 85,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 126,
+          "parent_index": 85,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 127,
+          "parent_index": 126,
+          "node_type": 1,
+          "node_name": "A",
+          "node_value_length": 0,
+          "attribute_names": [
+            "href",
+            "class"
+          ]
+        },
+        {
+          "index": 128,
+          "parent_index": 127,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 129,
+          "parent_index": 85,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 10,
+          "attribute_names": []
+        },
+        {
+          "index": 130,
+          "parent_index": 83,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 131,
+          "parent_index": 81,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 12,
+          "attribute_names": []
+        },
+        {
+          "index": 132,
+          "parent_index": 45,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 133,
+          "parent_index": 45,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class",
+            "style"
+          ]
+        },
+        {
+          "index": 134,
+          "parent_index": 133,
+          "node_type": 1,
+          "node_name": "::after",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 135,
+          "parent_index": 133,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 136,
+          "parent_index": 133,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 137,
+          "parent_index": 136,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 138,
+          "parent_index": 136,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 139,
+          "parent_index": 138,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 12,
+          "attribute_names": []
+        },
+        {
+          "index": 140,
+          "parent_index": 138,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class",
+            "style"
+          ]
+        },
+        {
+          "index": 141,
+          "parent_index": 140,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 34,
+          "attribute_names": []
+        },
+        {
+          "index": 142,
+          "parent_index": 140,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 143,
+          "parent_index": 142,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 144,
+          "parent_index": 142,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 145,
+          "parent_index": 144,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 146,
+          "parent_index": 144,
+          "node_type": 1,
+          "node_name": "H1",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 147,
+          "parent_index": 146,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 31,
+          "attribute_names": []
+        },
+        {
+          "index": 148,
+          "parent_index": 144,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 149,
+          "parent_index": 144,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 150,
+          "parent_index": 149,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 62,
+          "attribute_names": []
+        },
+        {
+          "index": 151,
+          "parent_index": 144,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 152,
+          "parent_index": 144,
+          "node_type": 1,
+          "node_name": "A",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class",
+            "href",
+            "target"
+          ]
+        },
+        {
+          "index": 153,
+          "parent_index": 152,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 19,
+          "attribute_names": []
+        },
+        {
+          "index": 154,
+          "parent_index": 152,
+          "node_type": 1,
+          "node_name": "IMG",
+          "node_value_length": 0,
+          "attribute_names": [
+            "role",
+            "src"
+          ]
+        },
+        {
+          "index": 155,
+          "parent_index": 152,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 19,
+          "attribute_names": []
+        },
+        {
+          "index": 156,
+          "parent_index": 152,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 157,
+          "parent_index": 156,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 51,
+          "attribute_names": []
+        },
+        {
+          "index": 158,
+          "parent_index": 152,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 159,
+          "parent_index": 144,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 160,
+          "parent_index": 142,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 28,
+          "attribute_names": []
+        },
+        {
+          "index": 161,
+          "parent_index": 140,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 14,
+          "attribute_names": []
+        },
+        {
+          "index": 162,
+          "parent_index": 140,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 163,
+          "parent_index": 162,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 164,
+          "parent_index": 162,
+          "node_type": 1,
+          "node_name": "IMG",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src",
+            "alt",
+            "class"
+          ]
+        },
+        {
+          "index": 165,
+          "parent_index": 162,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 166,
+          "parent_index": 140,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 12,
+          "attribute_names": []
+        },
+        {
+          "index": 167,
+          "parent_index": 138,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 168,
+          "parent_index": 136,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 169,
+          "parent_index": 133,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 170,
+          "parent_index": 45,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 171,
+          "parent_index": 45,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class",
+            "id"
+          ]
+        },
+        {
+          "index": 172,
+          "parent_index": 171,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 173,
+          "parent_index": 171,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 174,
+          "parent_index": 173,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 175,
+          "parent_index": 173,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 176,
+          "parent_index": 175,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 177,
+          "parent_index": 175,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 178,
+          "parent_index": 177,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 179,
+          "parent_index": 177,
+          "node_type": 1,
+          "node_name": "H2",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 180,
+          "parent_index": 179,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 8,
+          "attribute_names": []
+        },
+        {
+          "index": 181,
+          "parent_index": 177,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 182,
+          "parent_index": 177,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 183,
+          "parent_index": 182,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 96,
+          "attribute_names": []
+        },
+        {
+          "index": 184,
+          "parent_index": 177,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 185,
+          "parent_index": 175,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 186,
+          "parent_index": 173,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 187,
+          "parent_index": 173,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 188,
+          "parent_index": 187,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 189,
+          "parent_index": 187,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 190,
+          "parent_index": 189,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 26,
+          "attribute_names": []
+        },
+        {
+          "index": 191,
+          "parent_index": 189,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 192,
+          "parent_index": 191,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 193,
+          "parent_index": 191,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 194,
+          "parent_index": 193,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 195,
+          "parent_index": 193,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 196,
+          "parent_index": 195,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 197,
+          "parent_index": 196,
+          "node_type": 1,
+          "node_name": "::before",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 198,
+          "parent_index": 193,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 199,
+          "parent_index": 191,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 200,
+          "parent_index": 191,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 201,
+          "parent_index": 200,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 202,
+          "parent_index": 200,
+          "node_type": 1,
+          "node_name": "H3",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 203,
+          "parent_index": 202,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 19,
+          "attribute_names": []
+        },
+        {
+          "index": 204,
+          "parent_index": 200,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 205,
+          "parent_index": 200,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 206,
+          "parent_index": 205,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 78,
+          "attribute_names": []
+        },
+        {
+          "index": 207,
+          "parent_index": 200,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 208,
+          "parent_index": 191,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 209,
+          "parent_index": 189,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 12,
+          "attribute_names": []
+        },
+        {
+          "index": 210,
+          "parent_index": 187,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 211,
+          "parent_index": 187,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 212,
+          "parent_index": 211,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 14,
+          "attribute_names": []
+        },
+        {
+          "index": 213,
+          "parent_index": 211,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 214,
+          "parent_index": 213,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 215,
+          "parent_index": 213,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 216,
+          "parent_index": 215,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 217,
+          "parent_index": 215,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 218,
+          "parent_index": 217,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 219,
+          "parent_index": 218,
+          "node_type": 1,
+          "node_name": "::before",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 220,
+          "parent_index": 215,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 221,
+          "parent_index": 213,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 222,
+          "parent_index": 213,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 223,
+          "parent_index": 222,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 224,
+          "parent_index": 222,
+          "node_type": 1,
+          "node_name": "H3",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 225,
+          "parent_index": 224,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 16,
+          "attribute_names": []
+        },
+        {
+          "index": 226,
+          "parent_index": 222,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 227,
+          "parent_index": 222,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 228,
+          "parent_index": 227,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 91,
+          "attribute_names": []
+        },
+        {
+          "index": 229,
+          "parent_index": 222,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 230,
+          "parent_index": 213,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 231,
+          "parent_index": 211,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 232,
+          "parent_index": 187,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 233,
+          "parent_index": 187,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 234,
+          "parent_index": 233,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 235,
+          "parent_index": 233,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 236,
+          "parent_index": 235,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 237,
+          "parent_index": 235,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 238,
+          "parent_index": 237,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 239,
+          "parent_index": 237,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 240,
+          "parent_index": 239,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 241,
+          "parent_index": 240,
+          "node_type": 1,
+          "node_name": "::before",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 242,
+          "parent_index": 237,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 243,
+          "parent_index": 235,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 244,
+          "parent_index": 235,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 245,
+          "parent_index": 244,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 246,
+          "parent_index": 244,
+          "node_type": 1,
+          "node_name": "H3",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 247,
+          "parent_index": 246,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 248,
+          "parent_index": 244,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 249,
+          "parent_index": 244,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 250,
+          "parent_index": 249,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 59,
+          "attribute_names": []
+        },
+        {
+          "index": 251,
+          "parent_index": 244,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 252,
+          "parent_index": 235,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 253,
+          "parent_index": 233,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 254,
+          "parent_index": 187,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 255,
+          "parent_index": 187,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 256,
+          "parent_index": 255,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 257,
+          "parent_index": 255,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 258,
+          "parent_index": 257,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 259,
+          "parent_index": 257,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 260,
+          "parent_index": 259,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 261,
+          "parent_index": 259,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 262,
+          "parent_index": 261,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 263,
+          "parent_index": 262,
+          "node_type": 1,
+          "node_name": "::before",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 264,
+          "parent_index": 259,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 265,
+          "parent_index": 257,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 266,
+          "parent_index": 257,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 267,
+          "parent_index": 266,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 268,
+          "parent_index": 266,
+          "node_type": 1,
+          "node_name": "H3",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 269,
+          "parent_index": 268,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 28,
+          "attribute_names": []
+        },
+        {
+          "index": 270,
+          "parent_index": 266,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 271,
+          "parent_index": 266,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 272,
+          "parent_index": 271,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 109,
+          "attribute_names": []
+        },
+        {
+          "index": 273,
+          "parent_index": 266,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 274,
+          "parent_index": 257,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 275,
+          "parent_index": 255,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 276,
+          "parent_index": 187,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 12,
+          "attribute_names": []
+        },
+        {
+          "index": 277,
+          "parent_index": 187,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 278,
+          "parent_index": 277,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 279,
+          "parent_index": 277,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 280,
+          "parent_index": 279,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 281,
+          "parent_index": 279,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 282,
+          "parent_index": 281,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 283,
+          "parent_index": 281,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 284,
+          "parent_index": 283,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 285,
+          "parent_index": 284,
+          "node_type": 1,
+          "node_name": "::before",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 286,
+          "parent_index": 281,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 287,
+          "parent_index": 279,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 288,
+          "parent_index": 279,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 289,
+          "parent_index": 288,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 290,
+          "parent_index": 288,
+          "node_type": 1,
+          "node_name": "H3",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 291,
+          "parent_index": 290,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 14,
+          "attribute_names": []
+        },
+        {
+          "index": 292,
+          "parent_index": 288,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 293,
+          "parent_index": 288,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 294,
+          "parent_index": 293,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 85,
+          "attribute_names": []
+        },
+        {
+          "index": 295,
+          "parent_index": 288,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 296,
+          "parent_index": 279,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 297,
+          "parent_index": 277,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 298,
+          "parent_index": 187,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 12,
+          "attribute_names": []
+        },
+        {
+          "index": 299,
+          "parent_index": 187,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 300,
+          "parent_index": 299,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 301,
+          "parent_index": 299,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 302,
+          "parent_index": 301,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 303,
+          "parent_index": 301,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 304,
+          "parent_index": 303,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 305,
+          "parent_index": 303,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 306,
+          "parent_index": 305,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 307,
+          "parent_index": 306,
+          "node_type": 1,
+          "node_name": "::before",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 308,
+          "parent_index": 303,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 309,
+          "parent_index": 301,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 310,
+          "parent_index": 301,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 311,
+          "parent_index": 310,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 312,
+          "parent_index": 310,
+          "node_type": 1,
+          "node_name": "H3",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 313,
+          "parent_index": 312,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 314,
+          "parent_index": 310,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 315,
+          "parent_index": 310,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 316,
+          "parent_index": 315,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 77,
+          "attribute_names": []
+        },
+        {
+          "index": 317,
+          "parent_index": 310,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 318,
+          "parent_index": 301,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 319,
+          "parent_index": 299,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 320,
+          "parent_index": 187,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 12,
+          "attribute_names": []
+        },
+        {
+          "index": 321,
+          "parent_index": 187,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 322,
+          "parent_index": 321,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 323,
+          "parent_index": 321,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 324,
+          "parent_index": 323,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 325,
+          "parent_index": 323,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 326,
+          "parent_index": 325,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 327,
+          "parent_index": 325,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 328,
+          "parent_index": 327,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 329,
+          "parent_index": 328,
+          "node_type": 1,
+          "node_name": "::before",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 330,
+          "parent_index": 325,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 331,
+          "parent_index": 323,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 332,
+          "parent_index": 323,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 333,
+          "parent_index": 332,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 334,
+          "parent_index": 332,
+          "node_type": 1,
+          "node_name": "H3",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 335,
+          "parent_index": 334,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 336,
+          "parent_index": 332,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 337,
+          "parent_index": 332,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 338,
+          "parent_index": 337,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 74,
+          "attribute_names": []
+        },
+        {
+          "index": 339,
+          "parent_index": 332,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 340,
+          "parent_index": 323,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 341,
+          "parent_index": 321,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 342,
+          "parent_index": 187,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 12,
+          "attribute_names": []
+        },
+        {
+          "index": 343,
+          "parent_index": 187,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 344,
+          "parent_index": 343,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 345,
+          "parent_index": 343,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 346,
+          "parent_index": 345,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 347,
+          "parent_index": 345,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 348,
+          "parent_index": 347,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 349,
+          "parent_index": 347,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 350,
+          "parent_index": 349,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 351,
+          "parent_index": 350,
+          "node_type": 1,
+          "node_name": "::before",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 352,
+          "parent_index": 347,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 353,
+          "parent_index": 345,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 354,
+          "parent_index": 345,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 355,
+          "parent_index": 354,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 356,
+          "parent_index": 354,
+          "node_type": 1,
+          "node_name": "H3",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 357,
+          "parent_index": 356,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 22,
+          "attribute_names": []
+        },
+        {
+          "index": 358,
+          "parent_index": 354,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 359,
+          "parent_index": 354,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 360,
+          "parent_index": 359,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 52,
+          "attribute_names": []
+        },
+        {
+          "index": 361,
+          "parent_index": 354,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 362,
+          "parent_index": 345,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 363,
+          "parent_index": 343,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 364,
+          "parent_index": 187,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 12,
+          "attribute_names": []
+        },
+        {
+          "index": 365,
+          "parent_index": 187,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 366,
+          "parent_index": 365,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 367,
+          "parent_index": 365,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 368,
+          "parent_index": 367,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 369,
+          "parent_index": 367,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 370,
+          "parent_index": 369,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 371,
+          "parent_index": 369,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 372,
+          "parent_index": 371,
+          "node_type": 1,
+          "node_name": "SPAN",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 373,
+          "parent_index": 372,
+          "node_type": 1,
+          "node_name": "::before",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 374,
+          "parent_index": 369,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 375,
+          "parent_index": 367,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 376,
+          "parent_index": 367,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 377,
+          "parent_index": 376,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 378,
+          "parent_index": 376,
+          "node_type": 1,
+          "node_name": "H3",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 379,
+          "parent_index": 378,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 24,
+          "attribute_names": []
+        },
+        {
+          "index": 380,
+          "parent_index": 376,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 17,
+          "attribute_names": []
+        },
+        {
+          "index": 381,
+          "parent_index": 376,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 382,
+          "parent_index": 381,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 98,
+          "attribute_names": []
+        },
+        {
+          "index": 383,
+          "parent_index": 376,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 15,
+          "attribute_names": []
+        },
+        {
+          "index": 384,
+          "parent_index": 367,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 385,
+          "parent_index": 365,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 386,
+          "parent_index": 187,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 21,
+          "attribute_names": []
+        },
+        {
+          "index": 387,
+          "parent_index": 173,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 388,
+          "parent_index": 171,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 389,
+          "parent_index": 45,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 6,
+          "attribute_names": []
+        },
+        {
+          "index": 390,
+          "parent_index": 45,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 391,
+          "parent_index": 390,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 392,
+          "parent_index": 390,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 393,
+          "parent_index": 392,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 394,
+          "parent_index": 392,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 395,
+          "parent_index": 394,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 396,
+          "parent_index": 394,
+          "node_type": 1,
+          "node_name": "DIV",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 397,
+          "parent_index": 396,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 13,
+          "attribute_names": []
+        },
+        {
+          "index": 398,
+          "parent_index": 396,
+          "node_type": 1,
+          "node_name": "P",
+          "node_value_length": 0,
+          "attribute_names": [
+            "class"
+          ]
+        },
+        {
+          "index": 399,
+          "parent_index": 398,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 25,
+          "attribute_names": []
+        },
+        {
+          "index": 400,
+          "parent_index": 398,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": []
+        },
+        {
+          "index": 401,
+          "parent_index": 400,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 41,
+          "attribute_names": []
+        },
+        {
+          "index": 402,
+          "parent_index": 398,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 29,
+          "attribute_names": []
+        },
+        {
+          "index": 403,
+          "parent_index": 396,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 11,
+          "attribute_names": []
+        },
+        {
+          "index": 404,
+          "parent_index": 394,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 9,
+          "attribute_names": []
+        },
+        {
+          "index": 405,
+          "parent_index": 392,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 406,
+          "parent_index": 390,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 407,
+          "parent_index": 45,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 408,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 5,
+          "attribute_names": []
+        },
+        {
+          "index": 409,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 410,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 411,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 412,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 413,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 414,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 415,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 416,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 417,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 418,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 419,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 420,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 421,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 422,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 423,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 424,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 425,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 426,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 427,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 428,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 3,
+          "attribute_names": []
+        },
+        {
+          "index": 429,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 430,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        },
+        {
+          "index": 431,
+          "parent_index": 41,
+          "node_type": 1,
+          "node_name": "SCRIPT",
+          "node_value_length": 0,
+          "attribute_names": [
+            "src"
+          ]
+        },
+        {
+          "index": 432,
+          "parent_index": 41,
+          "node_type": 3,
+          "node_name": "#text",
+          "node_value_length": 7,
+          "attribute_names": []
+        }
+      ]
+    },
+    "accessibility": {
+      "total_nodes": 249,
+      "text_capture": {
+        "status": "included",
+        "retained_bytes": 2913,
+        "excluded_fields": 0
+      },
+      "nodes": [
+        {
+          "node_id": "1",
+          "parent_id": null,
+          "role": "RootWebArea",
+          "name": "Crouton",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            },
+            {
+              "name": "focused",
+              "value": true
+            }
+          ]
+        },
+        {
+          "node_id": "7",
+          "parent_id": "1",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "46",
+          "parent_id": "7",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "49",
+          "parent_id": "46",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "52",
+          "parent_id": "49",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "84",
+          "parent_id": "49",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "136",
+          "parent_id": "49",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "173",
+          "parent_id": "49",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "392",
+          "parent_id": "49",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "394",
+          "parent_id": "392",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "396",
+          "parent_id": "394",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "398",
+          "parent_id": "396",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "54",
+          "parent_id": "52",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "63",
+          "parent_id": "52",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "85",
+          "parent_id": "84",
+          "role": "banner",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "139",
+          "parent_id": "136",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "141",
+          "parent_id": "139",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "143",
+          "parent_id": "141",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "175",
+          "parent_id": "173",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "177",
+          "parent_id": "175",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "179",
+          "parent_id": "177",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "189",
+          "parent_id": "175",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "191",
+          "parent_id": "189",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "213",
+          "parent_id": "189",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "235",
+          "parent_id": "189",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "257",
+          "parent_id": "189",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "279",
+          "parent_id": "189",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "301",
+          "parent_id": "189",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "323",
+          "parent_id": "189",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "345",
+          "parent_id": "189",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "367",
+          "parent_id": "189",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "400",
+          "parent_id": "398",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "56",
+          "parent_id": "54",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "64",
+          "parent_id": "63",
+          "role": "list",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "87",
+          "parent_id": "85",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "89",
+          "parent_id": "87",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "91",
+          "parent_id": "89",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "105",
+          "parent_id": "89",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "145",
+          "parent_id": "143",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "147",
+          "parent_id": "145",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "149",
+          "parent_id": "147",
+          "role": "heading",
+          "name": "Recipe Organizer & Meal Planner",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "node_id": "152",
+          "parent_id": "147",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "155",
+          "parent_id": "147",
+          "role": "link",
+          "name": "Available on iOS, iPadOS, macOS, visionOS & watchOS",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            }
+          ]
+        },
+        {
+          "node_id": "5",
+          "parent_id": "143",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "181",
+          "parent_id": "179",
+          "role": "heading",
+          "name": "Features",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "node_id": "184",
+          "parent_id": "179",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "193",
+          "parent_id": "191",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "215",
+          "parent_id": "213",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "237",
+          "parent_id": "235",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "259",
+          "parent_id": "257",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "281",
+          "parent_id": "279",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "303",
+          "parent_id": "301",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "325",
+          "parent_id": "323",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "347",
+          "parent_id": "345",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "369",
+          "parent_id": "367",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "401",
+          "parent_id": "400",
+          "role": "StaticText",
+          "name": "Copyright © ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "404",
+          "parent_id": "400",
+          "role": "StaticText",
+          "name": "2026 Crouton LLC",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "58",
+          "parent_id": "56",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "59",
+          "parent_id": "58",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "-1000000002",
+          "parent_id": "59",
+          "role": "StaticText",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000003",
+          "parent_id": "-1000000002",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "66",
+          "parent_id": "64",
+          "role": "listitem",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "node_id": "70",
+          "parent_id": "64",
+          "role": "listitem",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "node_id": "74",
+          "parent_id": "64",
+          "role": "listitem",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "node_id": "78",
+          "parent_id": "64",
+          "role": "listitem",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "node_id": "93",
+          "parent_id": "91",
+          "role": "heading",
+          "name": "logo Crouton",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "node_id": "107",
+          "parent_id": "105",
+          "role": "navigation",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "150",
+          "parent_id": "149",
+          "role": "StaticText",
+          "name": "Recipe Organizer & Meal Planner",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "153",
+          "parent_id": "152",
+          "role": "StaticText",
+          "name": "A home for your favourite recipes, from wherever you find them",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "159",
+          "parent_id": "155",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "166",
+          "parent_id": "5",
+          "role": "image",
+          "name": "Image",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "182",
+          "parent_id": "181",
+          "role": "StaticText",
+          "name": "Features",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "185",
+          "parent_id": "184",
+          "role": "StaticText",
+          "name": "Simplicity is at the heart of Crouton, but that doesn't stop it being as feature packed as ever!",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "195",
+          "parent_id": "193",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "202",
+          "parent_id": "193",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "204",
+          "parent_id": "202",
+          "role": "heading",
+          "name": "Weekly Meal Planner",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "node_id": "207",
+          "parent_id": "202",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "217",
+          "parent_id": "215",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "224",
+          "parent_id": "215",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "226",
+          "parent_id": "224",
+          "role": "heading",
+          "name": "Recipe Organiser",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "node_id": "229",
+          "parent_id": "224",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "239",
+          "parent_id": "237",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "246",
+          "parent_id": "237",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "248",
+          "parent_id": "246",
+          "role": "heading",
+          "name": "Recipe Scanning",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "node_id": "251",
+          "parent_id": "246",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "261",
+          "parent_id": "259",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "268",
+          "parent_id": "259",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "270",
+          "parent_id": "268",
+          "role": "heading",
+          "name": "Import Recipes from Websites",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "node_id": "273",
+          "parent_id": "268",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "283",
+          "parent_id": "281",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "290",
+          "parent_id": "281",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "292",
+          "parent_id": "290",
+          "role": "heading",
+          "name": "Recipe Scaling",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "node_id": "295",
+          "parent_id": "290",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "305",
+          "parent_id": "303",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "312",
+          "parent_id": "303",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "314",
+          "parent_id": "312",
+          "role": "heading",
+          "name": "iCloud Sync",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "node_id": "317",
+          "parent_id": "312",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "327",
+          "parent_id": "325",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "334",
+          "parent_id": "325",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "336",
+          "parent_id": "334",
+          "role": "heading",
+          "name": "Multiple Timers",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "node_id": "339",
+          "parent_id": "334",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "349",
+          "parent_id": "347",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "356",
+          "parent_id": "347",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "358",
+          "parent_id": "356",
+          "role": "heading",
+          "name": "Measurement Conversion",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "node_id": "361",
+          "parent_id": "356",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "371",
+          "parent_id": "369",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "378",
+          "parent_id": "369",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "380",
+          "parent_id": "378",
+          "role": "heading",
+          "name": "Auto-generate meal plans",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "node_id": "383",
+          "parent_id": "378",
+          "role": "paragraph",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000070",
+          "parent_id": "401",
+          "role": "InlineTextBox",
+          "name": "Copyright © ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000071",
+          "parent_id": "404",
+          "role": "InlineTextBox",
+          "name": "2026 Crouton LLC",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000003",
+          "parent_id": "-1000000002",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "67",
+          "parent_id": "66",
+          "role": "link",
+          "name": "Features",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            }
+          ]
+        },
+        {
+          "node_id": "71",
+          "parent_id": "70",
+          "role": "link",
+          "name": "Download",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            }
+          ]
+        },
+        {
+          "node_id": "75",
+          "parent_id": "74",
+          "role": "link",
+          "name": "Contact",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            }
+          ]
+        },
+        {
+          "node_id": "79",
+          "parent_id": "78",
+          "role": "link",
+          "name": "Press Kit",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            }
+          ]
+        },
+        {
+          "node_id": "95",
+          "parent_id": "93",
+          "role": "generic",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "100",
+          "parent_id": "93",
+          "role": "link",
+          "name": "Crouton",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            }
+          ]
+        },
+        {
+          "node_id": "109",
+          "parent_id": "107",
+          "role": "list",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000013",
+          "parent_id": "150",
+          "role": "InlineTextBox",
+          "name": "Recipe Organizer & ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000014",
+          "parent_id": "150",
+          "role": "InlineTextBox",
+          "name": "Meal Planner",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000015",
+          "parent_id": "153",
+          "role": "InlineTextBox",
+          "name": "A home for your favourite recipes, from wherever you find ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000016",
+          "parent_id": "153",
+          "role": "InlineTextBox",
+          "name": "them",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "160",
+          "parent_id": "159",
+          "role": "StaticText",
+          "name": "Available on iOS, iPadOS, macOS, visionOS & watchOS",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000018",
+          "parent_id": "182",
+          "role": "InlineTextBox",
+          "name": "Features",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000019",
+          "parent_id": "185",
+          "role": "InlineTextBox",
+          "name": "Simplicity is at the heart of Crouton, but that doesn't stop it being as ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000020",
+          "parent_id": "185",
+          "role": "InlineTextBox",
+          "name": "feature packed as ever!",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "198",
+          "parent_id": "195",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "199",
+          "parent_id": "198",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "-1000000021",
+          "parent_id": "199",
+          "role": "StaticText",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000022",
+          "parent_id": "-1000000021",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "205",
+          "parent_id": "204",
+          "role": "StaticText",
+          "name": "Weekly Meal Planner",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "208",
+          "parent_id": "207",
+          "role": "StaticText",
+          "name": "Assign saved recipes to each day of the week so you're never caught unprepared",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "220",
+          "parent_id": "217",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "221",
+          "parent_id": "220",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "-1000000026",
+          "parent_id": "221",
+          "role": "StaticText",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000027",
+          "parent_id": "-1000000026",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "227",
+          "parent_id": "226",
+          "role": "StaticText",
+          "name": "Recipe Organiser",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "230",
+          "parent_id": "229",
+          "role": "StaticText",
+          "name": "Store recipes in whatever format suits you. Whether that's a website, photo or just a title",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "242",
+          "parent_id": "239",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "243",
+          "parent_id": "242",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "-1000000032",
+          "parent_id": "243",
+          "role": "StaticText",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000033",
+          "parent_id": "-1000000032",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "249",
+          "parent_id": "248",
+          "role": "StaticText",
+          "name": "Recipe Scanning",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "252",
+          "parent_id": "251",
+          "role": "StaticText",
+          "name": "Scan ingredients and steps straight out of your recipe book",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "264",
+          "parent_id": "261",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "265",
+          "parent_id": "264",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "-1000000037",
+          "parent_id": "265",
+          "role": "StaticText",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000038",
+          "parent_id": "-1000000037",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "271",
+          "parent_id": "270",
+          "role": "StaticText",
+          "name": "Import Recipes from Websites",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "274",
+          "parent_id": "273",
+          "role": "StaticText",
+          "name": "Automatically import recipe ingredients and steps from copied URLs. Save recipes as fast as you can find them",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "286",
+          "parent_id": "283",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "287",
+          "parent_id": "286",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "-1000000043",
+          "parent_id": "287",
+          "role": "StaticText",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000044",
+          "parent_id": "-1000000043",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "293",
+          "parent_id": "292",
+          "role": "StaticText",
+          "name": "Recipe Scaling",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "296",
+          "parent_id": "295",
+          "role": "StaticText",
+          "name": "Scale a recipe's ingredients makes cooking for a larger (or smaller) group very easy!",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "308",
+          "parent_id": "305",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "309",
+          "parent_id": "308",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "-1000000049",
+          "parent_id": "309",
+          "role": "StaticText",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000050",
+          "parent_id": "-1000000049",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "315",
+          "parent_id": "314",
+          "role": "StaticText",
+          "name": "iCloud Sync",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "318",
+          "parent_id": "317",
+          "role": "StaticText",
+          "name": "Ensure your recipes are across all of your devices. Sync with your household.",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "330",
+          "parent_id": "327",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "331",
+          "parent_id": "330",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "-1000000054",
+          "parent_id": "331",
+          "role": "StaticText",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000055",
+          "parent_id": "-1000000054",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "337",
+          "parent_id": "336",
+          "role": "StaticText",
+          "name": "Multiple Timers",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "340",
+          "parent_id": "339",
+          "role": "StaticText",
+          "name": "Create multiple timers simply by tapping on them within your recipes steps",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "352",
+          "parent_id": "349",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "353",
+          "parent_id": "352",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "-1000000059",
+          "parent_id": "353",
+          "role": "StaticText",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000060",
+          "parent_id": "-1000000059",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "359",
+          "parent_id": "358",
+          "role": "StaticText",
+          "name": "Measurement Conversion",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "362",
+          "parent_id": "361",
+          "role": "StaticText",
+          "name": "Quickly convert recipes between metric and imperial.",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "374",
+          "parent_id": "371",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "375",
+          "parent_id": "374",
+          "role": "none",
+          "name": null,
+          "description": null,
+          "ignored": true,
+          "states": []
+        },
+        {
+          "node_id": "-1000000064",
+          "parent_id": "375",
+          "role": "StaticText",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000065",
+          "parent_id": "-1000000064",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "381",
+          "parent_id": "380",
+          "role": "StaticText",
+          "name": "Auto-generate meal plans",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "384",
+          "parent_id": "383",
+          "role": "StaticText",
+          "name": "Use your stored recipes to automatically generate meal plans, take the hassle out of meal planning",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "68",
+          "parent_id": "67",
+          "role": "StaticText",
+          "name": "Features",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "72",
+          "parent_id": "71",
+          "role": "StaticText",
+          "name": "Download",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "76",
+          "parent_id": "75",
+          "role": "StaticText",
+          "name": "Contact",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "80",
+          "parent_id": "79",
+          "role": "StaticText",
+          "name": "Press Kit",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "97",
+          "parent_id": "95",
+          "role": "image",
+          "name": "logo",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "101",
+          "parent_id": "100",
+          "role": "StaticText",
+          "name": "Crouton",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "111",
+          "parent_id": "109",
+          "role": "listitem",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "node_id": "115",
+          "parent_id": "109",
+          "role": "listitem",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "node_id": "4",
+          "parent_id": "109",
+          "role": "listitem",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "node_id": "122",
+          "parent_id": "109",
+          "role": "listitem",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "level",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "node_id": "-1000000017",
+          "parent_id": "160",
+          "role": "InlineTextBox",
+          "name": "Available on iOS, iPadOS, macOS, visionOS & watchOS",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000022",
+          "parent_id": "-1000000021",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000023",
+          "parent_id": "205",
+          "role": "InlineTextBox",
+          "name": "Weekly Meal Planner",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000024",
+          "parent_id": "208",
+          "role": "InlineTextBox",
+          "name": "Assign saved recipes to each day of the ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000025",
+          "parent_id": "208",
+          "role": "InlineTextBox",
+          "name": "week so you're never caught unprepared",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000027",
+          "parent_id": "-1000000026",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000028",
+          "parent_id": "227",
+          "role": "InlineTextBox",
+          "name": "Recipe Organiser",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000029",
+          "parent_id": "230",
+          "role": "InlineTextBox",
+          "name": "Store recipes in whatever format suits ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000030",
+          "parent_id": "230",
+          "role": "InlineTextBox",
+          "name": "you. Whether that's a website, photo or ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000031",
+          "parent_id": "230",
+          "role": "InlineTextBox",
+          "name": "just a title",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000033",
+          "parent_id": "-1000000032",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000034",
+          "parent_id": "249",
+          "role": "InlineTextBox",
+          "name": "Recipe Scanning",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000035",
+          "parent_id": "252",
+          "role": "InlineTextBox",
+          "name": "Scan ingredients and steps straight out ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000036",
+          "parent_id": "252",
+          "role": "InlineTextBox",
+          "name": "of your recipe book",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000038",
+          "parent_id": "-1000000037",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000039",
+          "parent_id": "271",
+          "role": "InlineTextBox",
+          "name": "Import Recipes from Websites",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000040",
+          "parent_id": "274",
+          "role": "InlineTextBox",
+          "name": "Automatically import recipe ingredients ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000041",
+          "parent_id": "274",
+          "role": "InlineTextBox",
+          "name": "and steps from copied URLs. Save ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000042",
+          "parent_id": "274",
+          "role": "InlineTextBox",
+          "name": "recipes as fast as you can find them",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000044",
+          "parent_id": "-1000000043",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000045",
+          "parent_id": "293",
+          "role": "InlineTextBox",
+          "name": "Recipe Scaling",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000046",
+          "parent_id": "296",
+          "role": "InlineTextBox",
+          "name": "Scale a recipe's ingredients makes ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000047",
+          "parent_id": "296",
+          "role": "InlineTextBox",
+          "name": "cooking for a larger (or smaller) group ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000048",
+          "parent_id": "296",
+          "role": "InlineTextBox",
+          "name": "very easy!",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000050",
+          "parent_id": "-1000000049",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000051",
+          "parent_id": "315",
+          "role": "InlineTextBox",
+          "name": "iCloud Sync",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000052",
+          "parent_id": "318",
+          "role": "InlineTextBox",
+          "name": "Ensure your recipes are across all of your ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000053",
+          "parent_id": "318",
+          "role": "InlineTextBox",
+          "name": "devices. Sync with your household.",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000055",
+          "parent_id": "-1000000054",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000056",
+          "parent_id": "337",
+          "role": "InlineTextBox",
+          "name": "Multiple Timers",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000057",
+          "parent_id": "340",
+          "role": "InlineTextBox",
+          "name": "Create multiple timers simply by tapping ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000058",
+          "parent_id": "340",
+          "role": "InlineTextBox",
+          "name": "on them within your recipes steps",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000060",
+          "parent_id": "-1000000059",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000061",
+          "parent_id": "359",
+          "role": "InlineTextBox",
+          "name": "Measurement Conversion",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000062",
+          "parent_id": "362",
+          "role": "InlineTextBox",
+          "name": "Quickly convert recipes between metric ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000063",
+          "parent_id": "362",
+          "role": "InlineTextBox",
+          "name": "and imperial.",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000065",
+          "parent_id": "-1000000064",
+          "role": "InlineTextBox",
+          "name": "",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000066",
+          "parent_id": "381",
+          "role": "InlineTextBox",
+          "name": "Auto-generate meal plans",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000067",
+          "parent_id": "384",
+          "role": "InlineTextBox",
+          "name": "Use your stored recipes to automatically ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000068",
+          "parent_id": "384",
+          "role": "InlineTextBox",
+          "name": "generate meal plans, take the hassle out ",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000069",
+          "parent_id": "384",
+          "role": "InlineTextBox",
+          "name": "of meal planning",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000004",
+          "parent_id": "68",
+          "role": "InlineTextBox",
+          "name": "Features",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000005",
+          "parent_id": "72",
+          "role": "InlineTextBox",
+          "name": "Download",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000006",
+          "parent_id": "76",
+          "role": "InlineTextBox",
+          "name": "Contact",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000007",
+          "parent_id": "80",
+          "role": "InlineTextBox",
+          "name": "Press Kit",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000008",
+          "parent_id": "101",
+          "role": "InlineTextBox",
+          "name": "Crouton",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "112",
+          "parent_id": "111",
+          "role": "link",
+          "name": "Features",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            }
+          ]
+        },
+        {
+          "node_id": "116",
+          "parent_id": "115",
+          "role": "link",
+          "name": "Download",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            }
+          ]
+        },
+        {
+          "node_id": "119",
+          "parent_id": "4",
+          "role": "link",
+          "name": "Contact",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            }
+          ]
+        },
+        {
+          "node_id": "123",
+          "parent_id": "122",
+          "role": "link",
+          "name": "Press Kit",
+          "description": null,
+          "ignored": false,
+          "states": [
+            {
+              "name": "focusable",
+              "value": true
+            }
+          ]
+        },
+        {
+          "node_id": "113",
+          "parent_id": "112",
+          "role": "StaticText",
+          "name": "Features",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "117",
+          "parent_id": "116",
+          "role": "StaticText",
+          "name": "Download",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "120",
+          "parent_id": "119",
+          "role": "StaticText",
+          "name": "Contact",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "124",
+          "parent_id": "123",
+          "role": "StaticText",
+          "name": "Press Kit",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000009",
+          "parent_id": "113",
+          "role": "InlineTextBox",
+          "name": "Features",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000010",
+          "parent_id": "117",
+          "role": "InlineTextBox",
+          "name": "Download",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000011",
+          "parent_id": "120",
+          "role": "InlineTextBox",
+          "name": "Contact",
+          "description": null,
+          "ignored": false,
+          "states": []
+        },
+        {
+          "node_id": "-1000000012",
+          "parent_id": "124",
+          "role": "InlineTextBox",
+          "name": "Press Kit",
+          "description": null,
+          "ignored": false,
+          "states": []
+        }
+      ]
+    },
+    "scripts": {
+      "total": 13,
+      "items": [
+        {
+          "script_key": "scr_002407ad7c40760287ffc6bbdfe61cd8cde92d4cfab1bbdcea584225b374b1aa",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/main.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "55bb719aa3ce361c4fd9fb4cc9ce96b5a1987a3de3110c1da0774c0b5a7c884e",
+          "length": 6162,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": null,
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_68099abe7cbe548c5406e7608f9a33e26cf0d29711116c8588ab59e7cc93e68c"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_01e0acb069e63ac8ed61ee5a3224aff50892b6f22fae688d50ce82a94e1df33f",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/jquery-3.3.1.min.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "a28ccf8a7b50522bdeea0cd83cdeca221c18fc1f9df3ee6b3d3c48d599206855",
+          "length": 86926,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": null,
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_1f745971b8efdb164468c1c5e5853cbc4741cddc2ceb8046beb71a280e44b874"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_0c6f5a9fff30a4e57299988a33f580567b2f0913d1faff98f54f9567a06c6648",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/jquery-ui.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "88e1cc5467bfcd1bd6b269fcf9db684676ae7d732c2a036d10dacdb66f6bbcaa",
+          "length": 45799,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": null,
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_d76eee8f58241407c7a4194ab431ae179553a2dee7cf5921950a6f4ef66e36c4"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_267e192cf49fd2884b2180f11092506f680b799624dd9a5486737d24a324d681",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/jquery.easing.1.3.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "11c19392554c9b78c15771afa8f9fbfc78e0e46ca9527831f90ae41f95da73b8",
+          "length": 8101,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": null,
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_00a8af363d3fa12aeb0846e9146126357876065fa6d37819b3cd7611ad74abff"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_451308a620c60c1957494c3f1ec2f853a0e8de6d4f976c03e35a485c1f0b6262",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/bootstrap.min.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "0a34a87842c539c1f4feec56bba982fd596b73500046a6e6fe38a22260c6577b",
+          "length": 58072,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": "https://crouton.app/js/bootstrap.min.js.map",
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_ff0bf9abb8f1f46509c06194c92550c598b988b0c684db54e625d06a60e76c32"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_5efd920c15b5bef986b8c8668bab6c2f23332520950498bd165bd9acdf72c78f",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/popper.min.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "d2b9f29ea1f42a60a8beb1c04f76868287f2a48d6ec50fb39d6b888584a03c49",
+          "length": 20336,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": "https://crouton.app/js/popper.min.js.map",
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_6a8ce345fdce83095d7e1b49e52b20e99c1f2fc8296d03473ae54f83c9156977"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_7a1a64c774981fa752cbf4c53d55b7bf5e20edb1a838b0773f6f2330a0277e49",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/",
+          "origin": "https://crouton.app",
+          "cdp_hash": "6a31a3a39783d09cc53dd9e9baeb4a4fa49be602eef90f6bbb9f78af02688064",
+          "length": 41,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": null,
+          "resource_reconciliation": {
+            "status": "unmatched",
+            "reason": "no_exact_sanitized_url"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_8819c3bd245a87b634410db25ccb864356fb672cafcb48ed207fd3c3c2a0cdaf",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/jquery.fancybox.min.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "c787a5704661491a0877721ca934b66aa26ac70f8a8eab8ccc48c86c86a41556",
+          "length": 68194,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": null,
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_7caf43dda0ce8c59b6fbc1486dfa33733f8f4a28e8d58ab29c27e855323c1abd"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_9c8b93bb69a058a783e03919c9ed42ec3ef5d8ab36b8b693cdcff8df269b8ee6",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/bootstrap-datepicker.min.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "bab0b131a4edcae13c50ae5779562e41b9bf3219d77e5a99fc1f403a4c9382ea",
+          "length": 34172,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": null,
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_53785c5fa33bc5590b5a568813d85a3c329704b964b8c719a80e7c85939a0f71"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_b495c89b68cf34362cbcb4ae6a393f4e2b322eb28cc58a793f75c055078749ef",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/aos.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "8acb04628394993656dad11f23029fc6ad13cf90cfaa1f5df89150b2727684a9",
+          "length": 14244,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": "https://crouton.app/js/aos.js.map",
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_fab368d43a7b9883c7d868faf29bf5cf7f6f7b69c3cd596f9802e179d5545748"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_c7c8f44e160d96ce3cba2f36038f817f38112281fadd4552834f297e77904aba",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/owl.carousel.min.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "b394d33b2a7ec654a6b037ebfda6618341b3f897a362be624c923c2711b54a43",
+          "length": 42766,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": null,
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_3614d4a50ccae1221a23a09609878a2d38508836c1bcbba704a98d8c44bc328a"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_c83feef0d66afa8da769a477e2c6fc73d931395f19d0dbcfa60bf1aac3bdf98b",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/jquery.countdown.min.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "2249399b2268c260d0698542503d16afebc80e437c846239f12196744ebbd40f",
+          "length": 5339,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": null,
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_c2d55c03e4e66c406d27bc523538a3a46ea075e6a70bf291ece494b8d16c18b4"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        },
+        {
+          "script_key": "scr_fd480c1a7c0ff2f28f0246f8f49d5d876e1d9ece286b8e0b86fb7c14ab288347",
+          "frame_id": "B9A386C3D413719727009EA250A93A0F",
+          "url": "https://crouton.app/js/jquery.sticky.js",
+          "origin": "https://crouton.app",
+          "cdp_hash": "67f5e61d9f05070581d471e5cc6a7c728c9f06e4935aa4e7adde3184fe882ecd",
+          "length": 10084,
+          "is_module": false,
+          "language": "JavaScript",
+          "source_map_url": null,
+          "resource_reconciliation": {
+            "status": "exact",
+            "resource_key": "res_2bb23c2d1fa58aa1d7256641d8a157976f583096b207b6a7ded4c6b070d2a8ae"
+          },
+          "source": {
+            "included": false,
+            "reason": "source capture was not selected"
+          }
+        }
+      ]
+    },
+    "resources": [
+      {
+        "resource_key": "res_00a8af363d3fa12aeb0846e9146126357876065fa6d37819b3cd7611ad74abff",
+        "url": "https://crouton.app/js/jquery.easing.1.3.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 8111
+      },
+      {
+        "resource_key": "res_04a2c69ceda3c1347dd6fade602f99156621ef2bd1f5843dad9115beb1081f65",
+        "url": "https://crouton.app/fonts/flaticon/font/flaticon.css",
+        "origin": "https://crouton.app",
+        "type": "Stylesheet",
+        "mime_type": "text/css",
+        "content_size": 1288
+      },
+      {
+        "resource_key": "res_1533d026ab33b2cda4f0acdc39e0da46bb337e6162d48c5461648618f88f4606",
+        "url": "https://crouton.app/css/exrta.css",
+        "origin": "https://crouton.app",
+        "type": "Stylesheet",
+        "mime_type": "text/css",
+        "content_size": 1758
+      },
+      {
+        "resource_key": "res_19e238c0825b45ed069587d5d2fe02c7336e4f84e698bb0263edebefa2fed4c5",
+        "url": "https://crouton.app/css/bootstrap.min.css",
+        "origin": "https://crouton.app",
+        "type": "Stylesheet",
+        "mime_type": "text/css",
+        "content_size": 177093
+      },
+      {
+        "resource_key": "res_1f745971b8efdb164468c1c5e5853cbc4741cddc2ceb8046beb71a280e44b874",
+        "url": "https://crouton.app/js/jquery-3.3.1.min.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 86926
+      },
+      {
+        "resource_key": "res_2bb23c2d1fa58aa1d7256641d8a157976f583096b207b6a7ded4c6b070d2a8ae",
+        "url": "https://crouton.app/js/jquery.sticky.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 10084
+      },
+      {
+        "resource_key": "res_2ca5609943995c8782f8f03c999430b9bb6378a85bd31f039653fcb6ab76b6a4",
+        "url": "https://crouton.app/css/owl.carousel.min.css",
+        "origin": "https://crouton.app",
+        "type": "Stylesheet",
+        "mime_type": "text/css",
+        "content_size": 2936
+      },
+      {
+        "resource_key": "res_34935095bbe17655efad4e22832af9a08159b25428a6aeecccc709ccd9f22108",
+        "url": "https://crouton.app/css/owl.theme.default.min.css",
+        "origin": "https://crouton.app",
+        "type": "Stylesheet",
+        "mime_type": "text/css",
+        "content_size": 965
+      },
+      {
+        "resource_key": "res_3614d4a50ccae1221a23a09609878a2d38508836c1bcbba704a98d8c44bc328a",
+        "url": "https://crouton.app/js/owl.carousel.min.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 42766
+      },
+      {
+        "resource_key": "res_3c9e6163aac6e1fe7ea547eeeb24e86eb944fb17b90244a047e6d8d78238b5b7",
+        "url": "https://crouton.app/css/bootstrap-datepicker.css",
+        "origin": "https://crouton.app",
+        "type": "Stylesheet",
+        "mime_type": "text/css",
+        "content_size": 17144
+      },
+      {
+        "resource_key": "res_53785c5fa33bc5590b5a568813d85a3c329704b964b8c719a80e7c85939a0f71",
+        "url": "https://crouton.app/js/bootstrap-datepicker.min.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 34172
+      },
+      {
+        "resource_key": "res_541ec277d4393bd52af6600a1377c28c2ccdf0dcd03d6a9e8f157f2429372dc3",
+        "url": "https://crouton.app/images/logo.png",
+        "origin": "https://crouton.app",
+        "type": "Image",
+        "mime_type": "image/png",
+        "content_size": 18555
+      },
+      {
+        "resource_key": "res_5af7d2f95b4248ba2bb8238f0b7dbc082515f5837375c7e791308f6b29ad3aea",
+        "url": "https://crouton.app/fonts/icomoon/style.css",
+        "origin": "https://crouton.app",
+        "type": "Stylesheet",
+        "mime_type": "text/css",
+        "content_size": 79820
+      },
+      {
+        "resource_key": "res_68099abe7cbe548c5406e7608f9a33e26cf0d29711116c8588ab59e7cc93e68c",
+        "url": "https://crouton.app/js/main.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 6162
+      },
+      {
+        "resource_key": "res_6a8ce345fdce83095d7e1b49e52b20e99c1f2fc8296d03473ae54f83c9156977",
+        "url": "https://crouton.app/js/popper.min.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 20336
+      },
+      {
+        "resource_key": "res_79dcbc6e2349aa5d35ca4b8bcb3c8a028792b5dcd17e2141ddf3ff94cabdf04c",
+        "url": "https://crouton.app/css/jquery-ui.css",
+        "origin": "https://crouton.app",
+        "type": "Stylesheet",
+        "mime_type": "text/css",
+        "content_size": 21738
+      },
+      {
+        "resource_key": "res_79eebc9dcfa962f293f537dceae9b82fe78b792134e96df74b4a417bb0a60496",
+        "url": "https://crouton.app/images/svg_1.svg",
+        "origin": "https://crouton.app",
+        "type": "Image",
+        "mime_type": "text/html",
+        "content_size": 1808
+      },
+      {
+        "resource_key": "res_7caf43dda0ce8c59b6fbc1486dfa33733f8f4a28e8d58ab29c27e855323c1abd",
+        "url": "https://crouton.app/js/jquery.fancybox.min.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 68196
+      },
+      {
+        "resource_key": "res_95ac5d91d6e2a25194dc99692a2a07f5e736380f31c6569758351f21d40beb82",
+        "url": "https://crouton.app/images/download.svg",
+        "origin": "https://crouton.app",
+        "type": "Image",
+        "mime_type": "image/svg+xml",
+        "content_size": 10804
+      },
+      {
+        "resource_key": "res_a845e63aa0586e23d1a88cbb49044921d9191ba18594b1fb6020a555ce9d3ef7",
+        "url": "https://crouton.app/css/style.css",
+        "origin": "https://crouton.app",
+        "type": "Stylesheet",
+        "mime_type": "text/css",
+        "content_size": 52617
+      },
+      {
+        "resource_key": "res_b6075bbbdf0d99783557118f54b16ed667cffffa058392f73b5a78f6b3876c80",
+        "url": "https://crouton.app/images/hero.png",
+        "origin": "https://crouton.app",
+        "type": "Image",
+        "mime_type": "image/png",
+        "content_size": 1646358
+      },
+      {
+        "resource_key": "res_c2d55c03e4e66c406d27bc523538a3a46ea075e6a70bf291ece494b8d16c18b4",
+        "url": "https://crouton.app/js/jquery.countdown.min.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 5339
+      },
+      {
+        "resource_key": "res_ca5df6661f7b2e6fec5abedad090b12212237de74d77a8b5a71f8ebeb56f66d1",
+        "url": "https://crouton.app/css/aos.css",
+        "origin": "https://crouton.app",
+        "type": "Stylesheet",
+        "mime_type": "text/css",
+        "content_size": 25983
+      },
+      {
+        "resource_key": "res_d76eee8f58241407c7a4194ab431ae179553a2dee7cf5921950a6f4ef66e36c4",
+        "url": "https://crouton.app/js/jquery-ui.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 45799
+      },
+      {
+        "resource_key": "res_d9da3014a8f29de4522372dc9e02a7f7423202bd43c65fca9a8d04303a7f3b33",
+        "url": "https://crouton.app/css/jquery.fancybox.min.css",
+        "origin": "https://crouton.app",
+        "type": "Stylesheet",
+        "mime_type": "text/css",
+        "content_size": 12795
+      },
+      {
+        "resource_key": "res_f347318152c20b90026c9a7e93995d9c5ed61153b824cd653fe7396add76802f",
+        "url": "https://crouton.app/fonts/icomoon/fonts/icomoon.ttf?10si43",
+        "origin": "https://crouton.app",
+        "type": "Font",
+        "mime_type": "font/ttf",
+        "content_size": 307168
+      },
+      {
+        "resource_key": "res_fab368d43a7b9883c7d868faf29bf5cf7f6f7b69c3cd596f9802e179d5545748",
+        "url": "https://crouton.app/js/aos.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 14244
+      },
+      {
+        "resource_key": "res_ff0bf9abb8f1f46509c06194c92550c598b988b0c684db54e625d06a60e76c32",
+        "url": "https://crouton.app/js/bootstrap.min.js",
+        "origin": "https://crouton.app",
+        "type": "Script",
+        "mime_type": "text/javascript",
+        "content_size": 58072
+      }
+    ],
+    "network": {
+      "requests": [],
+      "websocket_connections": [],
+      "coverage_started_at": "2026-11-09T18:14:47.329Z",
+      "prior_activity_available": false
+    },
+    "console": {
+      "events": [],
+      "coverage_started_at": "2026-11-09T18:14:47.329Z",
+      "prior_activity_available": false
+    },
+    "workers": [],
+    "metadata": {
+      "responses": [],
+      "dom_urls": [
+        {
+          "node_index": 8,
+          "attribute": "href",
+          "url": "https://crouton.app/images/favicon.ico",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 14,
+          "attribute": "href",
+          "url": null,
+          "destination_scope": "outside_policy"
+        },
+        {
+          "node_index": 16,
+          "attribute": "href",
+          "url": "https://crouton.app/fonts/icomoon/style.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 18,
+          "attribute": "href",
+          "url": "https://crouton.app/css/bootstrap.min.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 20,
+          "attribute": "href",
+          "url": "https://crouton.app/css/jquery-ui.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 22,
+          "attribute": "href",
+          "url": "https://crouton.app/css/owl.carousel.min.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 24,
+          "attribute": "href",
+          "url": "https://crouton.app/css/owl.theme.default.min.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 26,
+          "attribute": "href",
+          "url": "https://crouton.app/css/owl.theme.default.min.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 28,
+          "attribute": "href",
+          "url": "https://crouton.app/css/jquery.fancybox.min.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 30,
+          "attribute": "href",
+          "url": "https://crouton.app/css/bootstrap-datepicker.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 32,
+          "attribute": "href",
+          "url": "https://crouton.app/fonts/flaticon/font/flaticon.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 34,
+          "attribute": "href",
+          "url": "https://crouton.app/css/aos.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 36,
+          "attribute": "href",
+          "url": "https://crouton.app/css/style.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 38,
+          "attribute": "href",
+          "url": "https://crouton.app/css/exrta.css",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 63,
+          "attribute": "href",
+          "url": "https://crouton.app/#features-section",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 67,
+          "attribute": "href",
+          "url": null,
+          "destination_scope": "outside_policy"
+        },
+        {
+          "node_index": 71,
+          "attribute": "href",
+          "url": null,
+          "destination_scope": "unsupported"
+        },
+        {
+          "node_index": 75,
+          "attribute": "href",
+          "url": "https://crouton.app/press-kit.html",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 93,
+          "attribute": "src",
+          "url": "https://crouton.app/images/logo.png",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 96,
+          "attribute": "href",
+          "url": "https://crouton.app/index.html",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 108,
+          "attribute": "href",
+          "url": "https://crouton.app/#features-section",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 112,
+          "attribute": "href",
+          "url": null,
+          "destination_scope": "outside_policy"
+        },
+        {
+          "node_index": 116,
+          "attribute": "href",
+          "url": null,
+          "destination_scope": "unsupported"
+        },
+        {
+          "node_index": 120,
+          "attribute": "href",
+          "url": "https://crouton.app/press-kit.html",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 127,
+          "attribute": "href",
+          "url": "https://crouton.app/#",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 152,
+          "attribute": "href",
+          "url": null,
+          "destination_scope": "outside_policy"
+        },
+        {
+          "node_index": 154,
+          "attribute": "src",
+          "url": "https://crouton.app/images/download.svg",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 164,
+          "attribute": "src",
+          "url": "https://crouton.app/images/hero.png",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 409,
+          "attribute": "src",
+          "url": "https://crouton.app/js/jquery-3.3.1.min.js",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 411,
+          "attribute": "src",
+          "url": "https://crouton.app/js/jquery-ui.js",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 413,
+          "attribute": "src",
+          "url": "https://crouton.app/js/popper.min.js",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 415,
+          "attribute": "src",
+          "url": "https://crouton.app/js/bootstrap.min.js",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 417,
+          "attribute": "src",
+          "url": "https://crouton.app/js/owl.carousel.min.js",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 419,
+          "attribute": "src",
+          "url": "https://crouton.app/js/jquery.countdown.min.js",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 421,
+          "attribute": "src",
+          "url": "https://crouton.app/js/bootstrap-datepicker.min.js",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 423,
+          "attribute": "src",
+          "url": "https://crouton.app/js/jquery.easing.1.3.js",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 425,
+          "attribute": "src",
+          "url": "https://crouton.app/js/aos.js",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 427,
+          "attribute": "src",
+          "url": "https://crouton.app/js/jquery.fancybox.min.js",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 429,
+          "attribute": "src",
+          "url": "https://crouton.app/js/jquery.sticky.js",
+          "destination_scope": "approved"
+        },
+        {
+          "node_index": 431,
+          "attribute": "src",
+          "url": "https://crouton.app/js/main.js",
+          "destination_scope": "approved"
+        }
+      ],
+      "agent_hints": [],
+      "excluded_dom_urls": 6,
+      "headers_allowlisted": true
+    },
+    "storage": {
+      "origin": "https://crouton.app",
+      "usage_bytes": 0,
+      "quota_bytes": 296599420108,
+      "local_storage_keys": [],
+      "session_storage_keys": [],
+      "indexed_db_names": [],
+      "cache_names": [],
+      "content_fingerprints": [],
+      "fingerprint_algorithm": "sha256",
+      "fingerprints_complete": false,
+      "values_redacted": true
+    },
+    "limitations": [
+      "Observation starts when REA attaches; prior network and console activity is unavailable.",
+      "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+      "Source maps are reported only as declarative URLs and are not fetched.",
+      "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+      "CDP discovery omitted the target attachment state; attached is reported as unknown."
+    ]
+  },
+  "confidence": "observed",
+  "authority": "external-service",
+  "environment": {
+    "id": "HeadlessChrome/152.0.7928.2@537.36 (@8e122fd6ce1b7bb7bcef0fd0b2e96018ff110c4d)",
+    "platform": "unknown",
+    "architecture": "unknown",
+    "isolation": "none"
+  },
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "Observation starts when REA attaches; prior network and console activity is unavailable.",
+    "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+    "Source maps are reported only as declarative URLs and are not fetched.",
+    "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+    "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+    "Browser host platform and architecture were not observed."
+  ],
+  "relationship_coverage": null,
+  "locations": [],
+  "evidence_links": []
+}

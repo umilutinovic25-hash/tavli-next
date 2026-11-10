@@ -587,6 +587,44 @@ class SupplyAllocationEntity
       );
 }
 
+class SavedRecipeSearchEntity
+    extends SyncEntity<$SavedRecipeSearchesTable, SavedRecipeSearchRow> {
+  const SavedRecipeSearchEntity();
+  @override
+  String get name => 'saved_recipe_search';
+  @override
+  String get remoteTable => 'saved_recipe_searches';
+  @override
+  EntityScope get scope => EntityScope.user;
+  @override
+  $SavedRecipeSearchesTable table(AppDatabase db) => db.savedRecipeSearches;
+  @override
+  Expression<String> idColumn($SavedRecipeSearchesTable t) => t.id;
+  @override
+  GeneratedColumn<String> scopeColumn($SavedRecipeSearchesTable t) => t.userId;
+  @override
+  Map<String, Object?> toRemote(SavedRecipeSearchRow r) => {
+    'id': r.id,
+    'user_id': r.userId,
+    'name': r.name,
+    'query': r.query,
+    'max_minutes': r.maxMinutes,
+    'include_ingredient': r.includeIngredient,
+    'exclude_ingredient': r.excludeIngredient,
+  };
+  @override
+  SavedRecipeSearchesCompanion fromRemote(Map<String, Object?> j) =>
+      SavedRecipeSearchesCompanion(
+        id: Value(j['id']! as String),
+        userId: Value(j['user_id']! as String),
+        name: Value(j['name']! as String),
+        query: Value(j['query']! as String),
+        maxMinutes: Value(j['max_minutes'] as int?),
+        includeIngredient: Value(j['include_ingredient']! as String),
+        excludeIngredient: Value(j['exclude_ingredient']! as String),
+      );
+}
+
 /// Profil ukusa: lokalni id je userId osobe.
 class TasteProfileEntity
     extends SyncEntity<$UserProfilesTable, UserProfileRow> {
@@ -640,6 +678,7 @@ const List<SyncEntity<Table, Object?>> syncEntities = [
   SupplyAllocationEntity(),
   RatingEntity(),
   TasteProfileEntity(),
+  SavedRecipeSearchEntity(),
 ];
 
 SyncEntity<Table, Object?>? entityByName(String name) {

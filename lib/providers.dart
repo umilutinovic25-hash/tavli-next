@@ -7,6 +7,7 @@ import 'account/account_api.dart';
 import 'account/account_service.dart';
 import 'account/auth_controller.dart';
 import 'account/auth_gateway.dart';
+import 'account/preview_storage.dart';
 import 'account/session_store.dart';
 import 'account/supabase_client.dart';
 import 'account/supabase_config.dart';
@@ -34,8 +35,20 @@ final databaseProvider = Provider<AppDatabase>((ref) {
   return db;
 });
 
+final localPreviewProvider = Provider<bool>(
+  (ref) => const bool.fromEnvironment('TAVLI_LOCAL_PREVIEW'),
+);
+
+final secretStorageProvider = Provider<SecretStorage>(
+  (ref) => storageForEnvironment(
+    const KeychainSecretStorage(),
+    ref.watch(supabaseConfigProvider),
+    preview: ref.watch(localPreviewProvider),
+  ),
+);
+
 final sessionStoreProvider = Provider<SessionStore>(
-  (ref) => const SessionStore(KeychainSecretStorage()),
+  (ref) => SessionStore(ref.watch(secretStorageProvider)),
 );
 
 /// Adresa i anon ključ iz `--dart-define-from-file=secrets.json`.
@@ -175,7 +188,9 @@ final syncPhaseProvider = StreamProvider<SyncPhase?>((ref) {
   return engine == null ? Stream.value(null) : engine.watchPhase();
 });
 
-final keyStoreProvider = Provider<KeyStore>((ref) => SecureKeyStore());
+final keyStoreProvider = Provider<KeyStore>(
+  (ref) => SecureKeyStore(storage: ref.watch(secretStorageProvider)),
+);
 
 /// Ugrađeni ključevi iz `--dart-define-from-file=secrets.json`.
 final builtInKeysProvider = Provider<BuiltInKeys>(
