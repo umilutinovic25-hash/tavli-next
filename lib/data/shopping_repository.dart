@@ -422,7 +422,7 @@ class ShoppingRepository {
               ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
               ..limit(1))
             .getSingleOrNull();
-    final json = jsonEncode(snapshot.toJson());
+    final json = jsonEncode(snapshot.withCurrentDictionary().toJson());
     String id;
     if (current != null && !repeat) {
       id = current.id;
@@ -861,16 +861,34 @@ class ShoppingRepository {
                   t.householdId.equals(_scope.householdId),
             ))
             .get();
-    return totalsOf(items);
+    final contributions =
+        await (_db.select(_db.shoppingContributions)..where(
+              (t) =>
+                  t.shoppingItemId.isIn([for (final i in items) i.id]) &
+                  t.householdId.equals(_scope.householdId),
+            ))
+            .get();
+    return totalsOf(
+      items,
+      identities: {
+        for (final c in contributions)
+          if (c.shoppingItemId != null)
+            c.shoppingItemId!: (c.ingredientKey, c.unitGroup),
+      },
+    );
   }
 
   /// Zbir stavki po namirnici i grupi jedinica (za prikaz celog plana).
-  static List<PlanTotal> totalsOf(List<ShoppingItemRow> items) {
+  static List<PlanTotal> totalsOf(
+    List<ShoppingItemRow> items, {
+    Map<String, (String, String)> identities = const {},
+  }) {
     final groups = <(String, String), List<ShoppingItemRow>>{};
     for (final i in items) {
       final unit = normalizeUnit(i.unit);
       final group = i.quantity == null ? unknownGroup : unit.group;
-      groups.putIfAbsent((ingredientKey(i.name), group), () => []).add(i);
+      final identity = identities[i.id] ?? (ingredientKey(i.name), group);
+      groups.putIfAbsent(identity, () => []).add(i);
     }
     int micros(ShoppingItemRow i) => i.quantity == null
         ? 0
@@ -968,6 +986,7 @@ class ShoppingRepository {
           maxServings,
         ),
         ingredients: snapshot.ingredients,
+        dictionaryVersion: snapshot.dictionaryVersion,
       ),
     );
   }
@@ -1066,6 +1085,11 @@ class ShoppingRepository {
           origin: SupplyOrigin.pantry,
           ingredient: ingredientKey(p.name),
           unitGroup: unit.group,
+          dictionaryIngredient: dictionaryIngredientKey(p.name, 1),
+          dictionaryUnitGroup: normalizeUnit(
+            p.unit,
+            dictionaryVersion: 1,
+          ).group,
           micros: !known || expired ? 0 : toMicros(p.quantity!) * unit.factor,
           samePhysicalAs: p.sourceShoppingItemId,
         ),
@@ -1086,6 +1110,11 @@ class ShoppingRepository {
           origin: SupplyOrigin.purchase,
           ingredient: ingredientKey(i.name),
           unitGroup: unit.group,
+          dictionaryIngredient: dictionaryIngredientKey(i.name, 1),
+          dictionaryUnitGroup: normalizeUnit(
+            i.unit,
+            dictionaryVersion: 1,
+          ).group,
           micros: toMicros(i.quantity!) * unit.factor,
         ),
       );
@@ -1211,6 +1240,8 @@ class ShoppingRepository {
           origin: s.origin,
           ingredient: s.ingredient,
           unitGroup: s.unitGroup,
+          dictionaryIngredient: s.dictionaryIngredient,
+          dictionaryUnitGroup: s.dictionaryUnitGroup,
           micros: (s.micros ?? 0) - (used[s.canonicalId] ?? 0),
         ),
     ]);
@@ -1300,10 +1331,18 @@ class ShoppingRepository {
               if (items[id] case final i?
                   when !i.isBought &&
                       i.listId == listId &&
-                      ingredientKey(i.name) == ingredient &&
+                      dictionaryIngredientKey(
+                            i.name,
+                            ingredient.startsWith('v1:') ? 1 : 0,
+                          ) ==
+                          ingredient &&
                       (i.quantity == null
                               ? unknownGroup
-                              : normalizeUnit(i.unit).group) ==
+                              : normalizeUnit(
+                                  i.unit,
+                                  dictionaryVersion:
+                                      ingredient.startsWith('v1:') ? 1 : 0,
+                                ).group) ==
                           group &&
                       !liveItems.contains(id))
                 i,

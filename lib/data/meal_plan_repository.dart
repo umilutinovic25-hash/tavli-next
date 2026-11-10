@@ -147,7 +147,9 @@ class MealPlanRepository {
       final today = CivilDate.today(_clock);
       for (final slot in ready) {
         final proposal = draft.proposals[slot]!;
-        final snapshot = jsonEncode(draft.snapshotFor(slot)!.toJson());
+        final snapshot = jsonEncode(
+          draft.snapshotFor(slot)!.withCurrentDictionary().toJson(),
+        );
         final recipeId = proposal.isNew
             ? created[proposal.draftRecipeKey]
             : library.contains(proposal.libraryRecipeId)

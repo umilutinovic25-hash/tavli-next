@@ -539,6 +539,139 @@ void main() {
       );
     });
 
+    test(
+      'mesečni zbir spaja potvrđene sinonime u različitim nedeljama',
+      () async {
+        final end = mon.addDays(8);
+        await plan('p1', mon, end);
+        await entry(
+          'e1',
+          mon,
+          ingredients: const [
+            Ingredient(name: 'beli luk', quantity: 100, unit: 'g'),
+          ],
+        );
+        await entry(
+          'e2',
+          end,
+          ingredients: const [
+            Ingredient(name: 'češnjak', quantity: 50, unit: 'gram'),
+          ],
+        );
+        for (final e in await db.select(db.mealPlanEntries).get()) {
+          final old = RecipeSnapshot.fromJson(
+            jsonDecode(e.recipeSnapshotJson!) as Map<String, dynamic>,
+          );
+          await (db.update(
+            db.mealPlanEntries,
+          )..where((t) => t.id.equals(e.id))).write(
+            MealPlanEntriesCompanion(
+              recipeSnapshotJson: Value(
+                jsonEncode(old.withCurrentDictionary().toJson()),
+              ),
+            ),
+          );
+        }
+        await shop.reconcilePlan('p1');
+        final totals = await shop.planTotals('p1');
+        expect(totals, hasLength(1));
+        expect(totals.single.openMicros, 150000000);
+      },
+    );
+
+    test(
+      'novi sinonimi se saberu, staro odobrenje se ne menja pri obračunu',
+      () async {
+        await plan('p1', mon, mon);
+        await entry(
+          'e1',
+          mon,
+          ingredients: const [
+            Ingredient(name: 'beli luk', quantity: 100, unit: 'g'),
+            Ingredient(name: 'češnjak', quantity: 50, unit: 'gram'),
+          ],
+        );
+        await shop.reconcilePlan('p1');
+        final before = await db.select(db.shoppingContributions).get();
+        final oldSnapshot = (await db.select(db.mealPlanEntries).get())
+            .single
+            .recipeSnapshotJson;
+        expect(before, hasLength(2));
+        await shop.addRecipePreparation(
+          snapshot: snapshot(const [
+            Ingredient(name: 'beli luk', quantity: 100, unit: 'g'),
+            Ingredient(name: 'češnjak', quantity: 50, unit: 'gram'),
+            Ingredient(name: 'češnjak', quantity: 2, unit: 'komad'),
+          ]),
+          servings: 2,
+          originKey: 'novi',
+        );
+        final lines = await db.select(db.shoppingContributions).get();
+        final old = lines
+            .where((c) => c.sourceId == before.first.sourceId)
+            .toList();
+        expect(old.map((c) => c.id).toSet(), before.map((c) => c.id).toSet());
+        expect(
+          (await db.select(db.mealPlanEntries).get()).single.recipeSnapshotJson,
+          oldSnapshot,
+        );
+        final source = (await db.select(db.shoppingSources).get()).singleWhere(
+          (s) => s.originKey == 'novi',
+        );
+        expect(
+          (jsonDecode(source.recipeSnapshotJson!)
+              as Map<String, dynamic>)['dictionaryVersion'],
+          1,
+        );
+        final current = lines.where((c) => c.sourceId == source.id).toList();
+        expect(current, hasLength(2));
+        expect(
+          current.firstWhere((c) => c.unitGroup == 'mass').micros,
+          150000000,
+        );
+      },
+    );
+
+    test(
+      'zaliha sinonima koristi se jednom kroz stare i nove izvore',
+      () async {
+        await plan('p1', mon, mon);
+        await entry(
+          'e1',
+          mon,
+          ingredients: const [
+            Ingredient(name: 'beli luk', quantity: 100, unit: 'g'),
+          ],
+        );
+        await pantry('stock', 'beli luk', 150, 'gram');
+        await shop.reconcilePlan('p1');
+        // Stari izvor ne prepoznaje naziv "gram" i ostaje nepromenjen.
+        final old = (await db.select(db.shoppingContributions).get()).single;
+        expect(old.micros, 100000000);
+        await shop.addRecipePreparation(
+          snapshot: snapshot(const [
+            Ingredient(name: 'češnjak', quantity: 100, unit: 'g'),
+          ]),
+          servings: 2,
+          originKey: 'novi',
+        );
+        final list = await shop.recipeList();
+        expect(await open(list), isEmpty);
+        final allocations = await db.select(db.supplyAllocations).get();
+        expect(
+          allocations.fold<int>(0, (sum, a) => sum + (a.micros ?? 0)),
+          100000000,
+        );
+        await shop.reconcilePlan('p1');
+        expect(
+          (await db.select(db.shoppingContributions).get())
+              .firstWhere((c) => c.id == old.id)
+              .unitGroup,
+          'mass',
+        );
+      },
+    );
+
     test('samostalna priprema bez plana: ista priprema pri ponovnom dodavanju, '
         '"Ponovi nabavku" pravi novu', () async {
       final first = await shop.addRecipePreparation(

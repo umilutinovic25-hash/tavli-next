@@ -37,9 +37,33 @@ const _units = <String, NormalizedUnit>{
 
 /// Samo g↔kg i ml↔l se pretvaraju; komadi se sabiraju sa komadima. Ostale
 /// jedinice su uporedive samo kad su iste (bez gustine i "kašika u ml").
-NormalizedUnit normalizeUnit(String? unit) {
+NormalizedUnit normalizeUnit(String? unit, {int dictionaryVersion = 0}) {
   final u = (unit ?? '').trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
-  return _units[u] ?? (group: 'unit:$u', base: u, factor: 1);
+  // V1 is immutable: all aliases below have the same factor as the old
+  // spelling, so a physical stock amount has one shared capacity.
+  final alias = dictionaryVersion == 1
+      ? const {
+          'gram': 'g',
+          'grama': 'g',
+          'mililitar': 'ml',
+          'mililitara': 'ml',
+          'komad': 'kom',
+          'komada': 'kom',
+          'kasika': 'kašika',
+        }[u]
+      : null;
+  final canonical = alias ?? u;
+  return _units[canonical] ??
+      (group: 'unit:$canonical', base: canonical, factor: 1);
+}
+
+/// V0 preserves the original matching rule. Published dictionaries are frozen.
+String dictionaryIngredientKey(String name, int version) {
+  final key = ingredientKey(name);
+  if (version == 0) return key;
+  if (version != 1) throw ArgumentError.value(version, 'version');
+  final canonical = const {'češnjak': 'beli luk'}[key] ?? key;
+  return 'v1:$canonical';
 }
 
 void _checkServings(int value, String name, {bool upper = true}) {
@@ -68,8 +92,10 @@ class DemandSource {
     required this.baseServings,
     required this.servings,
     required this.ingredients,
+    this.dictionaryVersion = 0,
   });
 
+  final int dictionaryVersion;
   final String id;
   final int baseServings;
   final int servings;
@@ -112,12 +138,15 @@ List<DemandLine> demandFor(DemandSource source) {
   _checkServings(source.servings, 'servings');
   final merged = <DemandKey, DemandLine>{};
   for (final i in source.ingredients) {
-    final unit = normalizeUnit(i.unit);
+    final unit = normalizeUnit(
+      i.unit,
+      dictionaryVersion: source.dictionaryVersion,
+    );
     final q = i.quantity;
     final known = q != null && q.isFinite && q >= 0;
     final key = (
       sourceId: source.id,
-      ingredient: ingredientKey(i.name),
+      ingredient: dictionaryIngredientKey(i.name, source.dictionaryVersion),
       unitGroup: known ? unit.group : unknownGroup,
     );
     final micros = known
