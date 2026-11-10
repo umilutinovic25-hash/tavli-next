@@ -34,6 +34,10 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
 
   Future<void> _refresh() async {
     await ref.read(authControllerProvider.notifier).refreshAccount();
+    await _reloadMembers();
+  }
+
+  Future<void> _reloadMembers() async {
     final ok = await ref.read(householdActionsProvider).reloadMembers();
     if (mounted) setState(() => _stale = !ok);
   }
@@ -127,6 +131,13 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Novo aktivno domaćinstvo (pridruživanje, napuštanje, prebacivanje):
+    // njegovi članovi još nisu u kešu, pa se odmah učitavaju.
+    ref.listen(accountScopeProvider, (previous, next) {
+      if (next != null && previous?.householdId != next.householdId) {
+        unawaited(_reloadMembers());
+      }
+    });
     final account = switch (ref.watch(authControllerProvider)) {
       SignedIn(:final account) => account,
       _ => null,

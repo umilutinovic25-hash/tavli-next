@@ -90,6 +90,9 @@ void main() {
     );
     expect(find.widgetWithText(AppBar, 'Domaćinstvo'), findsOneWidget);
     expect(find.text('Kod Vlasnika'), findsWidgets);
+    // Lista članova novog domaćinstva se učitava odmah (vlasnik i „Ti“).
+    expect(find.text('Ti'), findsOneWidget);
+    expect(find.text('Vlasnik'), findsWidgets);
 
     await tester.pumpAndSettle(const Duration(seconds: 1));
     final titles = await app.titles();

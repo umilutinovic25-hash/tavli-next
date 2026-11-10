@@ -361,6 +361,7 @@ void main() {
       expect(find.text('Domaćinstvo je napušteno.'), findsOneWidget);
       expect(find.text('Kod Vlasnika'), findsNothing);
       expect(find.text('Moje domaćinstvo'), findsWidgets);
+      expect(find.text('Ti'), findsOneWidget);
     });
 
     testTavli('vlasnik sa članovima mora prvo da prenese vlasništvo', (
