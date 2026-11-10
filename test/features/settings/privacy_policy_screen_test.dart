@@ -33,6 +33,11 @@ void main() {
 
   testTavli('Profil → Politika privatnosti otvara ekran', (tester) async {
     await pumpTavli(tester, location: '/profile');
+    await tester.scrollUntilVisible(
+      find.text('Politika privatnosti'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('Politika privatnosti'));
     await tester.pumpAndSettle();
 

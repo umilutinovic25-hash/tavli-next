@@ -3,6 +3,7 @@ import '../domain/plan_calendar.dart';
 import '../domain/recipe.dart';
 import '../domain/shopping_demand.dart' show maxServings, minServings;
 import '../domain/shopping_source.dart';
+import '../domain/user_preferences.dart';
 import 'ai_models.dart';
 import 'ai_router.dart';
 import 'meal_plan_prompts.dart';
@@ -44,9 +45,12 @@ class PlanGenerationCancelled implements Exception {
 /// pa sažeci novih recepata u malim grupama. Ništa ne čuva; nacrt ostaje
 /// u sesiji dok ga osoba ne odobri.
 class MealPlanAI {
-  MealPlanAI(this._router);
+  MealPlanAI(this._router, {this._preferences});
 
   final AIRouter _router;
+
+  /// Preferencije domaćinstva, čitaju se jednom po predlogu plana.
+  final Future<UserPreferences> Function()? _preferences;
 
   /// Vraća pun nacrt. Kad grupa ne uspe baca [PlanGenerationFailed], a kad
   /// je [cancel] prekinut [PlanGenerationCancelled]; oba nose gotov deo,
@@ -62,6 +66,7 @@ class MealPlanAI {
       throw ArgumentError('Nastavak pripada drugom zahtevu');
     }
     var draft = resume ?? PlanDraft(request: request);
+    final prefs = await _preferences?.call() ?? UserPreferences.defaults;
     final offered = library.take(maxLibraryInPrompt).toList();
     final byId = {for (final r in offered) r.id: r};
 
@@ -96,6 +101,7 @@ class MealPlanAI {
                 for (final r in request.rules)
                   if (missing.any(r.appliesTo)) r.promptLine,
               ],
+              preferences: prefs,
             ),
             temperature: 0.8,
           ),
@@ -132,7 +138,7 @@ class MealPlanAI {
         () => _router.run(
           AIRequest(
             system: mealPlanSystemPrompt,
-            prompt: recipeSummariesPrompt(batch),
+            prompt: recipeSummariesPrompt(batch, preferences: prefs),
           ),
           (json) => parseSummaries(json, titles: batch),
         ),

@@ -156,6 +156,46 @@ class DayTimeBudgetEntity
       );
 }
 
+/// Preferencije ishrane domaćinstva: jedan red po domaćinstvu (id = domaćinstvo).
+class HouseholdPreferenceEntity
+    extends SyncEntity<$HouseholdPreferencesTable, HouseholdPreferenceRow> {
+  const HouseholdPreferenceEntity();
+  @override
+  String get name => 'household_preference';
+  @override
+  String get remoteTable => 'household_preferences';
+  @override
+  EntityScope get scope => EntityScope.household;
+  @override
+  $HouseholdPreferencesTable table(AppDatabase db) => db.householdPreferences;
+  @override
+  Expression<String> idColumn($HouseholdPreferencesTable t) => t.id;
+  @override
+  GeneratedColumn<String> scopeColumn($HouseholdPreferencesTable t) =>
+      t.householdId;
+
+  @override
+  Map<String, Object?> toRemote(HouseholdPreferenceRow r) => {
+    'id': r.id,
+    'household_id': r.householdId,
+    'diet': jsonDecode(r.dietJson),
+    'dislikes': jsonDecode(r.dislikesJson),
+    'allergies': jsonDecode(r.allergiesJson),
+    'servings': r.servings,
+  };
+
+  @override
+  HouseholdPreferencesCompanion fromRemote(Map<String, Object?> j) =>
+      HouseholdPreferencesCompanion(
+        id: Value(j['id']! as String),
+        householdId: Value(j['household_id'] as String?),
+        dietJson: Value(_json(j['diet'] ?? const <String>[])),
+        dislikesJson: Value(_json(j['dislikes'] ?? const <String>[])),
+        allergiesJson: Value(_json(j['allergies'] ?? const <String>[])),
+        servings: Value((j['servings'] as int?) ?? 2),
+      );
+}
+
 class RecipeVersionEntity
     extends SyncEntity<$RecipeVersionsTable, RecipeVersionRow> {
   const RecipeVersionEntity();
@@ -845,6 +885,7 @@ const List<SyncEntity<Table, Object?>> syncEntities = [
   RecipeEntity(),
   RecipeVersionEntity(),
   DayTimeBudgetEntity(),
+  HouseholdPreferenceEntity(),
   MealPlanEntity(),
   WeekTemplateEntity(),
   MealPlanEntryEntity(),

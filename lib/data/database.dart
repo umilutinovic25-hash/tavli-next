@@ -261,6 +261,30 @@ class DayRules extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Preferencije za ishranu domaćinstva (v15): jedan red po domaćinstvu, id je
+/// id domaćinstva. Liste su JSON tekst (kao ostale liste u bazi). Vreme
+/// izmene ne čuva se lokalno: sinhronizacija čita `updated_at` sa servera.
+@DataClassName('HouseholdPreferenceRow')
+class HouseholdPreferences extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+
+  /// Niz FoodDiet.name: vegetarian, vegan, glutenFree, lactoseFree.
+  TextColumn get dietJson => text().withDefault(const Constant('[]'))();
+
+  /// Namirnice koje domaćinstvo ne voli (niz stringova, mala slova).
+  TextColumn get dislikesJson => text().withDefault(const Constant('[]'))();
+
+  /// Alergije (niz stringova); AI ih nikad ne sme koristiti.
+  TextColumn get allergiesJson => text().withDefault(const Constant('[]'))();
+
+  /// Broj osoba u domaćinstvu (1–20).
+  IntColumn get servings => integer().withDefault(const Constant(2))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Izvor potražnje u listi (v5): planirani obrok ili samostalna priprema
 /// recepta. Id samostalnog izvora je id pripreme.
 @DataClassName('ShoppingSourceRow')
@@ -494,6 +518,7 @@ class SyncCursors extends Table {
     MealPlanEntries,
     CookSoonItems,
     DayRules,
+    HouseholdPreferences,
     ShoppingSources,
     ShoppingContributions,
     SupplyAllocations,
@@ -512,7 +537,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -627,6 +652,14 @@ class AppDatabase extends _$AppDatabase {
           "AND name = 'day_rules'",
         ).get();
         if (tables.isEmpty) await m.createTable(dayRules);
+      }
+      // Preferencije za ishranu domaćinstva su v15.
+      if (from < 15) {
+        final tables = await customSelect(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'household_preferences'",
+        ).get();
+        if (tables.isEmpty) await m.createTable(householdPreferences);
       }
     },
   );
