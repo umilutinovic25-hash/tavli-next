@@ -643,6 +643,48 @@ void main() {
       expect(photos.saved.keys, ['recipe_photos/moja.jpg']);
     });
 
+    test('domaćinstvo koje koristi drugi nalog na uređaju ostaje', () async {
+      backend.server.addMember('home-9', a.userId);
+      await service.refresh();
+      // Marko je na istom uređaju i aktivan u istom domaćinstvu.
+      await db
+          .into(db.accounts)
+          .insert(
+            AccountsCompanion.insert(
+              userId: 'marko',
+              email: 'marko@mail.com',
+              householdId: 'home-9',
+              householdName: 'Zajedničko',
+              role: 'member',
+              createdAt: t,
+            ),
+          );
+      await recipe('zajednicki', 'home-9');
+      await outbox('recipe', 'zajednicki');
+      await db
+          .into(db.syncOutbox)
+          .insert(
+            SyncOutboxCompanion.insert(
+              accountId: 'marko',
+              entity: 'recipe',
+              recordId: 'zajednicki',
+              op: 'upsert',
+              createdAt: t,
+            ),
+          );
+
+      backend.server.members['home-9']!.remove(a.userId);
+      await service.refresh();
+
+      expect((await db.select(db.recipes).get()).map((r) => r.id), [
+        'zajednicki',
+      ]);
+      // Anina izmena se odbacuje (server bi je odbio), Markova ostaje.
+      expect((await db.select(db.syncOutbox).get()).map((r) => r.accountId), [
+        'marko',
+      ]);
+    });
+
     test('izbor koji više nije dostupan se briše', () async {
       backend.server.addMember('home-9', a.userId);
       await service.refresh();

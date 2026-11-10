@@ -341,21 +341,26 @@ class AccountService {
   /// [userId] koje na njih čekaju slanje. Vraća putanje slika za brisanje
   /// (posle transakcije). Zove se unutar transakcije.
   Future<Set<String>> _purgeHousehold(String userId, String householdId) async {
+    // Drugi nalog na ovom uređaju i dalje koristi domaćinstvo: njegovi redovi
+    // i izmene ostaju, briše se samo ono što čeka slanje za [userId].
+    final keepRows = await _usedByOtherAccount(userId, householdId);
     final photos = <String>{};
-    for (final r in await (_db.select(
-      _db.recipes,
-    )..where((t) => t.householdId.equals(householdId))).get()) {
-      if (r.imagePath case final p?) photos.add(p);
-    }
-    for (final v in await (_db.select(
-      _db.recipeVersions,
-    )..where((t) => t.householdId.equals(householdId))).get()) {
-      if (_imagePath(v.recipeJson) case final p?) photos.add(p);
-    }
-    for (final item in await (_db.select(
-      _db.shoppingItems,
-    )..where((t) => t.householdId.equals(householdId))).get()) {
-      if (item.photoPath case final p?) photos.add(p);
+    if (!keepRows) {
+      for (final r in await (_db.select(
+        _db.recipes,
+      )..where((t) => t.householdId.equals(householdId))).get()) {
+        if (r.imagePath case final p?) photos.add(p);
+      }
+      for (final v in await (_db.select(
+        _db.recipeVersions,
+      )..where((t) => t.householdId.equals(householdId))).get()) {
+        if (_imagePath(v.recipeJson) case final p?) photos.add(p);
+      }
+      for (final item in await (_db.select(
+        _db.shoppingItems,
+      )..where((t) => t.householdId.equals(householdId))).get()) {
+        if (item.photoPath case final p?) photos.add(p);
+      }
     }
     // Deca pre roditelja: registar drži roditelje pre dece.
     for (final e in syncEntities.reversed) {
@@ -380,6 +385,7 @@ class AccountService {
                 t.recordId.isIn(ids),
           ))
           .go();
+      if (keepRows) continue;
       await _db.customUpdate(
         'DELETE FROM ${table.actualTableName} WHERE household_id = ?',
         variables: [Variable.withString(householdId)],
@@ -397,6 +403,25 @@ class AccountService {
           .go();
     }
     return photos;
+  }
+
+  Future<bool> _usedByOtherAccount(String userId, String householdId) async {
+    final active =
+        await (_db.select(_db.accounts)..where(
+              (t) =>
+                  t.userId.equals(userId).not() &
+                  t.householdId.equals(householdId),
+            ))
+            .get();
+    if (active.isNotEmpty) return true;
+    final member =
+        await (_db.select(_db.householdMemberships)..where(
+              (t) =>
+                  t.accountId.equals(userId).not() &
+                  t.householdId.equals(householdId),
+            ))
+            .get();
+    return member.isNotEmpty;
   }
 
   static String? _imagePath(String recipeJson) {
