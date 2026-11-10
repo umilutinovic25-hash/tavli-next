@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../ai/meal_plan_ai.dart';
 import '../../data/meal_plan_repository.dart';
+import '../../domain/day_rules.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
@@ -27,6 +28,8 @@ String mealErrorText(Object e) => switch (e) {
     'Plan je u međuvremenu promenjen. Pogledaj ga i pokušaj ponovo.',
   ProtectedMealException() => 'Obrok je zaključan ili skuvan.',
   MealNotFoundException() => 'Obrok više nije u planu.',
+  RuleViolationException() =>
+    'Jelo krši obavezno pravilo dana. Izaberi drugo ili dozvoli izuzetak.',
   PlanGenerationFailed(:final error) => aiErrorText(error),
   _ => 'Izmena nije sačuvana. Pokušaj ponovo.',
 };
@@ -141,6 +144,15 @@ Future<void> replaceMeal(
   if (draft == null || !context.mounted) return;
   final next = draft.snapshotFor(meal.slot);
   if (next == null) return;
+  final violations = blockingViolations(
+    evaluateSlot(
+      await ref.read(dayRuleRepositoryProvider).getAll(),
+      meal.slot,
+      next,
+    ),
+    const {},
+  );
+  if (!context.mounted) return;
   final ok = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -160,6 +172,14 @@ Future<void> replaceMeal(
             for (final i in next.ingredients) Text('• ${ingredientLine(i)}'),
             const SizedBox(height: 8),
             Text('Obrok zadržava ${servingsLabel(meal.servings)}.'),
+            for (final v in violations) ...[
+              const SizedBox(height: 8),
+              Text(
+                '${ruleResultText(v)}. Prihvatanjem dozvoljavaš izuzetak '
+                'samo za ovaj obrok.',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
           ],
         ),
       ),
@@ -178,7 +198,13 @@ Future<void> replaceMeal(
   if (ok != true || !context.mounted) return;
   await runMealEdit(
     context,
-    () => repo.approve(draft),
+    () => repo.approve(
+      draft,
+      overrides: {
+        if (violations.isNotEmpty)
+          meal.slot: {for (final v in violations) v.rule.id},
+      },
+    ),
     done: 'Jelo je zamenjeno.',
   );
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/day_rules.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/recipe_format.dart';
 import '../../domain/time_budget.dart';
+import 'rule_notes.dart';
 import 'time_check_note.dart';
 
 /// Jedno mesto u planu: vrsta obroka, jelo, vreme, porcije i oznake
@@ -16,6 +18,7 @@ class MealEntryCard extends StatelessWidget {
     this.onTap,
     this.onEmptyTap,
     this.timeCheck,
+    this.rules = const [],
   });
 
   final MealSlot slot;
@@ -29,6 +32,9 @@ class MealEntryCard extends StatelessWidget {
   /// Provera vremena za taj dan (prikazuje se samo prekoračenje i
   /// nepoznato).
   final TimeCheck? timeCheck;
+
+  /// Rezultati pravila dana za jelo na ovom mestu.
+  final List<RuleResult> rules;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +80,7 @@ class MealEntryCard extends StatelessWidget {
                   ),
                 ),
                 TimeCheckNote(timeCheck),
+                RuleNotes(rules, overrides: meal?.ruleOverrides ?? const {}),
                 if (details.isNotEmpty || meal != null) ...[
                   const SizedBox(height: 8),
                   Wrap(

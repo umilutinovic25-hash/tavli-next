@@ -9,7 +9,7 @@ import '../helpers/v3_schema.dart';
 import '../helpers/v4_schema.dart';
 
 void main() {
-  test('migracija 5 → 13 čuva podatke i pravi tabelu šablona', () async {
+  test('migracija 5 → 14 čuva podatke i pravi tabelu šablona', () async {
     final directory = await Directory.systemTemp.createTemp(
       'tavli-v5-template-',
     );
@@ -180,7 +180,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 13);
+    expect(db.schemaVersion, 14);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -395,7 +395,7 @@ void main() {
   );
   for (final version in [5, 6]) {
     test(
-      'migracija $version → 13 čuva pretrage i dodaje izvor recepta',
+      'migracija $version → 14 čuva pretrage i dodaje izvor recepta',
       () async {
         final dir = await Directory.systemTemp.createTemp('tavli-url-merge-');
         addTearDown(() => dir.delete(recursive: true));
@@ -429,7 +429,7 @@ void main() {
     );
   }
   for (final version in [5, 6]) {
-    test('migracija $version → 13 čuva pretrage i uvodi šablone', () async {
+    test('migracija $version → 14 čuva pretrage i uvodi šablone', () async {
       final dir = await Directory.systemTemp.createTemp('tavli-week-merge-');
       addTearDown(() => dir.delete(recursive: true));
       final file = File('${dir.path}/cache.sqlite');
@@ -649,5 +649,46 @@ void main() {
     final again = AppDatabase(NativeDatabase(file));
     addTearDown(again.close);
     expect(await again.select(again.dayTimeBudgets).get(), isEmpty);
+  });
+
+  test('migracija 5 → 14 dodaje pravila i izuzetke; obroci ostaju', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v14-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      'INSERT INTO meal_plans (id, start_date, end_date, meal_types_json, '
+      """created_at) VALUES ('p1', 1, 1, '["lunch"]', 1)""",
+    );
+    await before.customStatement(
+      'INSERT INTO meal_plan_entries (id, plan_id, date, meal_type) '
+      "VALUES ('e1', 'p1', 1, 'lunch')",
+    );
+    await before.customStatement(
+      'ALTER TABLE meal_plan_entries DROP COLUMN rule_overrides_json',
+    );
+    await before.customStatement('DROP TABLE day_rules');
+    await before.customStatement('PRAGMA user_version = 5');
+    await before.close();
+
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final e = (await after.select(after.mealPlanEntries).get()).single;
+    expect(e.id, 'e1');
+    expect(e.ruleOverridesJson, isNull);
+    expect(await after.select(after.dayRules).get(), isEmpty);
+  });
+
+  test('ponovljena v14 migracija ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v14b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 13');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.dayRules).get(), isEmpty);
   });
 }

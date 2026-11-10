@@ -209,6 +209,9 @@ class MealPlanEntries extends Table {
   TextColumn get awayReason => text().nullable()();
   TextColumn get awayNote => text().nullable()();
 
+  /// Id-jevi obaveznih pravila dana dozvoljenih baš za ovaj obrok (v14).
+  TextColumn get ruleOverridesJson => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -228,6 +231,30 @@ class CookSoonItems extends Table {
 
   /// Redosled u redu (manji je pre).
   IntColumn get position => integer()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Pravilo za dan u nedelji (v14): "ponedeljak bez mesa", "petak riba".
+@DataClassName('DayRuleRow')
+class DayRules extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+
+  /// 1 = ponedeljak … 7 = nedelja.
+  IntColumn get weekday => integer()();
+
+  /// MealType.name; null = svi obroci.
+  TextColumn get mealType => text().nullable()();
+
+  /// RuleKind.name
+  TextColumn get kind => text()();
+  TextColumn get value => text().nullable()();
+
+  /// RuleMode.name
+  TextColumn get mode => text().withDefault(const Constant('required'))();
   DateTimeColumn get createdAt => dateTime()();
 
   @override
@@ -466,6 +493,7 @@ class SyncCursors extends Table {
     WeekTemplates,
     MealPlanEntries,
     CookSoonItems,
+    DayRules,
     ShoppingSources,
     ShoppingContributions,
     SupplyAllocations,
@@ -484,7 +512,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -583,6 +611,22 @@ class AppDatabase extends _$AppDatabase {
           "AND name = 'day_time_budgets'",
         ).get();
         if (tables.isEmpty) await m.createTable(dayTimeBudgets);
+      }
+      // v6–v13 koriste druge grane (018–028); pravila po danima su v14.
+      if (from < 14) {
+        final columns = await customSelect(
+          'PRAGMA table_info(meal_plan_entries)',
+        ).get();
+        if (!columns.any(
+          (c) => c.read<String>('name') == 'rule_overrides_json',
+        )) {
+          await m.addColumn(mealPlanEntries, mealPlanEntries.ruleOverridesJson);
+        }
+        final tables = await customSelect(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'day_rules'",
+        ).get();
+        if (tables.isEmpty) await m.createTable(dayRules);
       }
     },
   );

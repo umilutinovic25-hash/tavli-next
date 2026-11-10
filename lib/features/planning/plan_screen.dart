@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/placeholder_screen.dart';
 import '../../app/section_heading.dart';
 import '../../app/tab_app_bar.dart';
+import '../../domain/day_rules.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/plan_calendar.dart';
 import '../../domain/recipe_format.dart';
@@ -98,6 +99,7 @@ class _PlanView extends ConsumerWidget {
     final meals = ref.watch(plannedMealsProvider(plan.id)).value ?? const [];
     final bySlot = {for (final m in meals) m.slot: m};
     final budgets = ref.watch(dayBudgetsProvider).value ?? const [];
+    final rules = ref.watch(dayRulesProvider).value ?? const [];
     final wide = MediaQuery.sizeOf(context).width >= planWideWidth;
     final week = weekOf(selected);
     final days = [
@@ -275,6 +277,9 @@ class _PlanView extends ConsumerWidget {
                 slot.date,
                 budgets,
               ),
+              rules: bySlot[slot] == null
+                  ? const []
+                  : evaluateSlot(rules, slot, bySlot[slot]!.snapshot),
             ),
         ],
         const SizedBox(height: 24),
@@ -307,6 +312,11 @@ class _PlanView extends ConsumerWidget {
               onPressed: () => context.go('/plan/time'),
               icon: const Icon(Icons.timer_outlined),
               label: const Text('Vreme po danu'),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => context.go('/plan/rules'),
+              icon: const Icon(Icons.rule),
+              label: const Text('Pravila po danima'),
             ),
           ],
         ),

@@ -5011,6 +5011,18 @@ class $MealPlanEntriesTable extends MealPlanEntries
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _ruleOverridesJsonMeta = const VerificationMeta(
+    'ruleOverridesJson',
+  );
+  @override
+  late final GeneratedColumn<String> ruleOverridesJson =
+      GeneratedColumn<String>(
+        'rule_overrides_json',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -5026,6 +5038,7 @@ class $MealPlanEntriesTable extends MealPlanEntries
     kind,
     awayReason,
     awayNote,
+    ruleOverridesJson,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -5128,6 +5141,15 @@ class $MealPlanEntriesTable extends MealPlanEntries
         awayNote.isAcceptableOrUnknown(data['away_note']!, _awayNoteMeta),
       );
     }
+    if (data.containsKey('rule_overrides_json')) {
+      context.handle(
+        _ruleOverridesJsonMeta,
+        ruleOverridesJson.isAcceptableOrUnknown(
+          data['rule_overrides_json']!,
+          _ruleOverridesJsonMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -5189,6 +5211,10 @@ class $MealPlanEntriesTable extends MealPlanEntries
         DriftSqlType.string,
         data['${effectivePrefix}away_note'],
       ),
+      ruleOverridesJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rule_overrides_json'],
+      ),
     );
   }
 
@@ -5222,6 +5248,9 @@ class MealPlanEntryRow extends DataClass
   /// `restaurant`, `visiting` ili `skip` (v11), samo za `away`.
   final String? awayReason;
   final String? awayNote;
+
+  /// Id-jevi obaveznih pravila dana dozvoljenih baš za ovaj obrok (v14).
+  final String? ruleOverridesJson;
   const MealPlanEntryRow({
     required this.id,
     required this.planId,
@@ -5236,6 +5265,7 @@ class MealPlanEntryRow extends DataClass
     required this.kind,
     this.awayReason,
     this.awayNote,
+    this.ruleOverridesJson,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5264,6 +5294,9 @@ class MealPlanEntryRow extends DataClass
     }
     if (!nullToAbsent || awayNote != null) {
       map['away_note'] = Variable<String>(awayNote);
+    }
+    if (!nullToAbsent || ruleOverridesJson != null) {
+      map['rule_overrides_json'] = Variable<String>(ruleOverridesJson);
     }
     return map;
   }
@@ -5295,6 +5328,9 @@ class MealPlanEntryRow extends DataClass
       awayNote: awayNote == null && nullToAbsent
           ? const Value.absent()
           : Value(awayNote),
+      ruleOverridesJson: ruleOverridesJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ruleOverridesJson),
     );
   }
 
@@ -5319,6 +5355,9 @@ class MealPlanEntryRow extends DataClass
       kind: serializer.fromJson<String>(json['kind']),
       awayReason: serializer.fromJson<String?>(json['awayReason']),
       awayNote: serializer.fromJson<String?>(json['awayNote']),
+      ruleOverridesJson: serializer.fromJson<String?>(
+        json['ruleOverridesJson'],
+      ),
     );
   }
   @override
@@ -5338,6 +5377,7 @@ class MealPlanEntryRow extends DataClass
       'kind': serializer.toJson<String>(kind),
       'awayReason': serializer.toJson<String?>(awayReason),
       'awayNote': serializer.toJson<String?>(awayNote),
+      'ruleOverridesJson': serializer.toJson<String?>(ruleOverridesJson),
     };
   }
 
@@ -5355,6 +5395,7 @@ class MealPlanEntryRow extends DataClass
     String? kind,
     Value<String?> awayReason = const Value.absent(),
     Value<String?> awayNote = const Value.absent(),
+    Value<String?> ruleOverridesJson = const Value.absent(),
   }) => MealPlanEntryRow(
     id: id ?? this.id,
     planId: planId ?? this.planId,
@@ -5371,6 +5412,9 @@ class MealPlanEntryRow extends DataClass
     kind: kind ?? this.kind,
     awayReason: awayReason.present ? awayReason.value : this.awayReason,
     awayNote: awayNote.present ? awayNote.value : this.awayNote,
+    ruleOverridesJson: ruleOverridesJson.present
+        ? ruleOverridesJson.value
+        : this.ruleOverridesJson,
   );
   MealPlanEntryRow copyWithCompanion(MealPlanEntriesCompanion data) {
     return MealPlanEntryRow(
@@ -5393,6 +5437,9 @@ class MealPlanEntryRow extends DataClass
           ? data.awayReason.value
           : this.awayReason,
       awayNote: data.awayNote.present ? data.awayNote.value : this.awayNote,
+      ruleOverridesJson: data.ruleOverridesJson.present
+          ? data.ruleOverridesJson.value
+          : this.ruleOverridesJson,
     );
   }
 
@@ -5411,7 +5458,8 @@ class MealPlanEntryRow extends DataClass
           ..write('recipeSnapshotJson: $recipeSnapshotJson, ')
           ..write('kind: $kind, ')
           ..write('awayReason: $awayReason, ')
-          ..write('awayNote: $awayNote')
+          ..write('awayNote: $awayNote, ')
+          ..write('ruleOverridesJson: $ruleOverridesJson')
           ..write(')'))
         .toString();
   }
@@ -5431,6 +5479,7 @@ class MealPlanEntryRow extends DataClass
     kind,
     awayReason,
     awayNote,
+    ruleOverridesJson,
   );
   @override
   bool operator ==(Object other) =>
@@ -5448,7 +5497,8 @@ class MealPlanEntryRow extends DataClass
           other.recipeSnapshotJson == this.recipeSnapshotJson &&
           other.kind == this.kind &&
           other.awayReason == this.awayReason &&
-          other.awayNote == this.awayNote);
+          other.awayNote == this.awayNote &&
+          other.ruleOverridesJson == this.ruleOverridesJson);
 }
 
 class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
@@ -5465,6 +5515,7 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
   final Value<String> kind;
   final Value<String?> awayReason;
   final Value<String?> awayNote;
+  final Value<String?> ruleOverridesJson;
   final Value<int> rowid;
   const MealPlanEntriesCompanion({
     this.id = const Value.absent(),
@@ -5480,6 +5531,7 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     this.kind = const Value.absent(),
     this.awayReason = const Value.absent(),
     this.awayNote = const Value.absent(),
+    this.ruleOverridesJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MealPlanEntriesCompanion.insert({
@@ -5496,6 +5548,7 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     this.kind = const Value.absent(),
     this.awayReason = const Value.absent(),
     this.awayNote = const Value.absent(),
+    this.ruleOverridesJson = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        planId = Value(planId),
@@ -5515,6 +5568,7 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     Expression<String>? kind,
     Expression<String>? awayReason,
     Expression<String>? awayNote,
+    Expression<String>? ruleOverridesJson,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5532,6 +5586,7 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
       if (kind != null) 'kind': kind,
       if (awayReason != null) 'away_reason': awayReason,
       if (awayNote != null) 'away_note': awayNote,
+      if (ruleOverridesJson != null) 'rule_overrides_json': ruleOverridesJson,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -5550,6 +5605,7 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     Value<String>? kind,
     Value<String?>? awayReason,
     Value<String?>? awayNote,
+    Value<String?>? ruleOverridesJson,
     Value<int>? rowid,
   }) {
     return MealPlanEntriesCompanion(
@@ -5566,6 +5622,7 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
       kind: kind ?? this.kind,
       awayReason: awayReason ?? this.awayReason,
       awayNote: awayNote ?? this.awayNote,
+      ruleOverridesJson: ruleOverridesJson ?? this.ruleOverridesJson,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5612,6 +5669,9 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
     if (awayNote.present) {
       map['away_note'] = Variable<String>(awayNote.value);
     }
+    if (ruleOverridesJson.present) {
+      map['rule_overrides_json'] = Variable<String>(ruleOverridesJson.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5634,6 +5694,7 @@ class MealPlanEntriesCompanion extends UpdateCompanion<MealPlanEntryRow> {
           ..write('kind: $kind, ')
           ..write('awayReason: $awayReason, ')
           ..write('awayNote: $awayNote, ')
+          ..write('ruleOverridesJson: $ruleOverridesJson, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6119,6 +6180,526 @@ class CookSoonItemsCompanion extends UpdateCompanion<CookSoonItemRow> {
           ..write('recipeSnapshotJson: $recipeSnapshotJson, ')
           ..write('servings: $servings, ')
           ..write('position: $position, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DayRulesTable extends DayRules
+    with TableInfo<$DayRulesTable, DayRuleRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DayRulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _householdIdMeta = const VerificationMeta(
+    'householdId',
+  );
+  @override
+  late final GeneratedColumn<String> householdId = GeneratedColumn<String>(
+    'household_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _weekdayMeta = const VerificationMeta(
+    'weekday',
+  );
+  @override
+  late final GeneratedColumn<int> weekday = GeneratedColumn<int>(
+    'weekday',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mealTypeMeta = const VerificationMeta(
+    'mealType',
+  );
+  @override
+  late final GeneratedColumn<String> mealType = GeneratedColumn<String>(
+    'meal_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _modeMeta = const VerificationMeta('mode');
+  @override
+  late final GeneratedColumn<String> mode = GeneratedColumn<String>(
+    'mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('required'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    householdId,
+    weekday,
+    mealType,
+    kind,
+    value,
+    mode,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'day_rules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DayRuleRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('household_id')) {
+      context.handle(
+        _householdIdMeta,
+        householdId.isAcceptableOrUnknown(
+          data['household_id']!,
+          _householdIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weekday')) {
+      context.handle(
+        _weekdayMeta,
+        weekday.isAcceptableOrUnknown(data['weekday']!, _weekdayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_weekdayMeta);
+    }
+    if (data.containsKey('meal_type')) {
+      context.handle(
+        _mealTypeMeta,
+        mealType.isAcceptableOrUnknown(data['meal_type']!, _mealTypeMeta),
+      );
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    }
+    if (data.containsKey('mode')) {
+      context.handle(
+        _modeMeta,
+        mode.isAcceptableOrUnknown(data['mode']!, _modeMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DayRuleRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DayRuleRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      householdId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}household_id'],
+      ),
+      weekday: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}weekday'],
+      )!,
+      mealType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}meal_type'],
+      ),
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      ),
+      mode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mode'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DayRulesTable createAlias(String alias) {
+    return $DayRulesTable(attachedDatabase, alias);
+  }
+}
+
+class DayRuleRow extends DataClass implements Insertable<DayRuleRow> {
+  final String id;
+  final String? householdId;
+
+  /// 1 = ponedeljak … 7 = nedelja.
+  final int weekday;
+
+  /// MealType.name; null = svi obroci.
+  final String? mealType;
+
+  /// RuleKind.name
+  final String kind;
+  final String? value;
+
+  /// RuleMode.name
+  final String mode;
+  final DateTime createdAt;
+  const DayRuleRow({
+    required this.id,
+    this.householdId,
+    required this.weekday,
+    this.mealType,
+    required this.kind,
+    this.value,
+    required this.mode,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || householdId != null) {
+      map['household_id'] = Variable<String>(householdId);
+    }
+    map['weekday'] = Variable<int>(weekday);
+    if (!nullToAbsent || mealType != null) {
+      map['meal_type'] = Variable<String>(mealType);
+    }
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || value != null) {
+      map['value'] = Variable<String>(value);
+    }
+    map['mode'] = Variable<String>(mode);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  DayRulesCompanion toCompanion(bool nullToAbsent) {
+    return DayRulesCompanion(
+      id: Value(id),
+      householdId: householdId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(householdId),
+      weekday: Value(weekday),
+      mealType: mealType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mealType),
+      kind: Value(kind),
+      value: value == null && nullToAbsent
+          ? const Value.absent()
+          : Value(value),
+      mode: Value(mode),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory DayRuleRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DayRuleRow(
+      id: serializer.fromJson<String>(json['id']),
+      householdId: serializer.fromJson<String?>(json['householdId']),
+      weekday: serializer.fromJson<int>(json['weekday']),
+      mealType: serializer.fromJson<String?>(json['mealType']),
+      kind: serializer.fromJson<String>(json['kind']),
+      value: serializer.fromJson<String?>(json['value']),
+      mode: serializer.fromJson<String>(json['mode']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'householdId': serializer.toJson<String?>(householdId),
+      'weekday': serializer.toJson<int>(weekday),
+      'mealType': serializer.toJson<String?>(mealType),
+      'kind': serializer.toJson<String>(kind),
+      'value': serializer.toJson<String?>(value),
+      'mode': serializer.toJson<String>(mode),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  DayRuleRow copyWith({
+    String? id,
+    Value<String?> householdId = const Value.absent(),
+    int? weekday,
+    Value<String?> mealType = const Value.absent(),
+    String? kind,
+    Value<String?> value = const Value.absent(),
+    String? mode,
+    DateTime? createdAt,
+  }) => DayRuleRow(
+    id: id ?? this.id,
+    householdId: householdId.present ? householdId.value : this.householdId,
+    weekday: weekday ?? this.weekday,
+    mealType: mealType.present ? mealType.value : this.mealType,
+    kind: kind ?? this.kind,
+    value: value.present ? value.value : this.value,
+    mode: mode ?? this.mode,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  DayRuleRow copyWithCompanion(DayRulesCompanion data) {
+    return DayRuleRow(
+      id: data.id.present ? data.id.value : this.id,
+      householdId: data.householdId.present
+          ? data.householdId.value
+          : this.householdId,
+      weekday: data.weekday.present ? data.weekday.value : this.weekday,
+      mealType: data.mealType.present ? data.mealType.value : this.mealType,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      value: data.value.present ? data.value.value : this.value,
+      mode: data.mode.present ? data.mode.value : this.mode,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayRuleRow(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('weekday: $weekday, ')
+          ..write('mealType: $mealType, ')
+          ..write('kind: $kind, ')
+          ..write('value: $value, ')
+          ..write('mode: $mode, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    householdId,
+    weekday,
+    mealType,
+    kind,
+    value,
+    mode,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DayRuleRow &&
+          other.id == this.id &&
+          other.householdId == this.householdId &&
+          other.weekday == this.weekday &&
+          other.mealType == this.mealType &&
+          other.kind == this.kind &&
+          other.value == this.value &&
+          other.mode == this.mode &&
+          other.createdAt == this.createdAt);
+}
+
+class DayRulesCompanion extends UpdateCompanion<DayRuleRow> {
+  final Value<String> id;
+  final Value<String?> householdId;
+  final Value<int> weekday;
+  final Value<String?> mealType;
+  final Value<String> kind;
+  final Value<String?> value;
+  final Value<String> mode;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const DayRulesCompanion({
+    this.id = const Value.absent(),
+    this.householdId = const Value.absent(),
+    this.weekday = const Value.absent(),
+    this.mealType = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.value = const Value.absent(),
+    this.mode = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DayRulesCompanion.insert({
+    required String id,
+    this.householdId = const Value.absent(),
+    required int weekday,
+    this.mealType = const Value.absent(),
+    required String kind,
+    this.value = const Value.absent(),
+    this.mode = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       weekday = Value(weekday),
+       kind = Value(kind),
+       createdAt = Value(createdAt);
+  static Insertable<DayRuleRow> custom({
+    Expression<String>? id,
+    Expression<String>? householdId,
+    Expression<int>? weekday,
+    Expression<String>? mealType,
+    Expression<String>? kind,
+    Expression<String>? value,
+    Expression<String>? mode,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (householdId != null) 'household_id': householdId,
+      if (weekday != null) 'weekday': weekday,
+      if (mealType != null) 'meal_type': mealType,
+      if (kind != null) 'kind': kind,
+      if (value != null) 'value': value,
+      if (mode != null) 'mode': mode,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DayRulesCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? householdId,
+    Value<int>? weekday,
+    Value<String?>? mealType,
+    Value<String>? kind,
+    Value<String?>? value,
+    Value<String>? mode,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return DayRulesCompanion(
+      id: id ?? this.id,
+      householdId: householdId ?? this.householdId,
+      weekday: weekday ?? this.weekday,
+      mealType: mealType ?? this.mealType,
+      kind: kind ?? this.kind,
+      value: value ?? this.value,
+      mode: mode ?? this.mode,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (householdId.present) {
+      map['household_id'] = Variable<String>(householdId.value);
+    }
+    if (weekday.present) {
+      map['weekday'] = Variable<int>(weekday.value);
+    }
+    if (mealType.present) {
+      map['meal_type'] = Variable<String>(mealType.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (mode.present) {
+      map['mode'] = Variable<String>(mode.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayRulesCompanion(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('weekday: $weekday, ')
+          ..write('mealType: $mealType, ')
+          ..write('kind: $kind, ')
+          ..write('value: $value, ')
+          ..write('mode: $mode, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -11502,6 +12083,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $CookSoonItemsTable cookSoonItems = $CookSoonItemsTable(this);
+  late final $DayRulesTable dayRules = $DayRulesTable(this);
   late final $ShoppingSourcesTable shoppingSources = $ShoppingSourcesTable(
     this,
   );
@@ -11557,6 +12139,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     weekTemplates,
     mealPlanEntries,
     cookSoonItems,
+    dayRules,
     shoppingSources,
     shoppingContributions,
     supplyAllocations,
@@ -15003,6 +15586,7 @@ typedef $$MealPlanEntriesTableCreateCompanionBuilder =
       Value<String> kind,
       Value<String?> awayReason,
       Value<String?> awayNote,
+      Value<String?> ruleOverridesJson,
       Value<int> rowid,
     });
 typedef $$MealPlanEntriesTableUpdateCompanionBuilder =
@@ -15020,6 +15604,7 @@ typedef $$MealPlanEntriesTableUpdateCompanionBuilder =
       Value<String> kind,
       Value<String?> awayReason,
       Value<String?> awayNote,
+      Value<String?> ruleOverridesJson,
       Value<int> rowid,
     });
 
@@ -15148,6 +15733,11 @@ class $$MealPlanEntriesTableFilterComposer
 
   ColumnFilters<String> get awayNote => $composableBuilder(
     column: $table.awayNote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ruleOverridesJson => $composableBuilder(
+    column: $table.ruleOverridesJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -15287,6 +15877,11 @@ class $$MealPlanEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get ruleOverridesJson => $composableBuilder(
+    column: $table.ruleOverridesJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$MealPlansTableOrderingComposer get planId {
     final $$MealPlansTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -15381,6 +15976,11 @@ class $$MealPlanEntriesTableAnnotationComposer
 
   GeneratedColumn<String> get awayNote =>
       $composableBuilder(column: $table.awayNote, builder: (column) => column);
+
+  GeneratedColumn<String> get ruleOverridesJson => $composableBuilder(
+    column: $table.ruleOverridesJson,
+    builder: (column) => column,
+  );
 
   $$MealPlansTableAnnotationComposer get planId {
     final $$MealPlansTableAnnotationComposer composer = $composerBuilder(
@@ -15501,6 +16101,7 @@ class $$MealPlanEntriesTableTableManager
                 Value<String> kind = const Value.absent(),
                 Value<String?> awayReason = const Value.absent(),
                 Value<String?> awayNote = const Value.absent(),
+                Value<String?> ruleOverridesJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MealPlanEntriesCompanion(
                 id: id,
@@ -15516,6 +16117,7 @@ class $$MealPlanEntriesTableTableManager
                 kind: kind,
                 awayReason: awayReason,
                 awayNote: awayNote,
+                ruleOverridesJson: ruleOverridesJson,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -15533,6 +16135,7 @@ class $$MealPlanEntriesTableTableManager
                 Value<String> kind = const Value.absent(),
                 Value<String?> awayReason = const Value.absent(),
                 Value<String?> awayNote = const Value.absent(),
+                Value<String?> ruleOverridesJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MealPlanEntriesCompanion.insert(
                 id: id,
@@ -15548,6 +16151,7 @@ class $$MealPlanEntriesTableTableManager
                 kind: kind,
                 awayReason: awayReason,
                 awayNote: awayNote,
+                ruleOverridesJson: ruleOverridesJson,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -16019,6 +16623,269 @@ typedef $$CookSoonItemsTableProcessedTableManager =
       (CookSoonItemRow, $$CookSoonItemsTableReferences),
       CookSoonItemRow,
       PrefetchHooks Function({bool recipeId})
+    >;
+typedef $$DayRulesTableCreateCompanionBuilder = DayRulesCompanion Function({
+  required String id,
+  Value<String?> householdId,
+  required int weekday,
+  Value<String?> mealType,
+  required String kind,
+  Value<String?> value,
+  Value<String> mode,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$DayRulesTableUpdateCompanionBuilder = DayRulesCompanion Function({
+  Value<String> id,
+  Value<String?> householdId,
+  Value<int> weekday,
+  Value<String?> mealType,
+  Value<String> kind,
+  Value<String?> value,
+  Value<String> mode,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+class $$DayRulesTableFilterComposer
+    extends Composer<_$AppDatabase, $DayRulesTable> {
+  $$DayRulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get weekday => $composableBuilder(
+    column: $table.weekday,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mealType => $composableBuilder(
+    column: $table.mealType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mode => $composableBuilder(
+    column: $table.mode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DayRulesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DayRulesTable> {
+  $$DayRulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get weekday => $composableBuilder(
+    column: $table.weekday,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mealType => $composableBuilder(
+    column: $table.mealType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mode => $composableBuilder(
+    column: $table.mode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DayRulesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DayRulesTable> {
+  $$DayRulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get weekday =>
+      $composableBuilder(column: $table.weekday, builder: (column) => column);
+
+  GeneratedColumn<String> get mealType =>
+      $composableBuilder(column: $table.mealType, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<String> get mode =>
+      $composableBuilder(column: $table.mode, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$DayRulesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DayRulesTable,
+          DayRuleRow,
+          $$DayRulesTableFilterComposer,
+          $$DayRulesTableOrderingComposer,
+          $$DayRulesTableAnnotationComposer,
+          $$DayRulesTableCreateCompanionBuilder,
+          $$DayRulesTableUpdateCompanionBuilder,
+          (
+            DayRuleRow,
+            BaseReferences<_$AppDatabase, $DayRulesTable, DayRuleRow>,
+          ),
+          DayRuleRow,
+          PrefetchHooks Function()
+        > {
+  $$DayRulesTableTableManager(_$AppDatabase db, $DayRulesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DayRulesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DayRulesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DayRulesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> householdId = const Value.absent(),
+                Value<int> weekday = const Value.absent(),
+                Value<String?> mealType = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> value = const Value.absent(),
+                Value<String> mode = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DayRulesCompanion(
+                id: id,
+                householdId: householdId,
+                weekday: weekday,
+                mealType: mealType,
+                kind: kind,
+                value: value,
+                mode: mode,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> householdId = const Value.absent(),
+                required int weekday,
+                Value<String?> mealType = const Value.absent(),
+                required String kind,
+                Value<String?> value = const Value.absent(),
+                Value<String> mode = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => DayRulesCompanion.insert(
+                id: id,
+                householdId: householdId,
+                weekday: weekday,
+                mealType: mealType,
+                kind: kind,
+                value: value,
+                mode: mode,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DayRulesTable, DayRuleRow>(table),
+                  BaseReferences<_$AppDatabase, $DayRulesTable, DayRuleRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DayRulesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DayRulesTable,
+      DayRuleRow,
+      $$DayRulesTableFilterComposer,
+      $$DayRulesTableOrderingComposer,
+      $$DayRulesTableAnnotationComposer,
+      $$DayRulesTableCreateCompanionBuilder,
+      $$DayRulesTableUpdateCompanionBuilder,
+      (DayRuleRow, BaseReferences<_$AppDatabase, $DayRulesTable, DayRuleRow>),
+      DayRuleRow,
+      PrefetchHooks Function()
     >;
 typedef $$ShoppingSourcesTableCreateCompanionBuilder =
     ShoppingSourcesCompanion Function({
@@ -19729,6 +20596,8 @@ class $AppDatabaseManager {
       $$MealPlanEntriesTableTableManager(_db, _db.mealPlanEntries);
   $$CookSoonItemsTableTableManager get cookSoonItems =>
       $$CookSoonItemsTableTableManager(_db, _db.cookSoonItems);
+  $$DayRulesTableTableManager get dayRules =>
+      $$DayRulesTableTableManager(_db, _db.dayRules);
   $$ShoppingSourcesTableTableManager get shoppingSources =>
       $$ShoppingSourcesTableTableManager(_db, _db.shoppingSources);
   $$ShoppingContributionsTableTableManager get shoppingContributions =>

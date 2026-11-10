@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/day_rules.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
@@ -11,6 +12,7 @@ import 'meal_actions.dart';
 import 'meal_away.dart';
 import 'plan_format.dart';
 import 'planning_providers.dart';
+import 'rule_notes.dart';
 import 'time_check_note.dart';
 
 /// Odobren recept obroka i izmene: porcije, zamena, zaključavanje,
@@ -26,6 +28,44 @@ class MealEntryDetail extends ConsumerWidget {
   final MealPlan plan;
   final PlannedMeal meal;
   final VoidCallback? onRemoved;
+
+  List<Widget> _ruleSection(BuildContext context, WidgetRef ref) {
+    final rules = ref.watch(dayRulesProvider).value ?? const [];
+    final results = evaluateSlot(rules, meal.slot, meal.snapshot);
+    final failing = [
+      for (final r in results)
+        if (r.fit == RuleFit.fail && r.rule.mode == RuleMode.required) r,
+    ];
+    return [
+      RuleNotes(results, overrides: meal.ruleOverrides),
+      for (final r in failing)
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton(
+            onPressed: meal.isCooked
+                ? null
+                : () => runMealEdit(
+                    context,
+                    () => ref
+                        .read(mealPlanRepositoryProvider)
+                        .setRuleOverride(
+                          meal.id,
+                          r.rule.id,
+                          allowed: !meal.ruleOverrides.contains(r.rule.id),
+                        ),
+                  ),
+            child: Text(
+              meal.ruleOverrides.contains(r.rule.id)
+                  ? 'Ukloni izuzetak'
+                  : 'Dozvoli ovaj put',
+              semanticsLabel: meal.ruleOverrides.contains(r.rule.id)
+                  ? 'Ukloni izuzetak za ${r.rule.label}'
+                  : 'Dozvoli ovaj put: ${r.rule.label}',
+            ),
+          ),
+        ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -145,6 +185,7 @@ class MealEntryDetail extends ConsumerWidget {
           ),
           detailed: true,
         ),
+        ..._ruleSection(context, ref),
         if (meal.isLocked || meal.isCooked) ...[
           const SizedBox(height: 4),
           Text(

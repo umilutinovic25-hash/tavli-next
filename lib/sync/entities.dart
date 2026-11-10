@@ -458,6 +458,7 @@ class MealPlanEntryEntity
     'kind': r.kind,
     'away_reason': r.awayReason,
     'away_note': r.awayNote,
+    'rule_overrides': _decodeOrNull(r.ruleOverridesJson),
   };
 
   @override
@@ -476,6 +477,7 @@ class MealPlanEntryEntity
         kind: Value(j['kind'] as String? ?? 'cook'),
         awayReason: Value(j['away_reason'] as String?),
         awayNote: Value(j['away_note'] as String?),
+        ruleOverridesJson: Value(_jsonOrNull(j['rule_overrides'])),
       );
 }
 
@@ -519,6 +521,46 @@ class CookSoonItemEntity
         position: Value(j['position'] as int? ?? 0),
         createdAt: Value(_date(j['created_at'])),
       );
+}
+
+class DayRuleEntity extends SyncEntity<$DayRulesTable, DayRuleRow> {
+  const DayRuleEntity();
+  @override
+  String get name => 'day_rule';
+  @override
+  String get remoteTable => 'day_rules';
+  @override
+  EntityScope get scope => EntityScope.household;
+  @override
+  $DayRulesTable table(AppDatabase db) => db.dayRules;
+  @override
+  Expression<String> idColumn($DayRulesTable t) => t.id;
+  @override
+  GeneratedColumn<String> scopeColumn($DayRulesTable t) => t.householdId;
+
+  @override
+  Map<String, Object?> toRemote(DayRuleRow r) => {
+    'id': r.id,
+    'household_id': r.householdId,
+    'weekday': r.weekday,
+    'meal_type': r.mealType,
+    'kind': r.kind,
+    'value': r.value,
+    'mode': r.mode,
+    'created_at': _ts(r.createdAt),
+  };
+
+  @override
+  DayRulesCompanion fromRemote(Map<String, Object?> j) => DayRulesCompanion(
+    id: Value(j['id']! as String),
+    householdId: Value(j['household_id'] as String?),
+    weekday: Value(j['weekday']! as int),
+    mealType: Value(j['meal_type'] as String?),
+    kind: Value(j['kind']! as String),
+    value: Value(j['value'] as String?),
+    mode: Value(j['mode'] as String? ?? 'required'),
+    createdAt: Value(_date(j['created_at'])),
+  );
 }
 
 class RatingEntity extends SyncEntity<$RatingsTable, RatingRow> {
@@ -807,6 +849,7 @@ const List<SyncEntity<Table, Object?>> syncEntities = [
   WeekTemplateEntity(),
   MealPlanEntryEntity(),
   CookSoonItemEntity(),
+  DayRuleEntity(),
   ShoppingListEntity(),
   ShoppingItemEntity(),
   PantryItemEntity(),

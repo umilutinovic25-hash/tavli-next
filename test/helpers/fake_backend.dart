@@ -84,6 +84,7 @@ class FakeServer {
     'week_templates': 'week_template',
     'meal_plan_entries': 'meal_plan_entry',
     'cook_soon_items': 'cook_soon_item',
+    'day_rules': 'day_rule',
     'shopping_sources': 'shopping_source',
     'shopping_contributions': 'shopping_contribution',
     'supply_allocations': 'supply_allocation',

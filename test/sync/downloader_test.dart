@@ -215,6 +215,7 @@ void main() {
       'fetch:week_templates',
       'fetch:meal_plan_entries',
       'fetch:cook_soon_items',
+      'fetch:day_rules',
       'fetch:shopping_lists',
       'fetch:shopping_items',
       'fetch:pantry_items',

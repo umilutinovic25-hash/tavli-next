@@ -7,6 +7,7 @@ import '../features/account/sign_in_screen.dart';
 import '../features/pantry/pantry_edit_screen.dart';
 import '../features/pantry/pantry_form_screen.dart';
 import '../features/pantry/pantry_screen.dart';
+import '../features/planning/day_rules_screen.dart';
 import '../features/planning/plan_preview_screen.dart';
 import '../features/planning/plan_screen.dart';
 import '../features/planning/plan_setup_screen.dart';
@@ -108,6 +109,10 @@ GoRouter createRouter({
                 GoRoute(
                   path: 'time',
                   builder: (context, state) => const TimeBudgetScreen(),
+                ),
+                GoRoute(
+                  path: 'rules',
+                  builder: (context, state) => const DayRulesScreen(),
                 ),
                 GoRoute(
                   path: 'new',
