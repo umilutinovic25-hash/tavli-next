@@ -11,6 +11,8 @@ class Supply {
     required this.unitGroup,
     required this.micros,
     this.samePhysicalAs,
+    this.dictionaryIngredient,
+    this.dictionaryUnitGroup,
   });
 
   final String id;
@@ -19,6 +21,10 @@ class Supply {
   /// Ključ sastojka (`ingredientKey`) i grupa jedinica kao u potražnji.
   final String ingredient;
   final String unitGroup;
+
+  /// V1 aliases point to the same physical capacity, never a second supply.
+  final String? dictionaryIngredient;
+  final String? dictionaryUnitGroup;
 
   /// Potvrđena količina u osnovnoj jedinici; `null` = nepotvrđeno, ne pokriva
   /// brojčanu potrebu.
@@ -116,7 +122,12 @@ AllocationResult allocateSupply(
     for (final id in supplyOrder) {
       if (need == 0) break;
       final s = capacity[id]!;
-      if (s.ingredient != key.ingredient || s.unitGroup != key.unitGroup) {
+      final legacyMatch =
+          s.ingredient == key.ingredient && s.unitGroup == key.unitGroup;
+      final dictionaryMatch =
+          s.dictionaryIngredient == key.ingredient &&
+          s.dictionaryUnitGroup == key.unitGroup;
+      if (!legacyMatch && !dictionaryMatch) {
         continue;
       }
       final take = need! < left[id]! ? need : left[id]!;

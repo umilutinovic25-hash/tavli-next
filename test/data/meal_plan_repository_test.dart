@@ -130,6 +130,7 @@ void main() {
     expect(meals.first.slot, MealSlot(monday, MealType.lunch));
     expect(meals.first.recipeId, 'r1');
     expect(meals.first.snapshot!.title, 'Pasulj');
+    expect(meals.every((m) => m.snapshot!.dictionaryVersion == 1), isTrue);
     expect(meals[1].recipeId, isNotNull, reason: 'nov recept ide u Recepte');
     expect(meals[1].snapshot!.ingredients.single.name, 'krompir');
     expect(meals.every((m) => m.servings == 2), isTrue);
