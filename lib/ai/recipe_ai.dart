@@ -1,5 +1,7 @@
 import '../domain/ids.dart';
 import '../domain/recipe.dart';
+import '../domain/step_links.dart';
+import '../domain/user_preferences.dart';
 import 'ai_models.dart';
 import 'ai_router.dart';
 import 'prompts.dart';
@@ -13,18 +15,25 @@ class NotARecipeException implements Exception {
 
 /// Funkcije aplikacije koje prave i menjaju recepte preko [AIRouter]-a.
 class RecipeAI {
-  RecipeAI(this._router, {DateTime Function()? clock})
+  RecipeAI(this._router, {DateTime Function()? clock, this._preferences})
     : _clock = clock ?? DateTime.now;
 
   final AIRouter _router;
   final DateTime Function() _clock;
 
-  Future<AIResult<Recipe>> fromImage(AIImage image, {String? imagePath}) {
+  /// Preferencije domaćinstva za svaki upit; bez njih nema bloka.
+  final Future<UserPreferences> Function()? _preferences;
+
+  Future<UserPreferences> _loadPreferences() =>
+      _preferences?.call() ?? Future.value(UserPreferences.defaults);
+
+  Future<AIResult<Recipe>> fromImage(AIImage image, {String? imagePath}) async {
+    final prefs = await _loadPreferences();
     return _router
         .run(
           AIRequest(
             system: recipeSystemPrompt,
-            prompt: recipeFromImagePrompt(),
+            prompt: recipeFromImagePrompt(preferences: prefs),
             images: [image],
             temperature: 0.1,
           ),
@@ -42,7 +51,8 @@ class RecipeAI {
     String dishName, {
     int servings = 2,
     String? notes,
-  }) {
+  }) async {
+    final prefs = await _loadPreferences();
     return _router
         .run(
           AIRequest(
@@ -51,6 +61,7 @@ class RecipeAI {
               dishName,
               servings: servings,
               notes: notes,
+              preferences: prefs,
             ),
             temperature: 0.7,
           ),
@@ -60,20 +71,43 @@ class RecipeAI {
   }
 
   /// Vraća novu verziju recepta; id, izvor i slika ostaju isti.
-  Future<AIResult<Recipe>> refine(Recipe current, String instruction) {
+  Future<AIResult<Recipe>> refine(Recipe current, String instruction) async {
+    final prefs = await _loadPreferences();
     return _router
         .run(
           AIRequest(
             system: recipeSystemPrompt,
-            prompt: refineRecipePrompt(current, instruction),
+            prompt: refineRecipePrompt(
+              current,
+              instruction,
+              preferences: prefs,
+            ),
           ),
-          (json) => Recipe.fromAiJson(
-            json,
-            id: current.id,
-            source: current.source,
-            createdAt: current.createdAt,
-            imagePath: current.imagePath,
-          ),
+          // Potvrđeno vreme ostaje; AI ga ne menja.
+          (json) {
+            final next = Recipe.fromAiJson(
+              json,
+              id: current.id,
+              source: current.source,
+              createdAt: current.createdAt,
+              imagePath: current.imagePath,
+              sourceUrl: current.sourceUrl,
+            );
+            // Isti sastojak (po nazivu) i isti tekst koraka zadržavaju veze.
+            return next.copyWith(
+              ingredients: carryIngredientIds(
+                current.ingredients,
+                next.ingredients,
+              ),
+              stepUses: realignStepUses(
+                current.steps,
+                current.stepUses,
+                next.steps,
+              ),
+              activeMinutes: current.activeMinutes,
+              totalMinutes: current.totalMinutes,
+            );
+          },
         )
         .then(_stampModel);
   }
@@ -100,8 +134,12 @@ class RecipeAI {
         prepMinutes: v.prepMinutes,
         ingredients: v.ingredients,
         steps: v.steps,
+        stepUses: v.stepUses,
+        activeMinutes: v.activeMinutes,
+        totalMinutes: v.totalMinutes,
         source: v.source,
         imagePath: v.imagePath,
+        sourceUrl: v.sourceUrl,
         createdAt: v.createdAt,
         answeredBy: r.model.label,
       ),

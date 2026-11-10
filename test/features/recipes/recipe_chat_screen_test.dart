@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:tavli/domain/recipe.dart';
+import 'package:tavli/domain/step_links.dart';
+
 import '../../helpers/test_app.dart';
 
 void main() {
@@ -47,6 +50,40 @@ void main() {
     expect(await app.titles(), ['Sarma']);
     expect(find.text('Izmena je poništena.'), findsOneWidget);
     expect(await app.db.select(app.db.recipeVersions).get(), isEmpty);
+  });
+
+  testTavli('AI izmena zadržava veze istih sastojaka i koraka', (tester) async {
+    final linked = sampleRecipe('a', 'Sarma').copyWith(
+      ingredients: const [
+        Ingredient(
+          id: 'i-l',
+          name: 'crni luk',
+          quantity: 0.5,
+          unit: 'kg',
+          category: 'voće i povrće',
+        ),
+      ],
+      steps: const ['Iseckati luk.', 'Pržiti.'],
+      stepUses: const [
+        [StepUse(ingredientId: 'i-l', quantity: 0.5)],
+      ],
+    );
+    final app = await pumpTavli(
+      tester,
+      location: '/recipes/a/chat',
+      recipes: [linked],
+      // AI vraća iste sastojke bez id-jeva i iste prve korake.
+      ai: [aiAnswer(recipeJson('Posna sarma'))],
+    );
+
+    await send(tester, 'posno');
+    await tapButton(tester, 'Prihvati');
+
+    final saved = (await app.repo.get('a'))!;
+    expect(saved.ingredients.first.id, 'i-l');
+    expect(saved.steps.first, 'Iseckati luk.');
+    expect(saved.usesFor(0).single.ingredientId, 'i-l');
+    expect(saved.ingredients[1].id, isNull);
   });
 
   testTavli('Odbaci ne menja recept i vraća tekst u polje', (tester) async {

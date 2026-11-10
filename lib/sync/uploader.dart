@@ -101,7 +101,20 @@ class Uploader {
     }
 
     // Slike: greška samo odlaže tu sliku.
+    // Odbijena izmena stavke može značiti da server još pokazuje na staru
+    // sliku. Ne brišemo fotografije dok se takva izmena ne razreši.
+    final rejectedShopping =
+        await (_db.select(_db.syncOutbox)..where(
+              (t) =>
+                  t.accountId.equals(_scope.userId) &
+                  t.entity.equals('shopping_item') &
+                  t.state.equals(OutboxState.rejected),
+            ))
+            .get();
     for (final entry in await _photoEntries()) {
+      if (entry.op == OutboxOp.photoDelete && rejectedShopping.isNotEmpty) {
+        continue;
+      }
       try {
         await _sendPhoto(entry);
         sent++;
@@ -262,6 +275,7 @@ class Uploader {
     final key = '${_scope.householdId}/${photoFileName(e.recordId)}';
     if (e.op == OutboxOp.photoDelete) {
       await _photos.remove([key]);
+      await _photoStore.delete(e.recordId);
     } else {
       final bytes = await _photoStore.read(e.recordId);
       // Fajla više nema (slika zamenjena pa obrisana): nema šta da se pošalje.

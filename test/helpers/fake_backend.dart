@@ -76,11 +76,16 @@ class FakeServer {
   static const _entityOf = {
     'recipes': 'recipe',
     'recipe_versions': 'recipe_version',
+    'day_time_budgets': 'day_time_budget',
+    'household_preferences': 'household_preference',
     'shopping_lists': 'shopping_list',
     'shopping_items': 'shopping_item',
     'pantry_items': 'pantry_item',
     'meal_plans': 'meal_plan',
+    'week_templates': 'week_template',
     'meal_plan_entries': 'meal_plan_entry',
+    'cook_soon_items': 'cook_soon_item',
+    'day_rules': 'day_rule',
     'shopping_sources': 'shopping_source',
     'shopping_contributions': 'shopping_contribution',
     'supply_allocations': 'supply_allocation',
@@ -183,6 +188,7 @@ class FakeServer {
         cascade('ratings', 'recipe_id');
         setNull('meal_plan_entries', 'recipe_id');
         setNull('shopping_sources', 'recipe_id');
+        setNull('cook_soon_items', 'recipe_id');
       case 'shopping_lists':
         cascade('shopping_items', 'list_id');
         cascade('shopping_sources', 'list_id');

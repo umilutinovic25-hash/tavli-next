@@ -1,4 +1,6 @@
-enum RecipeSource { photo, ai, manual }
+import 'step_links.dart';
+
+enum RecipeSource { photo, ai, manual, url }
 
 /// `summary` = naziv i sastojci (dovoljno za plan i listu za kupovinu),
 /// `full` = i koraci pripreme.
@@ -25,8 +27,12 @@ class Ingredient {
     this.unit,
     this.category = 'ostalo',
     this.note,
+    this.id,
   });
 
+  /// Stabilan id u receptu (za veze sa koracima); null kod starih recepata
+  /// dok se sastojak ne poveže.
+  final String? id;
   final String name;
   final double? quantity;
   final String? unit;
@@ -43,8 +49,18 @@ class Ingredient {
       unit: _blankToNull(json['unit']),
       category: ingredientCategories.contains(category) ? category! : 'ostalo',
       note: _blankToNull(json['note']),
+      id: _blankToNull(json['id']),
     );
   }
+
+  Ingredient withId(String id) => Ingredient(
+    name: name,
+    quantity: quantity,
+    unit: unit,
+    category: category,
+    note: note,
+    id: id,
+  );
 
   Map<String, dynamic> toJson() => {
     'name': name,
@@ -52,6 +68,7 @@ class Ingredient {
     'unit': unit,
     'category': category,
     'note': note,
+    'id': ?id,
   };
 }
 
@@ -67,7 +84,22 @@ class Recipe {
     this.prepMinutes,
     this.imagePath,
     this.answeredBy,
+    this.sourceUrl,
+    this.stepUses = const [],
+    this.activeMinutes,
+    this.totalMinutes,
   });
+
+  /// Sastojci po koracima, poravnati sa [steps] (može biti kraće).
+  final List<List<StepUse>> stepUses;
+
+  List<StepUse> usesFor(int step) =>
+      step < stepUses.length ? stepUses[step] : const [];
+
+  /// Potvrđeno aktivno (rad) i ukupno vreme u minutima. [prepMinutes] je
+  /// staro, nespecificirano vreme i ne računa se kao ni jedno od njih.
+  final int? activeMinutes;
+  final int? totalMinutes;
 
   final String id;
   final String title;
@@ -77,6 +109,7 @@ class Recipe {
   final List<String> steps;
   final RecipeSource source;
   final String? imagePath;
+  final String? sourceUrl;
 
   /// Oznaka modela koji je napravio ili poslednji izmenio recept.
   final String? answeredBy;
@@ -94,6 +127,7 @@ class Recipe {
     required DateTime createdAt,
     String? answeredBy,
     String? imagePath,
+    String? sourceUrl,
   }) {
     final title = (json['title'] as String?)?.trim() ?? '';
     if (title.isEmpty) throw const FormatException('Recept nema naziv');
@@ -102,6 +136,12 @@ class Recipe {
       throw const FormatException('Recept nema sastojke');
     }
     final rawSteps = json['steps'];
+    final steps = rawSteps is List
+        ? [
+            for (final s in rawSteps)
+              if (s.toString().trim().isNotEmpty) s.toString().trim(),
+          ]
+        : const <String>[];
     return Recipe(
       id: id,
       title: title,
@@ -111,16 +151,13 @@ class Recipe {
         for (final i in rawIngredients)
           Ingredient.fromJson(i as Map<String, dynamic>),
       ],
-      steps: rawSteps is List
-          ? [
-              for (final s in rawSteps)
-                if (s.toString().trim().isNotEmpty) s.toString().trim(),
-            ]
-          : const [],
+      steps: steps,
+      stepUses: readStepLinks(steps, json['stepLinks']),
       source: source,
       createdAt: createdAt,
       answeredBy: answeredBy,
       imagePath: imagePath,
+      sourceUrl: sourceUrl,
     );
   }
 
@@ -133,6 +170,10 @@ class Recipe {
     List<String>? steps,
     String? imagePath,
     String? answeredBy,
+    List<List<StepUse>>? stepUses,
+    int? activeMinutes,
+    int? totalMinutes,
+    bool clearTiming = false,
   }) => Recipe(
     id: id,
     title: title ?? this.title,
@@ -140,20 +181,37 @@ class Recipe {
     prepMinutes: clearPrepMinutes ? null : (prepMinutes ?? this.prepMinutes),
     ingredients: ingredients ?? this.ingredients,
     steps: steps ?? this.steps,
+    // Novi koraci bez novih veza: veze idu za istim tekstom koraka.
+    stepUses:
+        stepUses ??
+        (steps == null
+            ? this.stepUses
+            : realignStepUses(this.steps, this.stepUses, steps)),
     source: source,
     imagePath: imagePath ?? this.imagePath,
+    sourceUrl: sourceUrl,
     answeredBy: answeredBy ?? this.answeredBy,
     createdAt: createdAt,
+    activeMinutes: clearTiming
+        ? activeMinutes
+        : (activeMinutes ?? this.activeMinutes),
+    totalMinutes: clearTiming
+        ? totalMinutes
+        : (totalMinutes ?? this.totalMinutes),
   );
 
   /// Ceo recept za čuvanje (npr. prethodne verzije u bazi).
   Map<String, dynamic> toJson() => {
     'id': id,
     ...toAiJson(),
+    'stepLinks': ?writeStepLinks(steps, stepUses),
     'source': source.name,
     'imagePath': imagePath,
+    'sourceUrl': ?sourceUrl,
     'answeredBy': answeredBy,
     'createdAt': createdAt.toUtc().toIso8601String(),
+    'activeMinutes': ?activeMinutes,
+    'totalMinutes': ?totalMinutes,
   };
 
   /// Čita oblik iz [toJson]. Baca [FormatException] na pokvaren zapis.
@@ -164,6 +222,8 @@ class Recipe {
     if (id is! String || source == null || createdAt == null) {
       throw const FormatException('Pokvaren zapis recepta');
     }
+    // Vreme se čita samo iz sačuvanog zapisa, ne iz AI odgovora: potvrđuje
+    // ga osoba.
     return Recipe.fromAiJson(
       json,
       id: id,
@@ -171,6 +231,10 @@ class Recipe {
       createdAt: createdAt,
       answeredBy: json['answeredBy'] as String?,
       imagePath: json['imagePath'] as String?,
+      sourceUrl: json['sourceUrl'] as String?,
+    ).copyWith(
+      activeMinutes: _positiveInt(json['activeMinutes']),
+      totalMinutes: _positiveInt(json['totalMinutes']),
     );
   }
 
@@ -202,3 +266,5 @@ String? _blankToNull(Object? v) {
   final s = v?.toString().trim();
   return (s == null || s.isEmpty) ? null : s;
 }
+
+int? _positiveInt(Object? v) => v is num && v > 0 ? v.round() : null;

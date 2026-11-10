@@ -9,6 +9,31 @@ import '../helpers/v3_schema.dart';
 import '../helpers/v4_schema.dart';
 
 void main() {
+  test('migracija 5 → 14 čuva podatke i pravi tabelu šablona', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'tavli-v5-template-',
+    );
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      "INSERT INTO meal_plans (id, start_date, end_date, meal_types_json, created_at, household_id) VALUES ('kept', 1, 2, '[\"lunch\"]', 1, 'home')",
+    );
+    await before.customStatement('DROP TABLE week_templates');
+    await before.customStatement('PRAGMA user_version = 5');
+    await before.close();
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    expect((await after.select(after.mealPlans).get()).single.id, 'kept');
+    expect(await after.select(after.weekTemplates).get(), isEmpty);
+    expect(
+      (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
+        'user_version',
+      ),
+      after.schemaVersion,
+    );
+  });
+
   test('postojeća v4 struktura označena kao v3 čuva id-jeve i outbox pri otvaranju', () async {
     final directory = await Directory.systemTemp.createTemp(
       'tavli-migration-test-',
@@ -37,6 +62,7 @@ void main() {
     await before.customStatement(
       "INSERT INTO app_settings (key, value) VALUES ('theme', 'borovnica')",
     );
+    await before.customStatement('DROP TABLE week_templates');
     await before.customStatement('PRAGMA user_version = 3');
     await before.close();
 
@@ -154,7 +180,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 6);
+    expect(db.schemaVersion, 15);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -307,6 +333,24 @@ void main() {
     );
   });
 
+  test('migracija 5 → 7 čuva recepte i dodaje izvor', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v7-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement(
+      "INSERT INTO recipes (id, title, servings, source, ingredients_json, steps_json, created_at, updated_at) VALUES ('r', 'Pita', 2, 'manual', '[]', '[]', 1, 1)",
+    );
+    await first.customStatement('ALTER TABLE recipes DROP COLUMN source_url');
+    await first.customStatement('PRAGMA user_version = 5');
+    await first.close();
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final row = (await after.select(after.recipes).get()).single;
+    expect(row.title, 'Pita');
+    expect(row.sourceUrl, isNull);
+  });
+
   test('ponovljena v5 migracija (user_version vraćen na 4) ne pada', () async {
     final directory = await Directory.systemTemp.createTemp('tavli-v5-');
     addTearDown(() => directory.delete(recursive: true));
@@ -349,4 +393,343 @@ void main() {
       );
     },
   );
+  for (final version in [5, 6]) {
+    test(
+      'migracija $version → 14 čuva pretrage i dodaje izvor recepta',
+      () async {
+        final dir = await Directory.systemTemp.createTemp('tavli-url-merge-');
+        addTearDown(() => dir.delete(recursive: true));
+        final file = File('${dir.path}/cache.sqlite');
+        final before = AppDatabase(NativeDatabase(file));
+        await before.customStatement(
+          "INSERT INTO recipes (id, title, servings, source, ingredients_json, steps_json, created_at, updated_at) VALUES ('r', 'Pita', 2, 'manual', '[]', '[]', 1, 1)",
+        );
+        await before.customStatement(
+          'ALTER TABLE recipes DROP COLUMN source_url',
+        );
+        if (version == 5) {
+          await before.customStatement('DROP TABLE saved_recipe_searches');
+        } else {
+          await before.customStatement(
+            "INSERT INTO saved_recipe_searches (id, user_id, name, query, include_ingredient, exclude_ingredient) VALUES ('s', 'u', 'Brzo', 'pita', '', '')",
+          );
+        }
+        await before.customStatement('PRAGMA user_version = $version');
+        await before.close();
+        final after = AppDatabase(NativeDatabase(file));
+        addTearDown(after.close);
+        expect(
+          (await after.select(after.recipes).get()).single.sourceUrl,
+          isNull,
+        );
+        final searches = await after.select(after.savedRecipeSearches).get();
+        expect(searches.length, version == 5 ? 0 : 1);
+        if (version == 6) expect(searches.single.name, 'Brzo');
+      },
+    );
+  }
+  for (final version in [5, 6]) {
+    test('migracija $version → 14 čuva pretrage i uvodi šablone', () async {
+      final dir = await Directory.systemTemp.createTemp('tavli-week-merge-');
+      addTearDown(() => dir.delete(recursive: true));
+      final file = File('${dir.path}/cache.sqlite');
+      final before = AppDatabase(NativeDatabase(file));
+      await before.customStatement(
+        "INSERT INTO app_settings (key, value) VALUES ('theme', 'dark')",
+      );
+      await before.customStatement('DROP TABLE week_templates');
+      if (version == 5) {
+        await before.customStatement('DROP TABLE saved_recipe_searches');
+      } else {
+        await before.customStatement(
+          "INSERT INTO saved_recipe_searches (id, user_id, name, query, include_ingredient, exclude_ingredient) VALUES ('s', 'u', 'Brzo', 'pita', '', '')",
+        );
+      }
+      await before.customStatement('PRAGMA user_version = $version');
+      await before.close();
+      final after = AppDatabase(NativeDatabase(file));
+      addTearDown(after.close);
+      expect(await after.select(after.weekTemplates).get(), isEmpty);
+      final searches = await after.select(after.savedRecipeSearches).get();
+      expect(searches.length, version == 5 ? 0 : 1);
+      if (version == 6) expect(searches.single.name, 'Brzo');
+    });
+  }
+  test('v5 migracija čuva stavke i dodaje prazne detalje', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v9-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      "INSERT INTO shopping_lists (id, name, created_at, household_id) VALUES ('l', 'Lista', 1, 'h')",
+    );
+    await before.customStatement(
+      "INSERT INTO shopping_items (id, list_id, name, quantity, unit, category, household_id) VALUES ('i', 'l', 'Mleko', 2, 'l', 'ostalo', 'h')",
+    );
+    await before.customStatement(
+      'ALTER TABLE shopping_items DROP COLUMN brand',
+    );
+    await before.customStatement('ALTER TABLE shopping_items DROP COLUMN note');
+    await before.customStatement(
+      'ALTER TABLE shopping_items DROP COLUMN photo_path',
+    );
+    await before.customStatement('PRAGMA user_version = 5');
+    await before.close();
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final item = (await after.select(after.shoppingItems).get()).single;
+    expect(item.name, 'Mleko');
+    expect(item.quantity, 2);
+    expect(item.unit, 'l');
+    expect(item.brand, isNull);
+    expect(item.note, isNull);
+    expect(item.photoPath, isNull);
+  });
+
+  test(
+    'migracija 5 → 11 dodaje red „Uskoro kuvam“ i čuva postojeće redove',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('tavli-v10-');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File('${directory.path}/cache.sqlite');
+      final before = AppDatabase(NativeDatabase(file));
+      await before.customStatement(
+        'INSERT INTO recipes (id, title, servings, source, ingredients_json, '
+        "steps_json, created_at, updated_at, household_id) VALUES ('r1', "
+        "'Sarma', 4, 'manual', '[]', '[]', 1, 2, 'h1')",
+      );
+      await before.customStatement('DROP TABLE cook_soon_items');
+      await before.customStatement('PRAGMA user_version = 5');
+      await before.close();
+
+      final after = AppDatabase(NativeDatabase(file));
+      addTearDown(after.close);
+      expect((await after.select(after.recipes).get()).single.id, 'r1');
+      await after.customStatement(
+        'INSERT INTO cook_soon_items (id, household_id, recipe_id, '
+        'recipe_snapshot_json, servings, position, created_at) VALUES '
+        "('q1', 'h1', 'r1', '{}', 4, 0, 1)",
+      );
+      expect((await after.select(after.cookSoonItems).get()).single.id, 'q1');
+    },
+  );
+
+  test('ponovljena v10 migracija (tabela već postoji) ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v10b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement(
+      'INSERT INTO cook_soon_items (id, recipe_snapshot_json, servings, '
+      "position, created_at) VALUES ('q1', '{}', 2, 0, 1)",
+    );
+    await first.customStatement('PRAGMA user_version = 9');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect((await again.select(again.cookSoonItems).get()).single.id, 'q1');
+  });
+
+  test(
+    'migracija 5 → 13 dodaje vrstu obroka; stari obroci se kuvaju',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('tavli-v11-');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File('${directory.path}/cache.sqlite');
+      final before = AppDatabase(NativeDatabase(file));
+      await before.customStatement(
+        'INSERT INTO meal_plans (id, start_date, end_date, meal_types_json, '
+        "created_at) VALUES ('p1', 1, 1, '[\"lunch\"]', 1)",
+      );
+      await before.customStatement(
+        'INSERT INTO meal_plan_entries (id, plan_id, date, meal_type) '
+        "VALUES ('e1', 'p1', 1, 'lunch')",
+      );
+      for (final c in ['kind', 'away_reason', 'away_note']) {
+        await before.customStatement(
+          'ALTER TABLE meal_plan_entries DROP COLUMN $c',
+        );
+      }
+      await before.customStatement('PRAGMA user_version = 5');
+      await before.close();
+
+      final after = AppDatabase(NativeDatabase(file));
+      addTearDown(after.close);
+      final e = (await after.select(after.mealPlanEntries).get()).single;
+      expect(e.id, 'e1');
+      expect(e.kind, 'cook');
+      expect(e.awayReason, isNull);
+    },
+  );
+
+  test('ponovljena v11 migracija (kolone već postoje) ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v11b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 10');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.mealPlanEntries).get(), isEmpty);
+  });
+
+  test('migracija 5 → 12 dodaje zapis veza; recepti ostaju isti', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v12-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      'INSERT INTO recipes (id, title, servings, source, ingredients_json, '
+      "steps_json, created_at, updated_at) VALUES ('r1', 'Sarma', 4, "
+      """'manual', '[{"name":"kupus"}]', '["Kuvati."]', 1, 2)""",
+    );
+    await before.customStatement(
+      'ALTER TABLE recipes DROP COLUMN step_links_json',
+    );
+    await before.customStatement('PRAGMA user_version = 5');
+    await before.close();
+
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final r = (await after.select(after.recipes).get()).single;
+    expect(r.stepsJson, '["Kuvati."]');
+    expect(r.stepLinksJson, isNull);
+  });
+
+  test('ponovljena v12 migracija (kolona već postoji) ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v12b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 11');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.recipes).get(), isEmpty);
+  });
+
+  test('migracija 5 → 13 dodaje vreme recepta i vreme po danu', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v13-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      'INSERT INTO recipes (id, title, servings, prep_minutes, source, '
+      'ingredients_json, steps_json, created_at, updated_at) VALUES '
+      "('r1', 'Pasulj', 4, 15, 'manual', '[]', '[]', 1, 2)",
+    );
+    for (final c in ['active_minutes', 'total_minutes']) {
+      await before.customStatement('ALTER TABLE recipes DROP COLUMN $c');
+    }
+    await before.customStatement('DROP TABLE day_time_budgets');
+    await before.customStatement('PRAGMA user_version = 5');
+    await before.close();
+
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final r = (await after.select(after.recipes).get()).single;
+    expect(r.prepMinutes, 15);
+    expect(r.activeMinutes, isNull);
+    expect(r.totalMinutes, isNull);
+    expect(await after.select(after.dayTimeBudgets).get(), isEmpty);
+  });
+
+  test('ponovljena v13 migracija ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v13b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 12');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.dayTimeBudgets).get(), isEmpty);
+  });
+
+  test('migracija 5 → 14 dodaje pravila i izuzetke; obroci ostaju', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v14-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      'INSERT INTO meal_plans (id, start_date, end_date, meal_types_json, '
+      """created_at) VALUES ('p1', 1, 1, '["lunch"]', 1)""",
+    );
+    await before.customStatement(
+      'INSERT INTO meal_plan_entries (id, plan_id, date, meal_type) '
+      "VALUES ('e1', 'p1', 1, 'lunch')",
+    );
+    await before.customStatement(
+      'ALTER TABLE meal_plan_entries DROP COLUMN rule_overrides_json',
+    );
+    await before.customStatement('DROP TABLE day_rules');
+    await before.customStatement('PRAGMA user_version = 5');
+    await before.close();
+
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final e = (await after.select(after.mealPlanEntries).get()).single;
+    expect(e.id, 'e1');
+    expect(e.ruleOverridesJson, isNull);
+    expect(await after.select(after.dayRules).get(), isEmpty);
+  });
+
+  test('ponovljena v14 migracija ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v14b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 13');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.dayRules).get(), isEmpty);
+  });
+
+  test(
+    'migracija 14 → 15 dodaje preferencije ishrane; pravila ostaju',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('tavli-v15-');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File('${directory.path}/cache.sqlite');
+      final before = AppDatabase(NativeDatabase(file));
+      await before.customStatement(
+        'INSERT INTO day_rules (id, household_id, weekday, kind, mode, '
+        "created_at) VALUES ('d1', 'h1', 1, 'vegetarian', 'required', 1)",
+      );
+      await before.customStatement('DROP TABLE household_preferences');
+      await before.customStatement('PRAGMA user_version = 14');
+      await before.close();
+
+      final after = AppDatabase(NativeDatabase(file));
+      addTearDown(after.close);
+      expect((await after.select(after.dayRules).get()).single.id, 'd1');
+      expect(await after.select(after.householdPreferences).get(), isEmpty);
+      expect(
+        (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
+          'user_version',
+        ),
+        15,
+      );
+    },
+  );
+
+  test('ponovljena v15 migracija ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v15b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 14');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.householdPreferences).get(), isEmpty);
+  });
 }

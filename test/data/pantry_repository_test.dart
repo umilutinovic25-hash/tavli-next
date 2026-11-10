@@ -39,6 +39,139 @@ void main() {
 
   tearDown(() => db.close());
 
+  test('brza provera čuva metapodatke i datum i nepoznate količine', () async {
+    final expiry = now.add(const Duration(days: 3));
+    final id = await pantry.create(
+      name: 'Mleko',
+      quantity: 1,
+      unit: 'l',
+      category: 'mlečni proizvodi i jaja',
+      expiresAt: expiry,
+    );
+    final checked = now.add(const Duration(days: 1));
+    pantry = PantryRepository(
+      db,
+      scope: home,
+      writer: SyncedWriter(db, accountId: 'one'),
+      shopping: shop,
+      clock: () => checked,
+    );
+    await pantry.checkQuantity(id, quantity: 0.5, unit: 'l');
+    var row = (await pantry.watchItems().first).single;
+    expect(row.quantity, 0.5);
+    expect(row.name, 'Mleko');
+    expect(row.category, 'mlečni proizvodi i jaja');
+    expect(row.expiresAt!.isAtSameMomentAs(expiry), isTrue);
+    await pantry.checkQuantity(id, quantity: null);
+    row = (await pantry.watchItems().first).single;
+    expect(row.quantity, isNull);
+    expect(row.unit, 'l');
+    expect(row.confirmedAt!.isAtSameMomentAs(checked), isTrue);
+    final outbox = await (db.select(
+      db.syncOutbox,
+    )..where((t) => t.entity.equals('pantry_item'))).get();
+    expect(outbox.single.recordId, id);
+    expect(outbox.single.op, OutboxOp.upsert);
+    await pantry.checkQuantity(id, quantity: 500, unit: ' ml ');
+    row = (await pantry.watchItems().first).single;
+    expect(row.quantity, 500);
+    expect(row.unit, 'ml');
+    for (final q in [-1.0, double.nan, double.infinity]) {
+      await expectLater(
+        () => pantry.checkQuantity(id, quantity: q),
+        throwsArgumentError,
+      );
+    }
+  });
+
+  test(
+    'provera: 600 g potrebe − 400 g zalihe = 200 g; nepoznato vraća 600 g',
+    () async {
+      await shop.addRecipePreparation(
+        snapshot: const RecipeSnapshot(
+          title: 'Jelo',
+          baseServings: 2,
+          ingredients: [Ingredient(name: 'Brašno', quantity: 600, unit: 'g')],
+        ),
+        servings: 2,
+        originKey: 'check',
+      );
+      final id = await pantry.create(name: 'Brašno', unit: 'g');
+      await pantry.checkQuantity(id, quantity: 400, unit: 'g');
+      expect((await shop.watchRecipeItems().first).single.quantity, 200);
+      await db.delete(db.syncOutbox).go();
+      await db.customStatement(
+        "CREATE TRIGGER reject_reconcile BEFORE INSERT ON sync_outbox WHEN NEW.entity = 'shopping_item' BEGIN SELECT RAISE(ABORT, 'test'); END",
+      );
+      await expectLater(
+        pantry.checkQuantity(id, quantity: null),
+        throwsException,
+      );
+      expect((await pantry.watchItems().first).single.quantity, 400);
+      expect((await shop.watchRecipeItems().first).single.quantity, 200);
+      expect(await db.select(db.syncOutbox).get(), isEmpty);
+      await db.customStatement('DROP TRIGGER reject_reconcile');
+
+      await pantry.checkQuantity(id, quantity: null);
+      expect((await shop.watchRecipeItems().first).single.quantity, 600);
+      await pantry.checkQuantity(id, quantity: 0);
+      expect(await pantry.watchItems().first, isEmpty);
+      expect((await shop.watchRecipeItems().first).single.quantity, 600);
+    },
+  );
+
+  test('nestalo čuva prijem i ne oživljava već primljenu kupovinu', () async {
+    final list = await shop.recipeList();
+    final purchase = await shop.addManual(
+      list,
+      'Mleko',
+      quantity: 1,
+      unit: 'l',
+    );
+    await shop.setBought([purchase], bought: true);
+    await pantry.receivePurchases([purchase]);
+    final id = (await pantry.watchItems().first).single.id;
+    await pantry.checkQuantity(id, quantity: 0);
+    expect(await pantry.watchItems().first, isEmpty);
+    expect(await pantry.receivePurchases([purchase]), 0);
+    final row = (await db.select(db.pantryItems).get()).single;
+    expect(row.id, id);
+    expect(row.quantity, 0);
+    expect(row.sourceShoppingItemId, purchase);
+    expect(row.confirmedAt!.isAtSameMomentAs(now), isTrue);
+  });
+
+  test('provera ne menja tuđu turu i rollback vraća količinu', () async {
+    final id = await pantry.create(name: 'So', quantity: 10, unit: 'g');
+    await db
+        .into(db.pantryItems)
+        .insert(
+          PantryItemsCompanion.insert(
+            id: 'foreign-check',
+            name: 'So',
+            category: 'ostalo',
+            addedAt: now,
+            householdId: const Value('foreign'),
+            quantity: const Value(20),
+          ),
+        );
+    await expectLater(
+      pantry.checkQuantity('foreign-check', quantity: 0),
+      throwsA(isA<PantryItemMissing>()),
+    );
+    await expectLater(
+      pantry.checkQuantity('missing', quantity: 0),
+      throwsA(isA<PantryItemMissing>()),
+    );
+    await db.delete(db.syncOutbox).go();
+    await db.customStatement(
+      "CREATE TRIGGER reject_check BEFORE INSERT ON sync_outbox BEGIN SELECT RAISE(ABORT, 'test'); END",
+    );
+    await expectLater(pantry.checkQuantity(id, quantity: 0), throwsException);
+    expect((await pantry.watchItems().first).single.quantity, 10);
+    expect(await db.select(db.syncOutbox).get(), isEmpty);
+  });
+
   test('CRUD: domaćinstvo, outbox, potvrda i provera količine', () async {
     final id = await pantry.create(
       name: '  Pirinač  ',

@@ -19,7 +19,9 @@ import 'ai/meal_plan_ai.dart';
 import 'ai/recipe_ai.dart';
 import 'data/database.dart';
 import 'data/drift_model_status_store.dart';
+import 'data/preferences_repository.dart';
 import 'data/shopping_repository.dart';
+import 'domain/user_preferences.dart';
 import 'features/recipes/recipe_providers.dart';
 import 'sync/downloader.dart';
 import 'sync/legacy_mover.dart';
@@ -154,12 +156,18 @@ final syncEngineProvider = Provider<SyncEngine?>((ref) {
       scope: scope,
       refreshSession: () => _refreshSession(ref),
     ),
-    downloader: Downloader(db: db, remote: remote, scope: scope),
+    downloader: Downloader(
+      db: db,
+      remote: remote,
+      scope: scope,
+      photoStore: ref.watch(recipePhotoStoreProvider),
+    ),
     photoSync: PhotoSync(
       db: db,
       remote: photos,
       store: ref.watch(recipePhotoStoreProvider),
       scope: scope,
+      onFetched: (path) => ref.invalidate(recipePhotoFileProvider(path)),
     ),
     legacyMover: LegacyMover(db),
     refreshSession: () => _refreshSession(ref),
@@ -231,11 +239,17 @@ final aiRouterProvider = Provider<AIRouter>(
 );
 
 final recipeAIProvider = Provider<RecipeAI>(
-  (ref) => RecipeAI(ref.watch(aiRouterProvider)),
+  (ref) => RecipeAI(
+    ref.watch(aiRouterProvider),
+    preferences: () => ref.read(preferencesRepositoryProvider).current(),
+  ),
 );
 
 final mealPlanAIProvider = Provider<MealPlanAI>(
-  (ref) => MealPlanAI(ref.watch(aiRouterProvider)),
+  (ref) => MealPlanAI(
+    ref.watch(aiRouterProvider),
+    preferences: () => ref.read(preferencesRepositoryProvider).current(),
+  ),
 );
 
 /// Lista prijavljenog domaćinstva; demo koristi zasebnu bazu u memoriji.
@@ -246,4 +260,17 @@ final shoppingRepositoryProvider = Provider<ShoppingRepository>(
     writer: ref.watch(syncedWriterProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+/// Preferencije ishrane prijavljenog domaćinstva.
+final preferencesRepositoryProvider = Provider<PreferencesRepository>(
+  (ref) => PreferencesRepository(
+    ref.watch(databaseProvider),
+    scope: ref.watch(accountScopeProvider) ?? noAccountScope,
+    writer: ref.watch(syncedWriterProvider),
+  ),
+);
+
+final preferencesProvider = StreamProvider.autoDispose<UserPreferences>(
+  (ref) => ref.watch(preferencesRepositoryProvider).watch(),
 );

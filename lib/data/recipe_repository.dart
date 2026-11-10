@@ -7,6 +7,7 @@ import '../domain/ids.dart';
 import '../domain/recipe.dart';
 import '../domain/recipe_version.dart';
 import '../domain/saved_recipe_search.dart';
+import '../domain/step_links.dart';
 import '../sync/synced_writer.dart';
 import 'database.dart';
 import 'recipe_photo_store.dart';
@@ -224,6 +225,15 @@ class RecipeRepository {
       for (final e in entries) {
         await _writer.upsert('meal_plan_entry', e.id);
       }
+      // Red "Uskoro kuvam" zadržava snimak recepta.
+      final queued = await (_db.select(
+        _db.cookSoonItems,
+      )..where((t) => t.recipeId.equals(id))).get();
+      await (_db.update(_db.cookSoonItems)..where((t) => t.recipeId.equals(id)))
+          .write(const CookSoonItemsCompanion(recipeId: Value(null)));
+      for (final q in queued) {
+        await _writer.upsert('cook_soon_item', q.id);
+      }
       await (_db.delete(_db.recipes)..where((t) => t.id.equals(id))).go();
       await _writer.delete(_recipe, id);
       // Slika se briše samo ako je nijedan drugi recept ni verzija ne koristi.
@@ -323,8 +333,15 @@ class RecipeRepository {
     source: r.source.name,
     ingredientsJson: jsonEncode([for (final i in r.ingredients) i.toJson()]),
     stepsJson: jsonEncode(r.steps),
+    stepLinksJson: Value(switch (writeStepLinks(r.steps, r.stepUses)) {
+      final links? => jsonEncode(links),
+      null => null,
+    }),
     imagePath: Value(r.imagePath),
     answeredBy: Value(r.answeredBy),
+    sourceUrl: Value(r.sourceUrl),
+    activeMinutes: Value(r.activeMinutes),
+    totalMinutes: Value(r.totalMinutes),
     createdAt: r.createdAt,
     updatedAt: _clock(),
     householdId: Value(_scope.householdId),
@@ -333,23 +350,41 @@ class RecipeRepository {
   static Recipe? _fromRowOrNull(RecipeRow? row) =>
       row == null ? null : _fromRow(row);
 
-  static Recipe _fromRow(RecipeRow row) => Recipe(
-    id: row.id,
-    title: row.title,
-    servings: row.servings,
-    prepMinutes: row.prepMinutes,
-    ingredients: [
-      for (final i in jsonDecode(row.ingredientsJson) as List<dynamic>)
-        Ingredient.fromJson(i as Map<String, dynamic>),
-    ],
-    steps: [
+  static Recipe _fromRow(RecipeRow row) {
+    final steps = [
       for (final s in jsonDecode(row.stepsJson) as List<dynamic>) s as String,
-    ],
-    source: RecipeSource.values.asNameMap()[row.source] ?? RecipeSource.manual,
-    imagePath: row.imagePath,
-    answeredBy: row.answeredBy,
-    createdAt: row.createdAt,
-  );
+    ];
+    return Recipe(
+      id: row.id,
+      title: row.title,
+      servings: row.servings,
+      prepMinutes: row.prepMinutes,
+      ingredients: [
+        for (final i in jsonDecode(row.ingredientsJson) as List<dynamic>)
+          Ingredient.fromJson(i as Map<String, dynamic>),
+      ],
+      steps: steps,
+      stepUses: readStepLinks(steps, _decodeLinks(row.stepLinksJson)),
+      source:
+          RecipeSource.values.asNameMap()[row.source] ?? RecipeSource.manual,
+      imagePath: row.imagePath,
+      answeredBy: row.answeredBy,
+      sourceUrl: row.sourceUrl,
+      createdAt: row.createdAt,
+      activeMinutes: row.activeMinutes,
+      totalMinutes: row.totalMinutes,
+    );
+  }
+
+  // Pokvaren zapis veza ne sme da sakrije recept; tada je bez veza.
+  static Object? _decodeLinks(String? json) {
+    if (json == null) return null;
+    try {
+      return jsonDecode(json);
+    } on FormatException {
+      return null;
+    }
+  }
 
   static RecipeVersion? _versionFromRow(RecipeVersionRow row) {
     try {

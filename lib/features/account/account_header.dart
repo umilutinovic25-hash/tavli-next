@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../account/account_api.dart';
 import '../../account/auth_controller.dart';
+import '../../data/personal_export.dart';
 import '../../domain/account.dart';
 import '../../providers.dart';
 import '../../sync/sync_engine.dart';
@@ -92,6 +94,30 @@ Future<void> _signOut(BuildContext context, WidgetRef ref) async {
   await ref.read(authControllerProvider.notifier).signOut();
 }
 
+/// Pravo pristupa: JSON sa podacima naloga u dokumentima aplikacije.
+Future<void> _exportData(
+  BuildContext context,
+  WidgetRef ref,
+  Account account,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    final export = await collectPersonalExport(
+      ref.read(databaseProvider),
+      account,
+    );
+    final dir = await getApplicationDocumentsDirectory();
+    final file = await writePersonalExportFile(export, dir);
+    messenger.showSnackBar(
+      SnackBar(content: Text('Izvoz sačuvan: ${file.path}')),
+    );
+  } on Exception {
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Izvoz nije uspeo. Pokušajte ponovo.')),
+    );
+  }
+}
+
 Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
   if (!await confirmDeleteAccount(context)) return;
   if (!context.mounted) return;
@@ -153,6 +179,11 @@ class AccountHeader extends ConsumerWidget {
             if (next == null) return;
             await ref.read(authControllerProvider.notifier).saveName(next);
           },
+        ),
+        ListTile(
+          leading: const Icon(Icons.download_outlined),
+          title: const Text('Izvezi moje podatke'),
+          onTap: () => _exportData(context, ref, a),
         ),
         ListTile(
           leading: const Icon(Icons.logout),

@@ -13,6 +13,7 @@ import '../../domain/recipe_version.dart';
 import '../../domain/saved_recipe_search.dart';
 import '../../providers.dart';
 import 'photo_picker.dart';
+import 'recipe_files.dart';
 
 final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 
@@ -33,6 +34,8 @@ final recipeRepositoryProvider = Provider<RecipeRepository>(
 );
 
 final photoPickerProvider = Provider<PhotoPicker>((ref) => ImagePhotoPicker());
+
+final recipeFilesProvider = Provider<RecipeFiles>((ref) => SystemRecipeFiles());
 
 /// Smanjuje sliku van glavnog thread-a.
 final photoResizerProvider = Provider<Future<Uint8List> Function(Uint8List)>(

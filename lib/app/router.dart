@@ -7,17 +7,22 @@ import '../features/account/sign_in_screen.dart';
 import '../features/pantry/pantry_edit_screen.dart';
 import '../features/pantry/pantry_form_screen.dart';
 import '../features/pantry/pantry_screen.dart';
+import '../features/planning/day_rules_screen.dart';
 import '../features/planning/plan_preview_screen.dart';
 import '../features/planning/plan_screen.dart';
 import '../features/planning/plan_setup_screen.dart';
+import '../features/planning/time_budget_screen.dart';
 import '../features/recipes/from_name_screen.dart';
 import '../features/recipes/from_photo_screen.dart';
+import '../features/recipes/from_url_screen.dart';
 import '../features/recipes/recipe_chat_screen.dart';
 import '../features/recipes/recipe_form_screen.dart';
 import '../features/recipes/recipes_screen.dart';
 import '../features/settings/ai_keys_screen.dart';
 import '../features/settings/animations_gallery_screen.dart';
 import '../features/settings/appearance_screen.dart';
+import '../features/settings/preferences_screen.dart';
+import '../features/settings/privacy_policy_screen.dart';
 import '../features/settings/profile_screen.dart';
 import '../features/shopping/shopping_screen.dart';
 import '../features/use_first/use_first_screen.dart';
@@ -82,6 +87,14 @@ GoRouter createRouter({
           builder: (context, state) => const AppearanceScreen(),
         ),
         GoRoute(
+          path: 'privacy',
+          builder: (context, state) => const PrivacyPolicyScreen(),
+        ),
+        GoRoute(
+          path: 'preferences',
+          builder: (context, state) => const PreferencesScreen(),
+        ),
+        GoRoute(
           path: 'animations',
           builder: (context, state) => const AnimationsGalleryScreen(),
         ),
@@ -102,6 +115,14 @@ GoRouter createRouter({
                     planId: state.pathParameters['planId']!,
                     entryId: state.pathParameters['entryId']!,
                   ),
+                ),
+                GoRoute(
+                  path: 'time',
+                  builder: (context, state) => const TimeBudgetScreen(),
+                ),
+                GoRoute(
+                  path: 'rules',
+                  builder: (context, state) => const DayRulesScreen(),
                 ),
                 GoRoute(
                   path: 'new',
@@ -131,6 +152,10 @@ GoRouter createRouter({
               path: '/recipes',
               builder: (context, state) => const RecipesScreen(),
               routes: [
+                GoRoute(
+                  path: 'new/url',
+                  builder: (context, state) => const FromUrlScreen(),
+                ),
                 GoRoute(
                   path: 'new/name',
                   builder: (context, state) => const FromNameScreen(),

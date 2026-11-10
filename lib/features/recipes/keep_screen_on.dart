@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +26,33 @@ class WakelockPlusScreenWakeLock implements ScreenWakeLock {
 
 final screenWakeLockProvider = Provider<ScreenWakeLock>(
   (ref) => const WakelockPlusScreenWakeLock(),
+);
+
+/// Platform calls must complete in order even when scopes are replaced quickly.
+class _WakeLockQueue {
+  _WakeLockQueue(this.lock);
+
+  final ScreenWakeLock lock;
+  Future<void> _pending = Future.value();
+  int _holders = 0;
+
+  void apply(bool on) {
+    final wasHeld = _holders > 0;
+    _holders += on ? 1 : -1;
+    final held = _holders > 0;
+    if (held == wasHeld) return;
+    _pending = _pending.then((_) async {
+      try {
+        await (held ? lock.enable() : lock.disable());
+      } on Exception catch (e) {
+        if (kDebugMode) debugPrint('Ekran: zahtev nije uspeo ($e)');
+      }
+    });
+  }
+}
+
+final _wakeLockQueueProvider = Provider<_WakeLockQueue>(
+  (ref) => _WakeLockQueue(ref.watch(screenWakeLockProvider)),
 );
 
 /// "Ne gasi ekran" dok je recept otvoren; čuva se u AppSettings.
@@ -70,7 +95,7 @@ class KeepScreenOnScope extends ConsumerStatefulWidget {
 }
 
 class _KeepScreenOnScopeState extends ConsumerState<KeepScreenOnScope> {
-  late final ScreenWakeLock _lock = ref.read(screenWakeLockProvider);
+  late final _WakeLockQueue _lock = ref.read(_wakeLockQueueProvider);
   bool _held = false;
 
   @override
@@ -86,21 +111,12 @@ class _KeepScreenOnScopeState extends ConsumerState<KeepScreenOnScope> {
   void _apply(bool on) {
     if (on == _held) return;
     _held = on;
-    unawaited(_call(on ? _lock.enable : _lock.disable));
-  }
-
-  /// Ako platforma ne podrži zahtev, aplikacija radi dalje.
-  static Future<void> _call(Future<void> Function() action) async {
-    try {
-      await action();
-    } on Exception catch (e) {
-      if (kDebugMode) debugPrint('Ekran: zahtev nije uspeo ($e)');
-    }
+    _lock.apply(on);
   }
 
   @override
   void dispose() {
-    if (_held) unawaited(_call(_lock.disable));
+    if (_held) _lock.apply(false);
     super.dispose();
   }
 

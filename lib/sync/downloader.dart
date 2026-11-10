@@ -2,8 +2,10 @@ import 'package:drift/drift.dart';
 
 import '../account/auth_controller.dart';
 import '../data/database.dart';
+import '../data/recipe_photo_store.dart';
 import 'entities.dart';
 import 'sync_remote.dart';
+import 'synced_writer.dart';
 
 /// Preuzima podatke naloga sa servera (research R9): po entitetu, strane
 /// od [pageSize] redova redom po (updated_at, id); pozicija se čuva posle
@@ -17,11 +19,14 @@ class Downloader {
     required this._scope,
     this.pageSize = 500,
     this.overlap = const Duration(seconds: 60),
+    this.photoStore,
   });
 
   final AppDatabase _db;
   final SyncRemote _remote;
   final AccountScope _scope;
+  final RecipePhotoStore? photoStore;
+  final _staleShoppingPhotos = <String>{};
   final int pageSize;
   final Duration overlap;
 
@@ -75,21 +80,30 @@ class Downloader {
       final last = rows.last;
       since = _iso(DateTime.parse(last[timeColumn]! as String));
       afterId = last[idColumn]! as String;
-      await _db.transaction(() async {
-        for (final r in rows) {
-          await apply(r);
-        }
-        await _db
-            .into(_db.syncCursors)
-            .insertOnConflictUpdate(
-              SyncCursorsCompanion.insert(
-                accountId: _scope.userId,
-                entity: key,
-                updatedAt: DateTime.parse(since!),
-                lastId: afterId!,
-              ),
-            );
-      });
+      try {
+        await _db.transaction(() async {
+          for (final r in rows) {
+            await apply(r);
+          }
+          await _db
+              .into(_db.syncCursors)
+              .insertOnConflictUpdate(
+                SyncCursorsCompanion.insert(
+                  accountId: _scope.userId,
+                  entity: key,
+                  updatedAt: DateTime.parse(since!),
+                  lastId: afterId!,
+                ),
+              );
+        });
+      } catch (_) {
+        _staleShoppingPhotos.clear();
+        rethrow;
+      }
+      for (final path in _staleShoppingPhotos.toList()) {
+        await photoStore?.delete(path);
+        _staleShoppingPhotos.remove(path);
+      }
       if (rows.length < pageSize) return;
     }
   }
@@ -116,6 +130,13 @@ class Downloader {
   ) async {
     final id = row[e.remoteId]! as String;
     if (await _hasLocalChange(e.name, id)) return;
+    if (e.name == 'shopping_item' && photoStore != null) {
+      final previous = await const ShoppingItemEntity().read(_db, id);
+      final next = photoLocalPath(row['photo_path'] as String?);
+      if (previous?.photoPath case final path? when path != next) {
+        _staleShoppingPhotos.add(path);
+      }
+    }
     await e.write(_db, row);
   }
 
@@ -135,6 +156,24 @@ class Downloader {
     final e = entityByName(row['entity']! as String);
     final id = row['record_id']! as String;
     if (e == null) return;
+    if (e.name == 'shopping_item') {
+      final item = await const ShoppingItemEntity().read(_db, id);
+      if (item?.photoPath case final path?) {
+        if (photoStore != null) _staleShoppingPhotos.add(path);
+        final pending =
+            await (_db.select(_db.syncOutbox)..where(
+                  (t) =>
+                      t.accountId.equals(_scope.userId) &
+                      t.entity.equals('photo') &
+                      t.recordId.equals(path) &
+                      t.op.equals(OutboxOp.photoUpload),
+                ))
+                .get();
+        if (pending.isNotEmpty) {
+          await SyncedWriter(_db, accountId: _scope.userId).photoDelete(path);
+        }
+      }
+    }
     await e.deleteLocal(_db, id);
     await (_db.delete(_db.syncOutbox)..where(
           (t) =>

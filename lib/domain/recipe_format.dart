@@ -1,16 +1,21 @@
 import 'recipe.dart';
 
-/// Količina sa decimalnim zarezom, najviše dve decimale, bez suvišnih nula.
-String formatQuantity(double q) {
+/// Količina sa decimalnim zarezom, podrazumevano najviše dve decimale.
+/// [preservePrecision] čuva tačan podatak pri poređenju sa fotografijom.
+String formatQuantity(double q, {bool preservePrecision = false}) {
+  if (preservePrecision) {
+    return q.toString().replaceFirst(RegExp(r'\.0$'), '').replaceAll('.', ',');
+  }
   final fixed = q.toStringAsFixed(2);
   final trimmed = fixed.replaceFirst(RegExp(r'\.?0+$'), '');
   return trimmed.replaceAll('.', ',');
 }
 
 /// "0,5 kg mleveno meso", "biber (po ukusu)".
-String ingredientLine(Ingredient i) {
+String ingredientLine(Ingredient i, {bool preservePrecision = false}) {
   final parts = [
-    if (i.quantity != null) formatQuantity(i.quantity!),
+    if (i.quantity != null)
+      formatQuantity(i.quantity!, preservePrecision: preservePrecision),
     if (i.unit != null) i.unit!,
     i.name,
   ];

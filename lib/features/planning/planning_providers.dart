@@ -1,9 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../account/auth_controller.dart';
+import '../../data/cook_soon_repository.dart';
+import '../../data/day_rule_repository.dart';
 import '../../data/meal_plan_repository.dart';
+import '../../data/time_budget_repository.dart';
+import '../../domain/cook_soon.dart';
+import '../../domain/day_rules.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/plan_calendar.dart';
+import '../../domain/time_budget.dart';
 import '../../providers.dart';
 import '../recipes/recipe_providers.dart';
 
@@ -16,6 +22,52 @@ final mealPlanRepositoryProvider = Provider<MealPlanRepository>(
     shopping: ref.watch(shoppingRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+final weekTemplatesProvider = StreamProvider.autoDispose<List<WeekTemplate>>(
+  (ref) => ref.watch(mealPlanRepositoryProvider).watchWeekTemplates(),
+);
+
+/// Red "Uskoro kuvam" prijavljenog domaćinstva.
+final cookSoonRepositoryProvider = Provider<CookSoonRepository>(
+  (ref) => CookSoonRepository(
+    ref.watch(databaseProvider),
+    scope: ref.watch(accountScopeProvider) ?? noAccountScope,
+    writer: ref.watch(syncedWriterProvider),
+    plans: ref.watch(mealPlanRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final cookSoonItemsProvider = StreamProvider.autoDispose<List<CookSoonItem>>(
+  (ref) => ref.watch(cookSoonRepositoryProvider).watchAll(),
+);
+
+/// Raspoloživo vreme po danu u nedelji (domaćinstvo).
+final timeBudgetRepositoryProvider = Provider<TimeBudgetRepository>(
+  (ref) => TimeBudgetRepository(
+    ref.watch(databaseProvider),
+    scope: ref.watch(accountScopeProvider) ?? noAccountScope,
+    writer: ref.watch(syncedWriterProvider),
+  ),
+);
+
+final dayBudgetsProvider = StreamProvider.autoDispose<List<DayBudget>>(
+  (ref) => ref.watch(timeBudgetRepositoryProvider).watchAll(),
+);
+
+/// Pravila po danima domaćinstva.
+final dayRuleRepositoryProvider = Provider<DayRuleRepository>(
+  (ref) => DayRuleRepository(
+    ref.watch(databaseProvider),
+    scope: ref.watch(accountScopeProvider) ?? noAccountScope,
+    writer: ref.watch(syncedWriterProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+final dayRulesProvider = StreamProvider.autoDispose<List<DayRule>>(
+  (ref) => ref.watch(dayRuleRepositoryProvider).watchAll(),
 );
 
 /// Svi sačuvani planovi, noviji prvi.

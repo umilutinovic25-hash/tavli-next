@@ -20,11 +20,38 @@ class Recipes extends Table {
   TextColumn get source => text()(); // RecipeSource.name
   TextColumn get ingredientsJson => text()();
   TextColumn get stepsJson => text()();
+
+  /// Veze sastojaka i koraka (v12): [{text, uses}], null bez veza.
+  TextColumn get stepLinksJson => text().nullable()();
   TextColumn get imagePath => text().nullable()();
   TextColumn get answeredBy => text().nullable()();
+  TextColumn get sourceUrl => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   TextColumn get householdId => text().nullable()();
+
+  /// Potvrđeno aktivno i ukupno vreme u minutima (v13).
+  IntColumn get activeMinutes => integer().nullable()();
+  IntColumn get totalMinutes => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Raspoloživo vreme domaćinstva za jedan dan u nedelji (v13). Id je
+/// `<domaćinstvo>-<dan>`, pa dva uređaja pišu isti red.
+@DataClassName('DayTimeBudgetRow')
+class DayTimeBudgets extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+
+  /// 1 = ponedeljak … 7 = nedelja.
+  IntColumn get weekday => integer()();
+  IntColumn get maxActiveMinutes => integer().nullable()();
+
+  /// Prozor za kuvanje u minutima od ponoći.
+  IntColumn get windowStart => integer().nullable()();
+  IntColumn get windowEnd => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -119,6 +146,10 @@ class ShoppingItems extends Table {
   /// izmene plana ne menjaju istoriju kupovine.
   TextColumn get purchaseProvenanceJson => text().nullable()();
 
+  TextColumn get brand => text().nullable()();
+  TextColumn get note => text().nullable()();
+  TextColumn get photoPath => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -135,6 +166,19 @@ class MealPlans extends Table {
 
   /// Porcije za nove obroke plana (1–20, v5).
   IntColumn get defaultServings => integer().withDefault(const Constant(2))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('WeekTemplateRow')
+class WeekTemplates extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+  TextColumn get name => text()();
+  TextColumn get mealsJson => text()();
+  BoolColumn get usePantry => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -157,6 +201,85 @@ class MealPlanEntries extends Table {
   /// Odobren recept u trenutku planiranja (RecipeSnapshot JSON, v5). Izmena
   /// recepta u biblioteci ne menja plan.
   TextColumn get recipeSnapshotJson => text().nullable()();
+
+  /// `cook` ili `away` (v11): obrok van kuće zauzima mesto bez nabavke.
+  TextColumn get kind => text().withDefault(const Constant('cook'))();
+
+  /// `restaurant`, `visiting` ili `skip` (v11), samo za `away`.
+  TextColumn get awayReason => text().nullable()();
+  TextColumn get awayNote => text().nullable()();
+
+  /// Id-jevi obaveznih pravila dana dozvoljenih baš za ovaj obrok (v14).
+  TextColumn get ruleOverridesJson => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Recept koji osoba želi uskoro da skuva, još bez datuma (v10). Snimak
+/// recepta ostaje i kad se recept obriše; potražnju za nabavku pravi tek
+/// raspoređivanje u plan.
+@DataClassName('CookSoonItemRow')
+class CookSoonItems extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+  TextColumn get recipeId => text().nullable().references(Recipes, #id)();
+  TextColumn get recipeSnapshotJson => text()();
+
+  /// Porcije pri raspoređivanju (1–20).
+  IntColumn get servings => integer()();
+
+  /// Redosled u redu (manji je pre).
+  IntColumn get position => integer()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Pravilo za dan u nedelji (v14): "ponedeljak bez mesa", "petak riba".
+@DataClassName('DayRuleRow')
+class DayRules extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+
+  /// 1 = ponedeljak … 7 = nedelja.
+  IntColumn get weekday => integer()();
+
+  /// MealType.name; null = svi obroci.
+  TextColumn get mealType => text().nullable()();
+
+  /// RuleKind.name
+  TextColumn get kind => text()();
+  TextColumn get value => text().nullable()();
+
+  /// RuleMode.name
+  TextColumn get mode => text().withDefault(const Constant('required'))();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Preferencije za ishranu domaćinstva (v15): jedan red po domaćinstvu, id je
+/// id domaćinstva. Liste su JSON tekst (kao ostale liste u bazi). Vreme
+/// izmene ne čuva se lokalno: sinhronizacija čita `updated_at` sa servera.
+@DataClassName('HouseholdPreferenceRow')
+class HouseholdPreferences extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+
+  /// Niz FoodDiet.name: vegetarian, vegan, glutenFree, lactoseFree.
+  TextColumn get dietJson => text().withDefault(const Constant('[]'))();
+
+  /// Namirnice koje domaćinstvo ne voli (niz stringova, mala slova).
+  TextColumn get dislikesJson => text().withDefault(const Constant('[]'))();
+
+  /// Alergije (niz stringova); AI ih nikad ne sme koristiti.
+  TextColumn get allergiesJson => text().withDefault(const Constant('[]'))();
+
+  /// Broj osoba u domaćinstvu (1–20).
+  IntColumn get servings => integer().withDefault(const Constant(2))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -386,11 +509,16 @@ class SyncCursors extends Table {
   tables: [
     Recipes,
     RecipeVersions,
+    DayTimeBudgets,
     PantryItems,
     ShoppingLists,
     ShoppingItems,
     MealPlans,
+    WeekTemplates,
     MealPlanEntries,
+    CookSoonItems,
+    DayRules,
+    HouseholdPreferences,
     ShoppingSources,
     ShoppingContributions,
     SupplyAllocations,
@@ -409,7 +537,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -431,6 +559,107 @@ class AppDatabase extends _$AppDatabase {
           "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'saved_recipe_searches'",
         ).get();
         if (rows.isEmpty) await m.createTable(savedRecipeSearches);
+      }
+      if (from < 7) {
+        final columns = await customSelect('PRAGMA table_info("recipes")')
+            .get();
+        if (!columns.any((row) => row.read<String>('name') == 'source_url')) {
+          await m.addColumn(recipes, recipes.sourceUrl);
+        }
+      }
+      if (from < 8) {
+        final rows = await customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'week_templates'",
+        ).get();
+        if (rows.isEmpty) await m.createTable(weekTemplates);
+      }
+      if (from < 9) {
+        final columns = await customSelect('PRAGMA table_info(shopping_items)')
+            .get();
+        final names = {for (final c in columns) c.read<String>('name')};
+        if (!names.contains('brand')) {
+          await m.addColumn(shoppingItems, shoppingItems.brand);
+        }
+        if (!names.contains('note')) {
+          await m.addColumn(shoppingItems, shoppingItems.note);
+        }
+        if (!names.contains('photo_path')) {
+          await m.addColumn(shoppingItems, shoppingItems.photoPath);
+        }
+      }
+      // v6–v9 koriste druge grane (018–023); red "Uskoro kuvam" je v10.
+      if (from < 10) {
+        final exists = await customSelect(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'cook_soon_items'",
+        ).get();
+        if (exists.isEmpty) await m.createTable(cookSoonItems);
+      }
+      // v6–v10 koriste druge grane (018–025); obrok van kuće je v11.
+      if (from < 11) {
+        final columns = {
+          for (final c in await customSelect(
+            'PRAGMA table_info(meal_plan_entries)',
+          ).get())
+            c.read<String>('name'),
+        };
+        for (final c in [
+          mealPlanEntries.kind,
+          mealPlanEntries.awayReason,
+          mealPlanEntries.awayNote,
+        ]) {
+          if (!columns.contains(c.$name)) {
+            await m.addColumn(mealPlanEntries, c);
+          }
+        }
+      }
+      // v6–v11 koriste druge grane (018–026); veze koraka su v12.
+      if (from < 12) {
+        final columns = await customSelect('PRAGMA table_info(recipes)').get();
+        if (!columns.any((c) => c.read<String>('name') == 'step_links_json')) {
+          await m.addColumn(recipes, recipes.stepLinksJson);
+        }
+      }
+      // v6–v12 koriste druge grane (018–027); vreme po danu je v13.
+      if (from < 13) {
+        final columns = {
+          for (final c in await customSelect(
+            'PRAGMA table_info(recipes)',
+          ).get())
+            c.read<String>('name'),
+        };
+        for (final c in [recipes.activeMinutes, recipes.totalMinutes]) {
+          if (!columns.contains(c.$name)) await m.addColumn(recipes, c);
+        }
+        final tables = await customSelect(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'day_time_budgets'",
+        ).get();
+        if (tables.isEmpty) await m.createTable(dayTimeBudgets);
+      }
+      // v6–v13 koriste druge grane (018–028); pravila po danima su v14.
+      if (from < 14) {
+        final columns = await customSelect(
+          'PRAGMA table_info(meal_plan_entries)',
+        ).get();
+        if (!columns.any(
+          (c) => c.read<String>('name') == 'rule_overrides_json',
+        )) {
+          await m.addColumn(mealPlanEntries, mealPlanEntries.ruleOverridesJson);
+        }
+        final tables = await customSelect(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'day_rules'",
+        ).get();
+        if (tables.isEmpty) await m.createTable(dayRules);
+      }
+      // Preferencije za ishranu domaćinstva su v15.
+      if (from < 15) {
+        final tables = await customSelect(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'household_preferences'",
+        ).get();
+        if (tables.isEmpty) await m.createTable(householdPreferences);
       }
     },
   );
