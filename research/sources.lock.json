@@ -1,0 +1,909 @@
+{
+  "date": "2026-11-09",
+  "scope": "public source inspected, pinned references; no upstream execution",
+  "sources": [
+    {
+      "repo_url": "https://github.com/mealie-recipes/mealie",
+      "commit": "471c7936d3c782a431fd2081b632f404cb3dbb1a",
+      "observations": [
+        {
+          "stream": "A",
+          "license_spdx_or_unknown": "AGPL-3.0-only",
+          "inspected_files": [
+            {
+              "path": "LICENSE",
+              "symbol": "repository license",
+              "finding": "AGPL v3 text; study-only policy applies."
+            },
+            {
+              "path": "mealie/services/scraper/scraper.py",
+              "symbol": "create_from_html / finalize_scraped_recipe",
+              "finding": "Creates/finalizes draft separately from caller persistence; image fetching is another trust boundary."
+            },
+            {
+              "path": "mealie/services/scraper/recipe_scraper.py",
+              "symbol": "RecipeScraper.scrape / DEFAULT_SCRAPER_STRATEGIES",
+              "finding": "Fetch once then strategy chain: package, transcription, OpenAI, OpenGraph; stops at first cleaned result."
+            },
+            {
+              "path": "mealie/pkgs/safehttp/transport.py",
+              "symbol": "is_blocked_ip / _check_target / _SafeTransportMixin._apply_pin",
+              "finding": "Normalizes IPv4-mapped IPv6, rejects nonpublic destinations by default, resolves hosts and pins connection addresses."
+            },
+            {
+              "path": "mealie/pkgs/safehttp/fetch.py",
+              "symbol": "_read_capped / resilient_fetch",
+              "finding": "Stream cap and deadline/backoff machinery are separate from parsing."
+            },
+            {
+              "path": "mealie/repos/repository_recipes.py",
+              "symbol": "RepositoryRecipes.page_all",
+              "finding": "Household-scoped query, organizer/food filters and text search before pagination; do not truncate candidates before filtering."
+            }
+          ],
+          "reuse_decision": "Study and cite only; no AGPL code copied. Implement Tavli-specific draft/fetch/search contracts independently."
+        },
+        {
+          "stream": "B",
+          "license_spdx_or_unknown": "AGPL-3.0",
+          "inspected_files": [
+            {
+              "path": "mealie/repos/repository_meal_plan_rules.py",
+              "symbol": "RepositoryMealPlanRules.get_rules",
+              "finding": "Spaja konkretan dan/tip i wildcard pravila uz household filter."
+            },
+            {
+              "path": "mealie/routes/households/controller_mealplan.py",
+              "symbol": "GroupMealplanController._get_random_recipes_from_mealplan",
+              "finding": "Pretvara primenljiva pravila u kombinovan filter; za raspon koristi samo globalna pravila."
+            },
+            {
+              "path": "mealie/schema/meal_plan/plan_rules.py",
+              "symbol": "PlanRulesDay; PlanRulesCreate.validate_query_filter_string",
+              "finding": "Tipizirani dani/obroci; validacija filtera pre upotrebe."
+            },
+            {
+              "path": "mealie/services/household_services/mealplan_ical_service.py",
+              "symbol": "MealPlanICalService._event_lines; _fold; _escape_text",
+              "finding": "Stabilan UID, revision iz vremena izmene, DATE ekskluzivni kraj, UTF-8 folding i TEXT escaping. Tavli predlaže namenski monotoni revision."
+            },
+            {
+              "path": "mealie/routes/households/controller_mealplan_ical.py",
+              "symbol": "MealplanICalController.create_ical_token; delete_ical_token",
+              "finding": "Rotacija zamenjuje token, opoziv ga uklanja; odvojena javna GET ruta."
+            },
+            {
+              "path": "LICENSE",
+              "symbol": "GNU Affero GPL v3 text",
+              "finding": "AGPL, bez kopiranja bilo kog izvornog fajla u ovaj repo."
+            }
+          ],
+          "reuse_decision": "Samo proučeni i citirani arhitektonski obrasci; sopstvena implementacija iz ugovora i standarda, bez AGPL koda."
+        },
+        {
+          "stream": "F",
+          "id": "mealie",
+          "license_spdx_or_unknown": "AGPL-3.0-only",
+          "license_evidence": "LICENSE GNU Affero GPL v3 + pyproject.toml license=\"AGPL-3.0-only\"",
+          "inspected_files": [
+            {
+              "path": "mealie/services/backups_v2/backup_v2.py",
+              "symbol": "BackupV2.backup/restore/_copy_data",
+              "finding": "database.json + data u ZIP; restore drop_all pa restore i data copy, RESTORE_FILES uključuje administrativnu tajnu. Ne primenjivati na multi-tenant Tavli."
+            },
+            {
+              "path": "mealie/services/backups_v2/backup_file.py",
+              "symbol": "BackupContents.validate/schema_version; BackupFile.__enter__",
+              "finding": "Validira data folder/database.json, čita alembic_version; extract u privremeni direktorijum. Nije graph/hash/cross-account validator."
+            },
+            {
+              "path": "mealie/services/backups_v2/alchemy_exporter.py",
+              "symbol": "AlchemyExporter.convert_types/clean_rows/dump",
+              "finding": "Typed date/time/UUID konverzija i FK provere za restore; održavanje novih datetime kolona je poseban rizik."
+            },
+            {
+              "path": "mealie/services/migrations/nextcloud.py",
+              "symbol": "NextcloudDir.from_dir/NextcloudMigrator._migrate",
+              "finding": "Čita JSON i full.* po direktorijumu, mapira keywords/url/time; grupisanje po slug može spojiti istoimene izvore."
+            },
+            {
+              "path": "mealie/services/migrations/utils/migration_helpers.py",
+              "symbol": "extract_zip/safe_local_path/import_image",
+              "finding": "Predprovera expanded size i containment slika; ne preuzimati globalni limit kao mobilni Tavli limit."
+            },
+            {
+              "path": "mealie/schema/recipe/recipe_nutrition.py",
+              "symbol": "Nutrition",
+              "finding": "Opciona string nutrient polja sa camel alias; nema dokaza da svaka vrednost potiče iz potvrđenog food composition proračuna."
+            },
+            {
+              "path": "mealie/routes/recipe/shared_routes.py",
+              "symbol": "get_shared_recipe/get_shared_recipe_as_zip",
+              "finding": "Lookup tokena i expiry provera, zatim RecipeOut i opcioni ZIP. Tavli treba užu allowlist."
+            },
+            {
+              "path": "mealie/schema/recipe/recipe_share_token.py",
+              "symbol": "RecipeShareTokenCreate.is_expired/RecipeShareTokenOut",
+              "finding": "expires_at podrazumevano +30 dana i is_expired; bibliotečki model nije dokaz Tavli capability pravila."
+            }
+          ],
+          "reuse_decision": "AGPL: samo proučavanje obrazaca, bez kopiranih fajlova. Backup/restore pisati kao ovlašćeni domenski snapshot, nikad admin database replacement."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/TandoorRecipes/recipes",
+      "commit": "cbb96e151fe0c57c16a4456fe1bd04230b1c1e5c",
+      "observations": [
+        {
+          "stream": "A",
+          "license_spdx_or_unknown": "LicenseRef-AGPL-3.0-with-Commons-Clause",
+          "inspected_files": [
+            {
+              "path": "LICENSE.md",
+              "symbol": "repository license",
+              "finding": "AGPL v3 with Commons Clause restriction; not plain AGPL or permissive."
+            },
+            {
+              "path": "cookbook/helper/recipe_url_import.py",
+              "symbol": "get_from_scraper",
+              "finding": "Maps scraper output to existing recipe JSON, attaches source URL, applies automation, parses servings/times."
+            },
+            {
+              "path": "cookbook/helper/automation_helper.py",
+              "symbol": "AutomationEngine.apply_food_automation / apply_unit_automation",
+              "finding": "Space-scoped confirmed rules and cache; aliases separate from regex replacement; useful design pattern, not copied implementation."
+            },
+            {
+              "path": "cookbook/helper/recipe_search.py",
+              "symbol": "SearchParams.from_params / RecipeSearch.get_queryset / _resolve_params",
+              "finding": "Typed combined filters, saved-filter scoping and cooked-history annotations/filtering."
+            }
+          ],
+          "reuse_decision": "Study-only; custom added restriction. Independent exact-match alias and query model, no copied code or datasets."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/julianpoy/RecipeSage",
+      "commit": "6d92e4804618e81bb463c9ab22345d92819e4448",
+      "observations": [
+        {
+          "stream": "A",
+          "license_spdx_or_unknown": "LicenseRef-RecipeSage-personal-use-or-commercial",
+          "inspected_files": [
+            {
+              "path": "LICENSE.md",
+              "symbol": "repository license",
+              "finding": "Personal-use restriction with AGPL text and separate written license for other use; classify custom, not AGPL-only."
+            },
+            {
+              "path": "packages/util/server/src/general/clip/clip.ts",
+              "symbol": "clipUrl / clipHtml / attemptEach",
+              "finding": "URL intake and JSON-LD -> microdata -> LLM strategy chain with usable/grounded checks and partial merge."
+            },
+            {
+              "path": "packages/util/server/src/ml/pdfToRecipe.ts",
+              "symbol": "pdfToRecipe",
+              "finding": "Text extraction first, default 5-page bound, image OCR fallback if extracted text below threshold."
+            },
+            {
+              "path": "packages/express/src/routes/import/job/pdfs.ts",
+              "symbol": "pdfsHandler",
+              "finding": "Authenticated upload, size limit, temporary file/storage and queued job ID; useful async intake boundary."
+            },
+            {
+              "path": "packages/util/server/src/search/searchRecipeIds.ts",
+              "symbol": "searchRecipeIds",
+              "finding": "Scoped fulltext-prefix and fuzzy title searches merged/deduplicated under limit."
+            },
+            {
+              "path": "packages/trpc/src/procedures/recipes/searchRecipesByIngredients.ts",
+              "symbol": "searchRecipesByIngredients",
+              "finding": "Bounded input terms with matchedTerms evidence and visibility constraints."
+            },
+            {
+              "path": "packages/util/server/src/db/findRecipesByIngredients.ts",
+              "symbol": "findRecipesByIngredients",
+              "finding": "Matched ingredient count then unmatched count/title/ID ordering; term matching is not quantitative stock proof."
+            }
+          ],
+          "reuse_decision": "Study-only; custom terms, no code copied. Independent PDF draft and local quantitative retrieval implementation."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/hhursev/recipe-scrapers",
+      "commit": "80266d1db324d58f1426d78facbe2e342662b990",
+      "observations": [
+        {
+          "stream": "A",
+          "license_spdx_or_unknown": "MIT",
+          "inspected_files": [
+            {
+              "path": "LICENSE",
+              "symbol": "repository license",
+              "finding": "MIT, copyright 2015 The recipe-scrapers contributors."
+            },
+            {
+              "path": "recipe_scrapers/_schemaorg.py",
+              "symbol": "SchemaOrg.__init__ / _find_entity",
+              "finding": "JSON-LD and microdata extraction; handles @graph, WebPage.mainEntity and person references. Not a safe fetch boundary."
+            },
+            {
+              "path": "recipe_scrapers/_opengraph.py",
+              "symbol": "OpenGraph.site_name / title / description / image",
+              "finding": "Small complete metadata extraction class on caller-supplied soup; copied unchanged."
+            },
+            {
+              "path": "recipe_scrapers/_exceptions.py",
+              "symbol": "OpenGraphException / RecipeScrapersExceptions",
+              "finding": "Internal dependency copied unchanged, with version dependency."
+            },
+            {
+              "path": "recipe_scrapers/__version__.py",
+              "symbol": "__version__",
+              "finding": "Version constant copied to complete internal imports; no upstream initializer executed."
+            }
+          ],
+          "reuse_decision": "Copy only complete OpenGraph metadata module plus its two internal dependencies and MIT license. Reference only; schema.org extraction is a proposed adapter, not implemented by this kit."
+        },
+        {
+          "stream": "F",
+          "id": "recipe-scrapers",
+          "license_spdx_or_unknown": "MIT",
+          "license_evidence": "LICENSE: Copyright (c) 2015 The recipe-scrapers contributors",
+          "inspected_files": [
+            {
+              "path": "recipe_scrapers/_schemaorg.py",
+              "symbol": "SchemaOrg._find_entity/ingredients/_ingredient_to_string/_extract_howto_instructions_text/nutrients",
+              "finding": "Parser prepoznaje @graph, više tipova i PropertyValue sastojke, flatten instrukcije; nutrients čisti source strings, ne računa nutriciju niti dokazuje source truth."
+            },
+            {
+              "path": "recipe_scrapers/_grouping_utils.py",
+              "symbol": "normalize_fractions/best_match/group_ingredients",
+              "finding": "Unicode fraction normalization i fuzzy grouping; similarity nije stvarni OCR confidence niti automatski bezbedan ingredient identity."
+            }
+          ],
+          "reuse_decision": "MIT: kompletan _schemaorg.py i LICENSE neizmenjeni kao referenca. Python/extruct i package helpers nisu instalirani ni pokrenuti. Dart adapter sopstvena implementacija; robust type/depth checks obavezni."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/cooklang/cookcli",
+      "commit": "4e53c8c9c29a5ced2b444b19133cb38a5217c8bb",
+      "observations": [
+        {
+          "stream": "B",
+          "license_spdx_or_unknown": "MIT",
+          "inspected_files": [
+            {
+              "path": "crates/core/src/shopping_list/days.rs",
+              "symbol": "DayRange.contains; section_date; kept_ingredients; kept_quantity",
+              "finding": "Datumskim filtrom bira indekse sastojaka, a zatim sabira samo odabrane članove grupe; korisno za granice perioda, nije model ostataka."
+            },
+            {
+              "path": "src/util/menu.rs",
+              "symbol": "load_menu; parse_menu; keep_empty_meals; scaled_quantity",
+              "finding": "Rezolvira skalu referenci; posebno vraća prazne obroke za prikaz; API i shopping ih ne koriste."
+            },
+            {
+              "path": "src/server/handlers/menus.rs",
+              "symbol": "menu_response",
+              "finding": "Odgovor uklanja obroke koji imaju samo beleške/tekst; Tavli away mora ostati eksplicitno zauzet slot."
+            },
+            {
+              "path": "crates/core/LICENSE",
+              "symbol": "MIT license grant",
+              "finding": "Original copyright Alexey Dubovskoy; puna dozvola i disclaimer kopirani uz fajl. Nema pronađenog NOTICE fajla."
+            }
+          ],
+          "reuse_decision": "Kopiran kompletan days.rs i njegova MIT licenca samo kao referenca. Rust i njegove zavisnosti nisu instalirani, izvršeni ili povezani; Tavli CivilDate/demand ostaju osnova sopstvene implementacije."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/kewisch/ical.js",
+      "commit": "e6b2e61930d819ff72a7e5b399d52c8b92131106",
+      "observations": [
+        {
+          "stream": "B",
+          "license_spdx_or_unknown": "MPL-2.0",
+          "inspected_files": [
+            {
+              "path": "lib/ical/period.js",
+              "symbol": "Period.fromString; Period.fromData",
+              "finding": "Period razdvaja početak/kraj ili trajanje i odbija neispravan slash oblik; koristan signal za strogo parsiranje intervala."
+            },
+            {
+              "path": "LICENSE",
+              "symbol": "MPL-2.0",
+              "finding": "MPL je izvan MIT/BSD/Apache izbora ovog prolaza; ništa kopirano."
+            }
+          ],
+          "reuse_decision": "Proučavanje tipa perioda; nije odabrana runtime zavisnost niti kopirana implementacija."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/grocy/grocy",
+      "commit": "41206cb90154e0d17d3e108cc1f182b94fdb465d",
+      "observations": [
+        {
+          "stream": "C",
+          "license_spdx_or_unknown": "MIT",
+          "inspected_files": [
+            {
+              "path": "LICENSE.md",
+              "symbol": "MIT license grant",
+              "finding": "Copyright (c) 2017-2026 Bernd Bestel; permissive with preserved notice."
+            },
+            {
+              "path": "services/StockService.php",
+              "symbol": "AddMissingProductsToShoppingList/GetMissingProducts",
+              "finding": "Missing stock creates/updates shopping amount rather than blindly appending; uses float/round two decimals, so accounting must not be ported over Tavli micros."
+            },
+            {
+              "path": "services/StockService.php",
+              "symbol": "AddProduct/ConsumeProduct/InventoryProduct",
+              "finding": "Tare modifies gross/net booking; InventoryProduct treats input as new gross total, posts correction. ConsumeProduct records spoiled distinct from ordinary consume and transaction_type."
+            },
+            {
+              "path": "services/StockService.php",
+              "symbol": "OpenProduct/GetProductStockEntries",
+              "finding": "Opening uses stock_next_use, records open transition and caps new after-open date at original due date; tare-enabled opening explicitly unsupported."
+            },
+            {
+              "path": "services/StockService.php",
+              "symbol": "TransferProduct/UndoBooking/UndoTransaction",
+              "finding": "Correlated transfer and undo entries; transfers of tare-enabled products explicitly rejected. Not evidence of Tavli offline or idempotent receipt behavior."
+            },
+            {
+              "path": "helpers/Grocycode.php",
+              "symbol": "Grocycode.Validate/setFromCode",
+              "finding": "Compact typed local label identity; optional later lot-label pattern; no code copied because not necessary for minimum pantry slices."
+            }
+          ],
+          "reuse_decision": "Source patterns only; implement fixed-point Dart domain contracts independently. MIT allows copying but large service is tightly coupled to PHP DB/service globals and float accounting."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/openfoodfacts/openfoodfacts-dart",
+      "commit": "64237b8c7c69dabb17fc1c894ab11dedec5bd1c4",
+      "observations": [
+        {
+          "stream": "C",
+          "license_spdx_or_unknown": "Apache-2.0",
+          "inspected_files": [
+            {
+              "path": "LICENSE",
+              "symbol": "Apache-2.0 grant",
+              "finding": "License copied unchanged; no repository NOTICE found."
+            },
+            {
+              "path": "lib/src/open_food_api_client.dart",
+              "symbol": "OpenFoodAPIClient.getProductV3/getProductString",
+              "finding": "Typed product response parsing; explicit 404 allowed and TooManyRequestsException check. Keep missing distinct from transport unavailable."
+            },
+            {
+              "path": "lib/src/model/product.dart",
+              "symbol": "Product.quantity/productQuantity/productNameInLanguages",
+              "finding": "Label quantity string and numeric product quantity are nullable; do not treat arbitrary string or returned name as confirmed pantry amount/identity."
+            },
+            {
+              "path": "lib/src/open_prices_api_client.dart",
+              "symbol": "OpenPricesAPIClient.getPrices/getLocations",
+              "finding": "Public read adapter with typed MaybeError response; useful contract for separate observations, not retailer live stock."
+            },
+            {
+              "path": "lib/src/prices/get_prices_parameters.dart",
+              "symbol": "GetPricesParameters.getQueryParameters",
+              "finding": "Product code, currency, dates and branch/location filters are explicit."
+            },
+            {
+              "path": "lib/src/prices/get_locations_parameters.dart",
+              "symbol": "GetLocationsParameters.getQueryParameters",
+              "finding": "Country/city/name filters for observed locations, not coverage guarantee."
+            },
+            {
+              "path": "lib/src/utils/country_helper.dart",
+              "symbol": "OpenFoodFactsCountry.SERBIA",
+              "finding": "rs/SRB and Currency.RSD are representable; not a count of Serbian products, prices or retailer inventory."
+            },
+            {
+              "path": "lib/src/utils/language_helper.dart",
+              "symbol": "OpenFoodFactsLanguage.SERBIAN",
+              "finding": "Serbian language option exists; actual per-product translation may be missing."
+            },
+            {
+              "path": "lib/src/utils/open_food_api_configuration.dart",
+              "symbol": "OpenFoodAPIConfiguration.userAgent",
+              "finding": "Identify calling app; avoid global authenticated user/config leakage in Tavli adapter."
+            },
+            {
+              "path": "lib/src/utils/barcodes_validator.dart",
+              "symbol": "_EANValidator._isDigitsOnly",
+              "finding": "Rejected for copying: character range condition uses <zero AND >nine, which cannot both hold. Also unsupported length may throw. Write independently tested validation boundary."
+            },
+            {
+              "path": "lib/src/utils/unit_helper.dart",
+              "symbol": "UnitHelper.stringToUnit",
+              "finding": "Complete small tagged external-unit mapper copied with dependency. Handles unknowns and alternate spelling; not a pantry quantity conversion engine."
+            },
+            {
+              "path": "lib/src/model/off_tagged.dart",
+              "symbol": "OffTagged.fromOffTag",
+              "finding": "Complete dependency of UnitHelper; copied unchanged."
+            }
+          ],
+          "reuse_decision": "Two small complete dependency-closed files plus exact LICENSE copied for reference only. No SDK installed; no runtime changes. Data ODbL and image terms are separate from Apache SDK code license."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/openfoodfacts/open-prices",
+      "commit": "ecb334d80083908cabd372df04121314d628af8c",
+      "observations": [
+        {
+          "stream": "C",
+          "license_spdx_or_unknown": "AGPL-3.0-only",
+          "inspected_files": [
+            {
+              "path": "LICENSE",
+              "symbol": "GNU Affero General Public License v3",
+              "finding": "Study/citation only; no code copied."
+            },
+            {
+              "path": "open_prices/prices/models.py",
+              "symbol": "Price.set_is_duplicate_of (and Price fields)",
+              "finding": "Price fields include product_code, currency, date, location, proof and receipt_quantity; duplicate logic uses location/date/currency. These are observations, not stock."
+            },
+            {
+              "path": "open_prices/proofs/models.py",
+              "symbol": "ReceiptItem/ReceiptItem.get_predicted_price/get_predicted_product_name",
+              "finding": "Raw predicted_data, schema_version, status and links to proof/prediction/price are distinct; useful review-before-confirmation pattern, not automatic pantry receipt."
+            },
+            {
+              "path": "open_prices/api/prices/views.py",
+              "symbol": "PriceViewSet.get_authenticators/get_queryset",
+              "finding": "GET public read path; mutations authenticated and owner/moderator guarded."
+            },
+            {
+              "path": "open_prices/api/prices/filters.py",
+              "symbol": "PriceFilter.Meta",
+              "finding": "Filter by product/location/currency/date/proof; no live branch availability field in inspected contract."
+            },
+            {
+              "path": "open_prices/api/locations/filters.py",
+              "symbol": "LocationFilter",
+              "finding": "Country/city/name/price_count filters support later coverage probe, not retailer stock API."
+            }
+          ],
+          "reuse_decision": "No AGPL code copied. Independently implement adapter/result and review-state patterns. Never auto-upload private receipt proof."
+        },
+        {
+          "stream": "D",
+          "license_spdx_or_unknown": "AGPL-3.0-only",
+          "inspected_files": [
+            {
+              "path": "LICENSE",
+              "symbol": "root license",
+              "finding": "Actual AGPL version 3 LICENSE read, not a search snippet; no permissive exception established. Exact only/or-later project grant remains unresolved."
+            },
+            {
+              "path": "open_prices/prices/models.py",
+              "symbol": "Price; Price.clean; Price.set_is_duplicate_of",
+              "finding": "Three-decimal DecimalField prices, currency/date/store/proof references and duplicate identity; values can be nullable."
+            },
+            {
+              "path": "open_prices/prices/validators.py",
+              "symbol": "validate_price_price_rules; validate_price_date_rules; validate_price_location_rules; validate_price_proof_rules",
+              "finding": "Discount/base-price consistency, future date rejection, paired OSM identity, proof owner/type compatibility; callable validation is more than table shape."
+            },
+            {
+              "path": "open_prices/prices/constants.py",
+              "symbol": "DISCOUNT_TYPE_LIST; PRICE_PER_LIST",
+              "finding": "Discount class labels and UNIT/KILOGRAM/LITER bases; labels are not a full executable promotion predicate."
+            },
+            {
+              "path": "open_prices/api/prices/filters.py",
+              "symbol": "PriceFilterForm.clean; PriceFilter.filter_queryset",
+              "finding": "Coordinates/radius supplied together, validated bounds; nearby location IDs constrain prices plus currency/date/product filters."
+            },
+            {
+              "path": "open_prices/locations/models.py",
+              "symbol": "LocationQuerySet.nearby",
+              "finding": "Bounding box plus spherical proximity, antimeridian/pole handling; proximity is not route travel cost."
+            },
+            {
+              "path": "open_prices/proofs/models.py",
+              "symbol": "ProofQuerySet",
+              "finding": "Receipt/price-tag/import distinctions and draft/community/consumption grouping observed."
+            },
+            {
+              "path": "open_prices/api/prices/views.py",
+              "symbol": "PriceViewSet.get_authenticators/create/get_serializer_class",
+              "finding": "Read versus authenticated create/update paths and owner handling observed. No live API call, availability, Serbia coverage or data redistribution rights verified."
+            }
+          ],
+          "reuse_decision": "Study/cite only; no AGPL code copied. Future adapter needs independent implementation plus separate data/evidence license, attribution and current API contract validation."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/TomBursch/kitchenowl",
+      "commit": "3cc27f41e3de3d805abd66bdac9eb283eb16e72c",
+      "observations": [
+        {
+          "stream": "D",
+          "license_spdx_or_unknown": "AGPL-3.0-only",
+          "inspected_files": [
+            {
+              "path": "LICENSE",
+              "symbol": "root license",
+              "finding": "Actual full AGPL version 3 file read. Project README also says AGPL-3.0; no permissive per-file exception observed in inspected source. only/or-later grant not further established; conservative no-copy decision applies either way."
+            },
+            {
+              "path": "kitchenowl/lib/services/transactions/shoppinglist.dart",
+              "symbol": "TransactionShoppingListAddItem.runLocal/runOnline; TransactionShoppingListRemoveItem",
+              "finding": "Local MemStorage changes and persisted transaction classes are separate from API calls; server IDs/name fallback appear in requests."
+            },
+            {
+              "path": "kitchenowl/lib/cubits/shoppinglist_cubit.dart",
+              "symbol": "ShoppinglistCubit; _onConnectionChange; onShoppinglistItemAdd",
+              "finding": "Socket listeners, reconnect refresh and a 30-second periodic fallback; event transaction uses forceOffline=true/saveTransaction=false to avoid echo."
+            },
+            {
+              "path": "backend/app/sockets/connection_socket.py",
+              "symbol": "on_connect",
+              "finding": "Authenticated user joins rooms for memberships."
+            },
+            {
+              "path": "backend/app/sockets/shoppinglist_socket.py",
+              "symbol": "on_add; on_remove",
+              "finding": "Authorizes Shoppinglist before item mutations and emits household-room events. on_remove imports removeShoppinglistItem while helper is separately named removeShoppinglistItemFunc in controller: observed source inconsistency, not a validated working socket removal path."
+            },
+            {
+              "path": "backend/app/controller/shoppinglist/shoppinglist_controller.py",
+              "symbol": "removeShoppinglistItemFunc",
+              "finding": "Deletes current association; optional client removed_at feeds History. This is not expected-revision conflict arbitration."
+            },
+            {
+              "path": "backend/app/helpers/authorize_household.py",
+              "symbol": "RequiredRights; authorize_household",
+              "finding": "Member/admin/admin-or-self authorization; server admin bypass and member owner/admin flags. Use design observation, not Tavli access policy verbatim."
+            },
+            {
+              "path": "backend/app/models/household.py",
+              "symbol": "Household; HouseholdMember",
+              "finding": "Household owns lists, items and expenses. Owner/admin flags and float expense_balance observed."
+            },
+            {
+              "path": "kitchenowl/lib/enums/shoppinglist_sorting.dart",
+              "symbol": "ShoppinglistSorting.sortShoppinglistItems",
+              "finding": "Alphabetical/category/algorithmic sorting; no per-store aisle mapping established."
+            },
+            {
+              "path": "backend/app/models/expense.py",
+              "symbol": "Expense; ExpensePaidFor",
+              "finding": "Float amount and integer factor allocation associations."
+            },
+            {
+              "path": "backend/app/service/recalculate_balances.py",
+              "symbol": "recalculateBalances",
+              "finding": "Paid amounts minus weighted expenses, scoped by household; floating-point calculations unsuitable for proposed Tavli finance contract."
+            },
+            {
+              "path": "kitchenowl/lib/models/expense.dart",
+              "symbol": "Expense; PaidForModel",
+              "finding": "Flutter double amount, paidById and factor-based paidFor. Independent implementation should use integer minor units."
+            }
+          ],
+          "reuse_decision": "Study and cite architecture only. No AGPL code, assets or tests copied; proposed Tavli design is an independently authored blueprint."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/dinerojs/dinero.js",
+      "commit": "76b969e519dc44675d4af898d25629995d0b16f2",
+      "observations": [
+        {
+          "stream": "D",
+          "license_spdx_or_unknown": "MIT",
+          "inspected_files": [
+            {
+              "path": "LICENSE",
+              "symbol": "MIT grant and Sarah Dayan copyright",
+              "finding": "Actual complete license read; preserved verbatim with copied source. No NOTICE found in upstream file inventory."
+            },
+            {
+              "path": "packages/dinero.js/src/core/utils/distribute.ts",
+              "symbol": "distribute",
+              "finding": "Integer division and remainder distribution by descending ratios; full unchanged source file collected as reference, imports not vendored."
+            },
+            {
+              "path": "packages/dinero.js/src/core/utils/__tests__/distribute.test.ts",
+              "symbol": "distribute test suite",
+              "finding": "Examples 1003 split 50/50, negative/zero ratios, largest-ratio residue and MAX_SAFE_INTEGER guard inspected, not run or copied."
+            },
+            {
+              "path": "packages/dinero.js/src/core/utils/equal.ts",
+              "symbol": "equal",
+              "finding": "Comparison via injected calculator; inspected dependency."
+            },
+            {
+              "path": "packages/dinero.js/src/core/utils/greaterThan.ts",
+              "symbol": "greaterThan",
+              "finding": "Comparison helper dependency inspected."
+            },
+            {
+              "path": "packages/dinero.js/src/core/utils/greaterThanOrEqual.ts",
+              "symbol": "greaterThanOrEqual",
+              "finding": "Comparison helper dependency inspected."
+            },
+            {
+              "path": "packages/dinero.js/src/core/utils/lessThan.ts",
+              "symbol": "lessThan",
+              "finding": "Comparison helper dependency inspected."
+            },
+            {
+              "path": "packages/dinero.js/src/core/types/DineroCalculator.ts",
+              "symbol": "DineroCalculator; DineroComparisonOperator",
+              "finding": "Injected arithmetic interface; confirms full copied file is a reference requiring upstream dependencies, not standalone executable code."
+            }
+          ],
+          "reuse_decision": "Copy one complete source file plus LICENSE verbatim for review/reference only. Implement Tavli allocator independently with validated nonnegative weights, stable member-ID ties, bounded exact arithmetic; do not run this subset."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/kitshn-app/kitshn",
+      "commit": "e971bb1e00eaa593b570e9512dee08968b6f70a3",
+      "observations": [
+        {
+          "stream": "E",
+          "license_spdx_or_unknown": "unknown",
+          "inspected_files": [
+            {
+              "path": "LICENSE",
+              "symbol": "GNU GENERAL PUBLIC LICENSE Version 3",
+              "finding": "Copyleft; no source copied in this pass."
+            },
+            {
+              "path": "shared/src/commonMain/kotlin/de/kitshn/api/tandoor/model/TandoorStep.kt",
+              "symbol": "TandoorStep; instructionsWithTemplating; getRawIngredientById",
+              "finding": "Step carries ingredient list, time and optional file; templating scales quantities but addresses ingredients by index."
+            },
+            {
+              "path": "shared/src/commonMain/kotlin/de/kitshn/api/tandoor/model/TandoorIngredient.kt",
+              "symbol": "TandoorIngredient; toString; tickedOff",
+              "finding": "Ingredient has ID and transient UI check state; scale parameter affects formatted amount."
+            },
+            {
+              "path": "shared/src/commonMain/kotlin/de/kitshn/ui/route/recipe/cook/page/RecipeStep.kt",
+              "symbol": "RouteRecipeCookPageStep; StepBody",
+              "finding": "Step screen combines IngredientsList, rich text with timer detection and capability check before launching timer."
+            }
+          ],
+          "reuse_decision": "Study behavior only. Independent Dart contracts and implementation; no GPL source, snippets or assets copied.",
+          "license_details": "Root LICENSE contains GNU GPL version 3. Repository-wide -only versus -or-later declaration was not established; treated as GPL/no-copy for this pass."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/acaia/acaia_sdk_android",
+      "commit": "8dc977e8123eb5e13b5370b3f357e6af082c79e0",
+      "observations": [
+        {
+          "stream": "E",
+          "license_spdx_or_unknown": "LicenseRef-Acaia-Custom",
+          "inspected_files": [
+            {
+              "path": "LICENSE",
+              "symbol": "permission text",
+              "finding": "Binary unmodified use only; reverse engineering forbidden; examples reusable with restrictions; no sublicensing/selling files and paid/subscription attribution/notification conditions."
+            },
+            {
+              "path": "app/src/main/java/co/acaia/android/acaiasdksampleapp/MainActivity.java",
+              "symbol": "scanDevice; connectDevice; onWeightEvent; btn_tare onClick",
+              "finding": "Scan/service readiness gate; explicit device selection; WeightEvent value + unit; SEND_TARE command. Name-based PEARLS capacity branch is sample behavior, not robust capability proof."
+            },
+            {
+              "path": "app/src/main/java/co/acaia/android/acaiasdksampleapp/AcaiaSDKSampleApp.java",
+              "symbol": "initAcaiaBt; registerUpdateReceiver; updateReceiver.onReceive",
+              "finding": "Service initialization and broadcasts mapped to WeightEvent; source itself flags missing unregister."
+            },
+            {
+              "path": "app/libs/acaiaSDKAndroid-release.aar",
+              "symbol": "binary presence only",
+              "finding": "Implementation is binary. Not executed, unpacked, decompiled or copied."
+            }
+          ],
+          "reuse_decision": "No code or binary copied. Custom license is a release gate; Android sample is architecture evidence only and modern permission/lifecycle behavior requires fresh implementation validation."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/combustion-inc/combustion-android-ble",
+      "commit": "3ad9b5a8b698e8177c3f9d9ee9026f860784b3a2",
+      "observations": [
+        {
+          "stream": "E",
+          "license_spdx_or_unknown": "MIT",
+          "inspected_files": [
+            {
+              "path": "LICENSE",
+              "symbol": "MIT grant",
+              "finding": "2021 Combustion copyright; per-file notices also present."
+            },
+            {
+              "path": "combustion-android-ble/src/main/java/inc/combustion/framework/service/DeviceManager.kt",
+              "symbol": "initialize; startCombustionService; bindCombustionService; unbindCombustionService; startScanningForDevices; probeFlow; connect; disconnect",
+              "finding": "Service-bound lifecycle and flows; ownership/release explicit; not a Flutter adapter."
+            },
+            {
+              "path": "combustion-android-ble/src/main/java/inc/combustion/framework/service/ProbeTemperatures.kt",
+              "symbol": "coreTemperatureCelsius; ambientTemperatureCelsius; fromRawData",
+              "finding": "8 Celsius readings; sensor-role selection separate from packet conversion. Guard packet length before decoding in adapter."
+            },
+            {
+              "path": "combustion-android-ble/src/main/java/inc/combustion/framework/service/SensorTemperature.kt",
+              "symbol": "fromRawDataStart; fromRawDataEnd; toRawDataStart; toRawDataEnd",
+              "finding": "13-bit sensor encoding uses 0.1 scale and -20 offset; distinct from multi-sensor 0.05 encoding; do not conflate."
+            },
+            {
+              "path": "combustion-android-ble/src/main/java/inc/combustion/framework/service/DeviceTemperature.kt",
+              "symbol": "DeviceTemperature",
+              "finding": "Marker interface shared by reading types."
+            }
+          ],
+          "reuse_decision": "MIT eligible but no Android source copied: bridge/dependencies need separate review; use SDK through explicit adapter after pilot. Conversion model informed by inspected symbols."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/combustion-inc/combustion-ios-ble",
+      "commit": "797416a7944b8f652c7a602981c004703b29c620",
+      "observations": [
+        {
+          "stream": "E",
+          "license_spdx_or_unknown": "MIT",
+          "inspected_files": [
+            {
+              "path": "LICENSE",
+              "symbol": "MIT grant",
+              "finding": "Full notice retained next to copied complete utility."
+            },
+            {
+              "path": "Sources/CombustionBLE/TemperatureUtilities.swift",
+              "symbol": "fahrenheit(celsius:); celsius(fahrenheit:)",
+              "finding": "Small complete utility, Foundation-only import; useful F051 conversion reference."
+            },
+            {
+              "path": "Sources/CombustionBLE/DeviceManager.swift",
+              "symbol": "initBluetooth; connectToDevice; disconnectFromDevice",
+              "finding": "Manager controls connection and recurring stale checks."
+            },
+            {
+              "path": "Sources/CombustionBLE/Devices/Device.swift",
+              "symbol": "updateDeviceStale; Constants.STALE_TIMEOUT",
+              "finding": "Date-based stale check at 15 seconds; Tavli proposes continuous monotonic freshness instead."
+            },
+            {
+              "path": "Package.swift",
+              "symbol": "Package platforms/dependencies",
+              "finding": "Declares iOS 13 only; Swift Collections and Nordic DFU dependencies. macOS support is not established."
+            }
+          ],
+          "reuse_decision": "Copied TemperatureUtilities.swift and LICENSE verbatim; no whole SDK vendoring, runtime linking, build or execution. Other device behavior is evidence only."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/nextcloud/cookbook",
+      "commit": "3bea56e33d284a752a8fd9893f901163ff7a4ef5",
+      "observations": [
+        {
+          "stream": "F",
+          "id": "cookbook",
+          "license_spdx_or_unknown": "AGPL-3.0-only OR AGPL-3.0-or-later",
+          "license_evidence": "COPYING + SPDX zaglavlja svih navedenih PHP fajlova",
+          "inspected_files": [
+            {
+              "path": "lib/Service/RecipeService.php",
+              "symbol": "RecipeService.addRecipe/parseRecipeFile",
+              "finding": "Piše JSON u recipe.json u folderu recepta; parse postavlja id foldera i prolazi checkRecipe. Ovo nije account backup."
+            },
+            {
+              "path": "lib/Service/JsonService.php",
+              "symbol": "JsonService.isSchemaObject/isSchemaContext",
+              "finding": "Proverava schema context http/https i podržava @type niz uz uniqueType opciju."
+            },
+            {
+              "path": "lib/Helper/Filter/JSON/SchemaConformityFilter.php",
+              "symbol": "SchemaConformityFilter.apply",
+              "finding": "Postavlja context i Recipe tip."
+            },
+            {
+              "path": "lib/Helper/Filter/JSON/FixRecipeYieldFilter.php",
+              "symbol": "FixRecipeYieldFilter.apply",
+              "finding": "recipeYield može biti null; heuristike za string/niz mogu izabrati broj ili fallback 1. Tavli treba sačuvati dvosmislenost."
+            },
+            {
+              "path": "lib/Helper/Filter/Output/EnsureNutritionPresentFilter.php",
+              "symbol": "EnsureNutritionPresentFilter.apply",
+              "finding": "Dodaje NutritionInformation type čak i kad nema vrednosti: prisutan nutrition objekat nije dokaz nutritivne pokrivenosti."
+            }
+          ],
+          "reuse_decision": "Proučeno i citirano; bez kopiranja AGPL koda. Samostalni Dart adapter prema standardu i sintetičkim fixtures."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/reaper47/recipya",
+      "commit": "f8d13a0e9627ca374a01c54de24646adff4bd04e",
+      "observations": [
+        {
+          "stream": "F",
+          "id": "recipya",
+          "license_spdx_or_unknown": "unknown",
+          "license_evidence": "LICENSE GNU GPL v3; GPL family confirmed, only/or-later grant not established in inspected source metadata. No copying.",
+          "inspected_files": [
+            {
+              "path": "internal/services/files_apps.go",
+              "symbol": "Files.extractJSONRecipes/processRecipeFiles/detectApp",
+              "finding": "Više import formata; JSON objekat/niz i Mealie fallback, uz početni-byte dispatch. Pattern za registry, ne garancija lossless migracije."
+            },
+            {
+              "path": "internal/services/files.go",
+              "symbol": "exportRecipesJSON/exportRecipesPDF/recipeToPDF",
+              "finding": "JSON koristi Recipe.Schema, PDF zasebno renderovanje; pokazuje razliku portable machine formata i čitljivog kuvara."
+            },
+            {
+              "path": "internal/models/backup.go",
+              "symbol": "UserBackup",
+              "finding": "Sadrži DeleteSQL/InsertSQL/ImagesPath/Recipes/UserID. SQL iz tuđeg backupa ne ulazi u Tavli restore ugovor."
+            }
+          ],
+          "reuse_decision": "GPL: samo istraživanje i citiranje. Nijedan parser/PDF/SQL kod nije kopiran; Rust naslednik nije auditovan."
+        }
+      ]
+    },
+    {
+      "repo_url": "https://github.com/cooklang/cooklang-rs",
+      "commit": "5b8c8dab6d01cfea50a7db1b9a8ea3050117cffc",
+      "observations": [
+        {
+          "stream": "F",
+          "id": "cooklang",
+          "license_spdx_or_unknown": "MIT",
+          "license_evidence": "LICENSE: Copyright (c) 2023-2024 Francisco J. Sanchez; Cargo.toml license=MIT",
+          "inspected_files": [
+            {
+              "path": "src/scale.rs",
+              "symbol": "Recipe.scale/scale_to_servings/scale_to_yield; Value.scale",
+              "finding": "Razdvaja faktor, servings i yield; čuva tekstualne quantities. scale obilazi i cookware/timers i nema Tavli pan geometriju; ne koristiti slepo."
+            },
+            {
+              "path": "src/model.rs",
+              "symbol": "RecipeReference/Ingredient.group_quantities",
+              "finding": "Ingredient ima opcioni recipe reference; grupisanje quantities iz references."
+            },
+            {
+              "path": "src/ingredient_list.rs",
+              "symbol": "Recipe.group_ingredients/IngredientList.from_recipe",
+              "finding": "Razlikuje definicije/references i grupisanje kompatibilnih quantities."
+            },
+            {
+              "path": "src/analysis/event_consumer.rs",
+              "symbol": "resolve_reference/conflicting_reference_quantity_error/parse_reference",
+              "finding": "Proverava reference i konflikt definicione/reference količine; parse_reference prepoznaje relativne putanje recepta, ne Tavli graph IDs."
+            }
+          ],
+          "reuse_decision": "MIT: kompletan src/scale.rs i LICENSE kopirani neizmenjeni samo kao referenca; nema Rust dependency niti runtime integracije. Ostale fajlove samo citirati."
+        }
+      ]
+    }
+  ]
+}

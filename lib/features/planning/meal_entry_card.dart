@@ -34,26 +34,31 @@ class MealEntryCard extends StatelessWidget {
       color: selected ? colors.secondaryContainer : null,
       child: InkWell(
         onTap: meal == null ? null : onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 56),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(slot.type.label, style: theme.textTheme.labelLarge),
-                const SizedBox(height: 2),
+                Text(
+                  slot.type.label,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: colors.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Text(
                   meal == null
                       ? 'Nije planirano'
                       : (snapshot?.title ?? 'Recept nije dostupan'),
-                  style: theme.textTheme.bodyLarge?.copyWith(
+                  style: theme.textTheme.titleMedium?.copyWith(
                     color: meal == null ? colors.onSurfaceVariant : null,
                   ),
                 ),
                 if (details.isNotEmpty || meal != null) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 4,
