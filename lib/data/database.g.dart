@@ -3638,6 +3638,421 @@ class MealPlansCompanion extends UpdateCompanion<MealPlanRow> {
   }
 }
 
+class $WeekTemplatesTable extends WeekTemplates
+    with TableInfo<$WeekTemplatesTable, WeekTemplateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WeekTemplatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _householdIdMeta = const VerificationMeta(
+    'householdId',
+  );
+  @override
+  late final GeneratedColumn<String> householdId = GeneratedColumn<String>(
+    'household_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mealsJsonMeta = const VerificationMeta(
+    'mealsJson',
+  );
+  @override
+  late final GeneratedColumn<String> mealsJson = GeneratedColumn<String>(
+    'meals_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _usePantryMeta = const VerificationMeta(
+    'usePantry',
+  );
+  @override
+  late final GeneratedColumn<bool> usePantry = GeneratedColumn<bool>(
+    'use_pantry',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("use_pantry" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    householdId,
+    name,
+    mealsJson,
+    usePantry,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'week_templates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WeekTemplateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('household_id')) {
+      context.handle(
+        _householdIdMeta,
+        householdId.isAcceptableOrUnknown(
+          data['household_id']!,
+          _householdIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('meals_json')) {
+      context.handle(
+        _mealsJsonMeta,
+        mealsJson.isAcceptableOrUnknown(data['meals_json']!, _mealsJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mealsJsonMeta);
+    }
+    if (data.containsKey('use_pantry')) {
+      context.handle(
+        _usePantryMeta,
+        usePantry.isAcceptableOrUnknown(data['use_pantry']!, _usePantryMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  WeekTemplateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WeekTemplateRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      householdId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}household_id'],
+      ),
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      mealsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}meals_json'],
+      )!,
+      usePantry: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}use_pantry'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $WeekTemplatesTable createAlias(String alias) {
+    return $WeekTemplatesTable(attachedDatabase, alias);
+  }
+}
+
+class WeekTemplateRow extends DataClass implements Insertable<WeekTemplateRow> {
+  final String id;
+  final String? householdId;
+  final String name;
+  final String mealsJson;
+  final bool usePantry;
+  final DateTime createdAt;
+  const WeekTemplateRow({
+    required this.id,
+    this.householdId,
+    required this.name,
+    required this.mealsJson,
+    required this.usePantry,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || householdId != null) {
+      map['household_id'] = Variable<String>(householdId);
+    }
+    map['name'] = Variable<String>(name);
+    map['meals_json'] = Variable<String>(mealsJson);
+    map['use_pantry'] = Variable<bool>(usePantry);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  WeekTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return WeekTemplatesCompanion(
+      id: Value(id),
+      householdId: householdId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(householdId),
+      name: Value(name),
+      mealsJson: Value(mealsJson),
+      usePantry: Value(usePantry),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory WeekTemplateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WeekTemplateRow(
+      id: serializer.fromJson<String>(json['id']),
+      householdId: serializer.fromJson<String?>(json['householdId']),
+      name: serializer.fromJson<String>(json['name']),
+      mealsJson: serializer.fromJson<String>(json['mealsJson']),
+      usePantry: serializer.fromJson<bool>(json['usePantry']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'householdId': serializer.toJson<String?>(householdId),
+      'name': serializer.toJson<String>(name),
+      'mealsJson': serializer.toJson<String>(mealsJson),
+      'usePantry': serializer.toJson<bool>(usePantry),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  WeekTemplateRow copyWith({
+    String? id,
+    Value<String?> householdId = const Value.absent(),
+    String? name,
+    String? mealsJson,
+    bool? usePantry,
+    DateTime? createdAt,
+  }) => WeekTemplateRow(
+    id: id ?? this.id,
+    householdId: householdId.present ? householdId.value : this.householdId,
+    name: name ?? this.name,
+    mealsJson: mealsJson ?? this.mealsJson,
+    usePantry: usePantry ?? this.usePantry,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  WeekTemplateRow copyWithCompanion(WeekTemplatesCompanion data) {
+    return WeekTemplateRow(
+      id: data.id.present ? data.id.value : this.id,
+      householdId: data.householdId.present
+          ? data.householdId.value
+          : this.householdId,
+      name: data.name.present ? data.name.value : this.name,
+      mealsJson: data.mealsJson.present ? data.mealsJson.value : this.mealsJson,
+      usePantry: data.usePantry.present ? data.usePantry.value : this.usePantry,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WeekTemplateRow(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('name: $name, ')
+          ..write('mealsJson: $mealsJson, ')
+          ..write('usePantry: $usePantry, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, householdId, name, mealsJson, usePantry, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WeekTemplateRow &&
+          other.id == this.id &&
+          other.householdId == this.householdId &&
+          other.name == this.name &&
+          other.mealsJson == this.mealsJson &&
+          other.usePantry == this.usePantry &&
+          other.createdAt == this.createdAt);
+}
+
+class WeekTemplatesCompanion extends UpdateCompanion<WeekTemplateRow> {
+  final Value<String> id;
+  final Value<String?> householdId;
+  final Value<String> name;
+  final Value<String> mealsJson;
+  final Value<bool> usePantry;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const WeekTemplatesCompanion({
+    this.id = const Value.absent(),
+    this.householdId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.mealsJson = const Value.absent(),
+    this.usePantry = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WeekTemplatesCompanion.insert({
+    required String id,
+    this.householdId = const Value.absent(),
+    required String name,
+    required String mealsJson,
+    this.usePantry = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       mealsJson = Value(mealsJson),
+       createdAt = Value(createdAt);
+  static Insertable<WeekTemplateRow> custom({
+    Expression<String>? id,
+    Expression<String>? householdId,
+    Expression<String>? name,
+    Expression<String>? mealsJson,
+    Expression<bool>? usePantry,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (householdId != null) 'household_id': householdId,
+      if (name != null) 'name': name,
+      if (mealsJson != null) 'meals_json': mealsJson,
+      if (usePantry != null) 'use_pantry': usePantry,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WeekTemplatesCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? householdId,
+    Value<String>? name,
+    Value<String>? mealsJson,
+    Value<bool>? usePantry,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return WeekTemplatesCompanion(
+      id: id ?? this.id,
+      householdId: householdId ?? this.householdId,
+      name: name ?? this.name,
+      mealsJson: mealsJson ?? this.mealsJson,
+      usePantry: usePantry ?? this.usePantry,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (householdId.present) {
+      map['household_id'] = Variable<String>(householdId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (mealsJson.present) {
+      map['meals_json'] = Variable<String>(mealsJson.value);
+    }
+    if (usePantry.present) {
+      map['use_pantry'] = Variable<bool>(usePantry.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WeekTemplatesCompanion(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('name: $name, ')
+          ..write('mealsJson: $mealsJson, ')
+          ..write('usePantry: $usePantry, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $MealPlanEntriesTable extends MealPlanEntries
     with TableInfo<$MealPlanEntriesTable, MealPlanEntryRow> {
   @override
@@ -9170,6 +9585,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ShoppingListsTable shoppingLists = $ShoppingListsTable(this);
   late final $ShoppingItemsTable shoppingItems = $ShoppingItemsTable(this);
   late final $MealPlansTable mealPlans = $MealPlansTable(this);
+  late final $WeekTemplatesTable weekTemplates = $WeekTemplatesTable(this);
   late final $MealPlanEntriesTable mealPlanEntries = $MealPlanEntriesTable(
     this,
   );
@@ -9222,6 +9638,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     shoppingLists,
     shoppingItems,
     mealPlans,
+    weekTemplates,
     mealPlanEntries,
     shoppingSources,
     shoppingContributions,
@@ -11951,6 +12368,236 @@ typedef $$MealPlansTableProcessedTableManager =
       (MealPlanRow, $$MealPlansTableReferences),
       MealPlanRow,
       PrefetchHooks Function({bool mealPlanEntriesRefs})
+    >;
+typedef $$WeekTemplatesTableCreateCompanionBuilder =
+    WeekTemplatesCompanion Function({
+      required String id,
+      Value<String?> householdId,
+      required String name,
+      required String mealsJson,
+      Value<bool> usePantry,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$WeekTemplatesTableUpdateCompanionBuilder =
+    WeekTemplatesCompanion Function({
+      Value<String> id,
+      Value<String?> householdId,
+      Value<String> name,
+      Value<String> mealsJson,
+      Value<bool> usePantry,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$WeekTemplatesTableFilterComposer
+    extends Composer<_$AppDatabase, $WeekTemplatesTable> {
+  $$WeekTemplatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mealsJson => $composableBuilder(
+    column: $table.mealsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get usePantry => $composableBuilder(
+    column: $table.usePantry,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$WeekTemplatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $WeekTemplatesTable> {
+  $$WeekTemplatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mealsJson => $composableBuilder(
+    column: $table.mealsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get usePantry => $composableBuilder(
+    column: $table.usePantry,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WeekTemplatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WeekTemplatesTable> {
+  $$WeekTemplatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get mealsJson =>
+      $composableBuilder(column: $table.mealsJson, builder: (column) => column);
+
+  GeneratedColumn<bool> get usePantry =>
+      $composableBuilder(column: $table.usePantry, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$WeekTemplatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WeekTemplatesTable,
+          WeekTemplateRow,
+          $$WeekTemplatesTableFilterComposer,
+          $$WeekTemplatesTableOrderingComposer,
+          $$WeekTemplatesTableAnnotationComposer,
+          $$WeekTemplatesTableCreateCompanionBuilder,
+          $$WeekTemplatesTableUpdateCompanionBuilder,
+          (
+            WeekTemplateRow,
+            BaseReferences<_$AppDatabase, $WeekTemplatesTable, WeekTemplateRow>,
+          ),
+          WeekTemplateRow,
+          PrefetchHooks Function()
+        > {
+  $$WeekTemplatesTableTableManager(_$AppDatabase db, $WeekTemplatesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WeekTemplatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WeekTemplatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WeekTemplatesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> householdId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> mealsJson = const Value.absent(),
+                Value<bool> usePantry = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WeekTemplatesCompanion(
+                id: id,
+                householdId: householdId,
+                name: name,
+                mealsJson: mealsJson,
+                usePantry: usePantry,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> householdId = const Value.absent(),
+                required String name,
+                required String mealsJson,
+                Value<bool> usePantry = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => WeekTemplatesCompanion.insert(
+                id: id,
+                householdId: householdId,
+                name: name,
+                mealsJson: mealsJson,
+                usePantry: usePantry,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$WeekTemplatesTable, WeekTemplateRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $WeekTemplatesTable,
+                    WeekTemplateRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$WeekTemplatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WeekTemplatesTable,
+      WeekTemplateRow,
+      $$WeekTemplatesTableFilterComposer,
+      $$WeekTemplatesTableOrderingComposer,
+      $$WeekTemplatesTableAnnotationComposer,
+      $$WeekTemplatesTableCreateCompanionBuilder,
+      $$WeekTemplatesTableUpdateCompanionBuilder,
+      (
+        WeekTemplateRow,
+        BaseReferences<_$AppDatabase, $WeekTemplatesTable, WeekTemplateRow>,
+      ),
+      WeekTemplateRow,
+      PrefetchHooks Function()
     >;
 typedef $$MealPlanEntriesTableCreateCompanionBuilder =
     MealPlanEntriesCompanion Function({
@@ -15993,6 +16640,8 @@ class $AppDatabaseManager {
       $$ShoppingItemsTableTableManager(_db, _db.shoppingItems);
   $$MealPlansTableTableManager get mealPlans =>
       $$MealPlansTableTableManager(_db, _db.mealPlans);
+  $$WeekTemplatesTableTableManager get weekTemplates =>
+      $$WeekTemplatesTableTableManager(_db, _db.weekTemplates);
   $$MealPlanEntriesTableTableManager get mealPlanEntries =>
       $$MealPlanEntriesTableTableManager(_db, _db.mealPlanEntries);
   $$ShoppingSourcesTableTableManager get shoppingSources =>

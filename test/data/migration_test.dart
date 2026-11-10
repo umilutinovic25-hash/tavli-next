@@ -9,6 +9,31 @@ import '../helpers/v3_schema.dart';
 import '../helpers/v4_schema.dart';
 
 void main() {
+  test('migracija 5 → 8 čuva podatke i pravi tabelu šablona', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'tavli-v5-template-',
+    );
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      "INSERT INTO meal_plans (id, start_date, end_date, meal_types_json, created_at, household_id) VALUES ('kept', 1, 2, '[\"lunch\"]', 1, 'home')",
+    );
+    await before.customStatement('DROP TABLE week_templates');
+    await before.customStatement('PRAGMA user_version = 5');
+    await before.close();
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    expect((await after.select(after.mealPlans).get()).single.id, 'kept');
+    expect(await after.select(after.weekTemplates).get(), isEmpty);
+    expect(
+      (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
+        'user_version',
+      ),
+      after.schemaVersion,
+    );
+  });
+
   test('postojeća v4 struktura označena kao v3 čuva id-jeve i outbox pri otvaranju', () async {
     final directory = await Directory.systemTemp.createTemp(
       'tavli-migration-test-',
@@ -37,6 +62,7 @@ void main() {
     await before.customStatement(
       "INSERT INTO app_settings (key, value) VALUES ('theme', 'borovnica')",
     );
+    await before.customStatement('DROP TABLE week_templates');
     await before.customStatement('PRAGMA user_version = 3');
     await before.close();
 
@@ -154,7 +180,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 5);
+    expect(db.schemaVersion, 8);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));

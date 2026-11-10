@@ -140,6 +140,19 @@ class MealPlans extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('WeekTemplateRow')
+class WeekTemplates extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+  TextColumn get name => text()();
+  TextColumn get mealsJson => text()();
+  BoolColumn get usePantry => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DataClassName('MealPlanEntryRow')
 class MealPlanEntries extends Table {
   TextColumn get id => text()();
@@ -377,6 +390,7 @@ class SyncCursors extends Table {
     ShoppingLists,
     ShoppingItems,
     MealPlans,
+    WeekTemplates,
     MealPlanEntries,
     ShoppingSources,
     ShoppingContributions,
@@ -395,7 +409,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -412,6 +426,7 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) await transaction(() => _migrateToAccounts(m));
       if (from < 5) await transaction(() => _migrateToPlanShopping(m));
+      if (from < 8) await m.createTable(weekTemplates);
     },
   );
 

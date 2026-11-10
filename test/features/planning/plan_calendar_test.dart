@@ -117,6 +117,27 @@ Future<void> tapText(WidgetTester tester, String text) async {
 }
 
 void main() {
+  for (final size in [phone, wide]) {
+    testTavli('šablon: pregled pre potvrde, sačuvan plan ($size)', (
+      tester,
+    ) async {
+      final app = await pumpPlan(tester, size: size);
+      await tapText(tester, 'Sačuvaj nedelju kao šablon');
+      await tester.enterText(find.byType(TextField).last, 'Porodična');
+      await tester.tap(find.text('Sačuvaj').last);
+      await tester.pumpAndSettle();
+      expect(await app.db.select(app.db.weekTemplates).get(), hasLength(1));
+      await tapText(tester, 'Šabloni nedelje');
+      expect(find.text('Pregled'), findsOneWidget);
+      expect(find.text('Ručak 2.11.').last, findsWidgets);
+      expect(await app.db.select(app.db.mealPlans).get(), hasLength(1));
+      await tester.tap(find.text('Sačuvaj plan'));
+      await tester.pumpAndSettle();
+      expect(await app.db.select(app.db.mealPlans).get(), hasLength(2));
+      expect(await app.db.select(app.db.mealPlanEntries).get(), hasLength(14));
+    });
+  }
+
   testTavli('telefon: nedelja je lista dana; danas je istaknut; obrok '
       'otvara recept iz plana', (tester) async {
     await pumpPlan(tester);

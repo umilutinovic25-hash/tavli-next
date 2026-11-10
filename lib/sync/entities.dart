@@ -337,6 +337,42 @@ class MealPlanEntity extends SyncEntity<$MealPlansTable, MealPlanRow> {
   );
 }
 
+class WeekTemplateEntity
+    extends SyncEntity<$WeekTemplatesTable, WeekTemplateRow> {
+  const WeekTemplateEntity();
+  @override
+  String get name => 'week_template';
+  @override
+  String get remoteTable => 'week_templates';
+  @override
+  EntityScope get scope => EntityScope.household;
+  @override
+  $WeekTemplatesTable table(AppDatabase db) => db.weekTemplates;
+  @override
+  Expression<String> idColumn($WeekTemplatesTable t) => t.id;
+  @override
+  GeneratedColumn<String> scopeColumn($WeekTemplatesTable t) => t.householdId;
+  @override
+  Map<String, Object?> toRemote(WeekTemplateRow r) => {
+    'id': r.id,
+    'household_id': r.householdId,
+    'name': r.name,
+    'meals': jsonDecode(r.mealsJson),
+    'use_pantry': r.usePantry,
+    'created_at': _ts(r.createdAt),
+  };
+  @override
+  WeekTemplatesCompanion fromRemote(Map<String, Object?> j) =>
+      WeekTemplatesCompanion(
+        id: Value(j['id']! as String),
+        householdId: Value(j['household_id'] as String?),
+        name: Value(j['name']! as String),
+        mealsJson: Value(_json(j['meals'])),
+        usePantry: Value(j['use_pantry'] as bool? ?? true),
+        createdAt: Value(_date(j['created_at'])),
+      );
+}
+
 class MealPlanEntryEntity
     extends SyncEntity<$MealPlanEntriesTable, MealPlanEntryRow> {
   const MealPlanEntryEntity();
@@ -629,6 +665,7 @@ const List<SyncEntity<Table, Object?>> syncEntities = [
   RecipeEntity(),
   RecipeVersionEntity(),
   MealPlanEntity(),
+  WeekTemplateEntity(),
   MealPlanEntryEntity(),
   ShoppingListEntity(),
   ShoppingItemEntity(),
