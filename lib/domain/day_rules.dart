@@ -232,8 +232,10 @@ bool _isFish(Ingredient i) =>
         .any((t) => _fishWords.contains(t) || _fishStems.any(t.startsWith));
 
 bool _contains(Ingredient i, String value) {
-  final name = _tokens(i.name);
-  final query = _tokens(value);
+  String canonical(String token) =>
+      const {'sol', 'soli', 'solju'}.contains(token) ? 'so' : token;
+  final name = _tokens(i.name).map(canonical).toList();
+  final query = _tokens(value).map(canonical).toList();
   if (query.isEmpty || query.length > name.length) return false;
   for (var start = 0; start <= name.length - query.length; start++) {
     var matches = true;
@@ -253,10 +255,13 @@ bool _contains(Ingredient i, String value) {
 RuleResult evaluateRule(DayRule rule, RecipeSnapshot? snapshot) {
   final items = snapshot?.ingredients ?? const <Ingredient>[];
   if (items.isEmpty) return RuleResult(rule, RuleFit.unknown);
-  // Iz kategorije meso i riba, a nije prepoznato ni kao meso ni kao riba.
+  // Neprepoznata podrazumevana kategorija nije dokaz da je jelo bez mesa.
   final unclassified = [
     for (final i in items)
-      if (i.category == 'meso i riba' && !_isMeat(i) && !_isFish(i)) i.name,
+      if ((i.category == 'meso i riba' || i.category == 'ostalo') &&
+          !_isMeat(i) &&
+          !_isFish(i))
+        i.name,
   ];
   switch (rule.kind) {
     case RuleKind.noMeat:

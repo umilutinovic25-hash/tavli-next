@@ -58,6 +58,38 @@ void main() {
     );
   });
 
+  test('nepoznata podrazumevana kategorija ne daje lažnu potvrdu bez mesa', () {
+    final result = evaluateRule(
+      mondayNoMeat,
+      dish([const Ingredient(name: 'nepoznata namirnica')]),
+    );
+    expect(result.fit, RuleFit.unknown);
+  });
+
+  test('pravilo za so prepoznaje padeže, a ne sos ili losos', () {
+    const rule = DayRule(
+      id: 's',
+      weekday: 1,
+      kind: RuleKind.without,
+      value: 'so',
+    );
+    expect(
+      evaluateRule(rule, dish([const Ingredient(name: 'malo soli')])).fit,
+      RuleFit.fail,
+    );
+    expect(
+      evaluateRule(rule, dish([const Ingredient(name: 'losos')])).fit,
+      RuleFit.pass,
+    );
+    expect(
+      evaluateRule(
+        rule,
+        dish([const Ingredient(name: 'sos od paradajza')]),
+      ).fit,
+      RuleFit.pass,
+    );
+  });
+
   test('ponedeljak bez mesa: mesni recept krši, sa dokazom', () {
     final r = evaluateRule(mondayNoMeat, dish([meso, krompir]));
     expect(r.fit, RuleFit.fail);
@@ -92,11 +124,11 @@ void main() {
     const fishRule = DayRule(id: 'f', weekday: 5, kind: RuleKind.fish);
     expect(
       evaluateRule(fishRule, dish([const Ingredient(name: 'somun')])).fit,
-      RuleFit.fail,
+      RuleFit.unknown,
     );
     expect(
       evaluateRule(fishRule, dish([const Ingredient(name: 'rakija')])).fit,
-      RuleFit.fail,
+      RuleFit.unknown,
     );
     expect(
       evaluateRule(fishRule, dish([const Ingredient(name: 'tuna u ulju')])).fit,
