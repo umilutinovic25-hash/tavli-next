@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tavli/account/auth_controller.dart';
@@ -259,6 +262,89 @@ void main() {
     expect(await pantry.watchReceivedItemIds().first, {purchase});
     expect(await shop.setBought([purchase], bought: false), 0);
   });
+
+  test(
+    'predlozi čitaju isto domaćinstvo i postojeće rezervacije bez upisa',
+    () async {
+      final list = await shop.recipeList();
+      final purchase = await shop.addManual(
+        list,
+        'Mleko',
+        quantity: 1,
+        unit: 'l',
+      );
+      await shop.setBought([purchase], bought: true);
+      await pantry.receivePurchases([purchase]);
+      final row = (await db.select(db.pantryItems).get()).single;
+      await db
+          .into(db.pantryItems)
+          .insert(
+            PantryItemsCompanion.insert(
+              id: 'foreign',
+              name: 'Tuđe',
+              category: 'ostalo',
+              addedAt: now,
+              householdId: const Value('home-two'),
+              quantity: const Value(1),
+            ),
+          );
+      // FK doprinos postoji; isti izvor za rezervaciju pre kupovine/prijema.
+      await db
+          .into(db.shoppingSources)
+          .insert(
+            ShoppingSourcesCompanion.insert(
+              id: 'source',
+              householdId: const Value('home-one'),
+              originKey: const Value('test'),
+              kind: 'recipePreparation',
+              listId: list,
+              recipeSnapshotJson: const Value('{}'),
+              servings: const Value(2),
+              createdAt: now,
+            ),
+          );
+      await db
+          .into(db.shoppingContributions)
+          .insert(
+            ShoppingContributionsCompanion.insert(
+              id: 'contribution',
+              householdId: const Value('home-one'),
+              sourceId: 'source',
+              ingredientKey: 'mleko',
+              unitGroup: 'volume',
+              name: 'Mleko',
+              category: 'ostalo',
+              micros: const Value(500000000),
+              baseUnit: 'ml',
+            ),
+          );
+      await db
+          .into(db.supplyAllocations)
+          .insert(
+            SupplyAllocationsCompanion.insert(
+              id: 'allocation',
+              householdId: const Value('home-one'),
+              contributionId: 'contribution',
+              purchasedShoppingItemId: Value(purchase),
+              micros: const Value(500000000),
+              createdAt: now,
+            ),
+          );
+      final before = await db.select(db.syncOutbox).get();
+      final updates = StreamIterator(pantry.watchSuggestionStock());
+      expect(await updates.moveNext(), isTrue);
+      final stocks = updates.current;
+      expect(stocks, hasLength(1));
+      expect(stocks.single.id, row.id);
+      expect(stocks.single.quantity, 1);
+      expect(stocks.single.reservedMicros, 500000000);
+      await db.delete(db.supplyAllocations).go();
+      expect(await updates.moveNext(), isTrue);
+      expect(updates.current.single.reservedMicros, 0);
+      await updates.cancel();
+      expect((await db.select(db.syncOutbox).get()).length, before.length);
+    },
+  );
 
   test(
     'prijem kupljenog: potvrđena zaliha vezana za kupovinu, jednom',

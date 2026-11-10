@@ -20,6 +20,7 @@ import '../features/settings/animations_gallery_screen.dart';
 import '../features/settings/appearance_screen.dart';
 import '../features/settings/profile_screen.dart';
 import '../features/shopping/shopping_screen.dart';
+import '../features/use_first/use_first_screen.dart';
 import 'home_shell.dart';
 
 /// Kuda vodi stanje prijave: bez naloga samo "Prijava", bez imena samo
@@ -62,6 +63,10 @@ GoRouter createRouter({
       routes: [
         GoRoute(path: 'name', builder: (context, state) => const NameScreen()),
       ],
+    ),
+    GoRoute(
+      path: '/use-first',
+      builder: (context, state) => const UseFirstScreen(),
     ),
     // Profil i podešavanja su iznad tabova; otvaraju se preko avatara.
     GoRoute(
