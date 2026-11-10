@@ -116,6 +116,10 @@ class RecipeView extends StatelessWidget {
                 ],
               ),
             ),
+        if (recipe.sourceUrl case final sourceUrl?) ...[
+          const SizedBox(height: 16),
+          SelectableText('Izvor: $sourceUrl', style: theme.textTheme.bodySmall),
+        ],
         if (origin != null) ...[
           const SizedBox(height: 16),
           Text(origin, style: theme.textTheme.bodySmall),

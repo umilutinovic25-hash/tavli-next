@@ -154,7 +154,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 6);
+    expect(db.schemaVersion, 7);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -307,6 +307,24 @@ void main() {
     );
   });
 
+  test('migracija 5 → 7 čuva recepte i dodaje izvor', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v7-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement(
+      "INSERT INTO recipes (id, title, servings, source, ingredients_json, steps_json, created_at, updated_at) VALUES ('r', 'Pita', 2, 'manual', '[]', '[]', 1, 1)",
+    );
+    await first.customStatement('ALTER TABLE recipes DROP COLUMN source_url');
+    await first.customStatement('PRAGMA user_version = 5');
+    await first.close();
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final row = (await after.select(after.recipes).get()).single;
+    expect(row.title, 'Pita');
+    expect(row.sourceUrl, isNull);
+  });
+
   test('ponovljena v5 migracija (user_version vraćen na 4) ne pada', () async {
     final directory = await Directory.systemTemp.createTemp('tavli-v5-');
     addTearDown(() => directory.delete(recursive: true));
@@ -349,4 +367,39 @@ void main() {
       );
     },
   );
+  for (final version in [5, 6]) {
+    test(
+      'migracija $version → 7 čuva pretrage i dodaje izvor recepta',
+      () async {
+        final dir = await Directory.systemTemp.createTemp('tavli-url-merge-');
+        addTearDown(() => dir.delete(recursive: true));
+        final file = File('${dir.path}/cache.sqlite');
+        final before = AppDatabase(NativeDatabase(file));
+        await before.customStatement(
+          "INSERT INTO recipes (id, title, servings, source, ingredients_json, steps_json, created_at, updated_at) VALUES ('r', 'Pita', 2, 'manual', '[]', '[]', 1, 1)",
+        );
+        await before.customStatement(
+          'ALTER TABLE recipes DROP COLUMN source_url',
+        );
+        if (version == 5) {
+          await before.customStatement('DROP TABLE saved_recipe_searches');
+        } else {
+          await before.customStatement(
+            "INSERT INTO saved_recipe_searches (id, user_id, name, query, include_ingredient, exclude_ingredient) VALUES ('s', 'u', 'Brzo', 'pita', '', '')",
+          );
+        }
+        await before.customStatement('PRAGMA user_version = $version');
+        await before.close();
+        final after = AppDatabase(NativeDatabase(file));
+        addTearDown(after.close);
+        expect(
+          (await after.select(after.recipes).get()).single.sourceUrl,
+          isNull,
+        );
+        final searches = await after.select(after.savedRecipeSearches).get();
+        expect(searches.length, version == 5 ? 0 : 1);
+        if (version == 6) expect(searches.single.name, 'Brzo');
+      },
+    );
+  }
 }

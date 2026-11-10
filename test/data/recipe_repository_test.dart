@@ -54,6 +54,31 @@ void main() {
 
   Future<void> clearOutbox() => db.delete(db.syncOutbox).go();
 
+  test('izvor URL-a ostaje posle izmene i vraćanja verzije', () async {
+    final imported = Recipe(
+      id: 'url',
+      title: 'Pita',
+      servings: 4,
+      ingredients: const [Ingredient(name: 'brašno')],
+      source: RecipeSource.url,
+      sourceUrl: 'https://example.com/pita',
+      createdAt: now,
+    );
+    await repo.create(imported);
+    expect((await repo.get('url'))?.sourceUrl, imported.sourceUrl);
+    await repo.update(
+      imported.copyWith(title: 'Izmenjena pita'),
+      kind: ChangeKind.manual,
+    );
+    expect((await repo.get('url'))?.sourceUrl, imported.sourceUrl);
+    expect(
+      (await repo.watchVersions('url').first).single.recipe.sourceUrl,
+      imported.sourceUrl,
+    );
+    await repo.undoLast('url');
+    expect((await repo.get('url'))?.sourceUrl, imported.sourceUrl);
+  });
+
   test('lista je od najnovijeg ka najstarijem', () async {
     await repo.create(recipe('a', title: 'Pasulj', createdAt: DateTime(2026)));
     await repo.create(recipe('b', createdAt: DateTime(2026, 5)));

@@ -22,6 +22,7 @@ class Recipes extends Table {
   TextColumn get stepsJson => text()();
   TextColumn get imagePath => text().nullable()();
   TextColumn get answeredBy => text().nullable()();
+  TextColumn get sourceUrl => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   TextColumn get householdId => text().nullable()();
@@ -409,7 +410,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -431,6 +432,13 @@ class AppDatabase extends _$AppDatabase {
           "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'saved_recipe_searches'",
         ).get();
         if (rows.isEmpty) await m.createTable(savedRecipeSearches);
+      }
+      if (from < 7) {
+        final columns = await customSelect('PRAGMA table_info("recipes")')
+            .get();
+        if (!columns.any((row) => row.read<String>('name') == 'source_url')) {
+          await m.addColumn(recipes, recipes.sourceUrl);
+        }
       }
     },
   );

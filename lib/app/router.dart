@@ -12,6 +12,7 @@ import '../features/planning/plan_screen.dart';
 import '../features/planning/plan_setup_screen.dart';
 import '../features/recipes/from_name_screen.dart';
 import '../features/recipes/from_photo_screen.dart';
+import '../features/recipes/from_url_screen.dart';
 import '../features/recipes/recipe_chat_screen.dart';
 import '../features/recipes/recipe_form_screen.dart';
 import '../features/recipes/recipes_screen.dart';
@@ -131,6 +132,10 @@ GoRouter createRouter({
               path: '/recipes',
               builder: (context, state) => const RecipesScreen(),
               routes: [
+                GoRoute(
+                  path: 'new/url',
+                  builder: (context, state) => const FromUrlScreen(),
+                ),
                 GoRoute(
                   path: 'new/name',
                   builder: (context, state) => const FromNameScreen(),

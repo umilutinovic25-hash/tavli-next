@@ -45,7 +45,8 @@ void main() {
         title: 'Sarma',
         servings: 4,
         prepMinutes: const Value(60),
-        source: 'manual',
+        source: 'url',
+        sourceUrl: const Value('https://example.com/pita'),
         ingredientsJson: '[{"name":"kupus","quantity":0.5}]',
         stepsJson: '["Kuvati."]',
         imagePath: const Value('recipe_photos/a.jpg'),
@@ -61,12 +62,14 @@ void main() {
         ]);
         expect(r['steps'], ['Kuvati.']);
         expect(r['image_path'], 'a.jpg');
+        expect(r['source_url'], 'https://example.com/pita');
         expect(r['created_at'], '2026-10-30T10:05:07.000Z');
         expect(r.containsKey('updated_at'), isFalse);
       },
     );
     final row = (await db.select(db.recipes).get()).single;
     expect(row.imagePath, 'recipe_photos/a.jpg');
+    expect(row.sourceUrl, 'https://example.com/pita');
     expect(row.updatedAt.toUtc(), DateTime.utc(2026, 10, 30, 12));
   });
 

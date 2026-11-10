@@ -73,6 +73,7 @@ class RecipeAI {
             source: current.source,
             createdAt: current.createdAt,
             imagePath: current.imagePath,
+            sourceUrl: current.sourceUrl,
           ),
         )
         .then(_stampModel);
@@ -102,6 +103,7 @@ class RecipeAI {
         steps: v.steps,
         source: v.source,
         imagePath: v.imagePath,
+        sourceUrl: v.sourceUrl,
         createdAt: v.createdAt,
         answeredBy: r.model.label,
       ),

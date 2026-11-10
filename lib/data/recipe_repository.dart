@@ -325,6 +325,7 @@ class RecipeRepository {
     stepsJson: jsonEncode(r.steps),
     imagePath: Value(r.imagePath),
     answeredBy: Value(r.answeredBy),
+    sourceUrl: Value(r.sourceUrl),
     createdAt: r.createdAt,
     updatedAt: _clock(),
     householdId: Value(_scope.householdId),
@@ -348,6 +349,7 @@ class RecipeRepository {
     source: RecipeSource.values.asNameMap()[row.source] ?? RecipeSource.manual,
     imagePath: row.imagePath,
     answeredBy: row.answeredBy,
+    sourceUrl: row.sourceUrl,
     createdAt: row.createdAt,
   );
 
