@@ -185,6 +185,12 @@ void main() {
 
   testTavli('Profil u debug verziji ima Animacije', (tester) async {
     await pumpTavli(tester, location: '/profile');
+    // Posle dodavanja izvoza i politike Animacije su ispod prvog ekrana.
+    await tester.scrollUntilVisible(
+      find.text('Animacije'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Animacije'), findsOneWidget);
     expect(find.text('Izgled'), findsOneWidget);
   });

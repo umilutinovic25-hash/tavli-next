@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import '../domain/meal_plan.dart';
 import '../domain/recipe.dart';
+import '../domain/user_preferences.dart';
+import 'prompts.dart' show preferencesBlock;
 
 const mealPlanSystemPrompt = '''
 You are the meal-planning assistant inside "Tavli", a recipe and shopping app.
@@ -20,6 +22,7 @@ String planOutlinePrompt({
   String? wishes,
   List<String> pantry = const [],
   List<String> rules = const [],
+  UserPreferences? preferences,
 }) {
   final slotsJson = jsonEncode([
     for (final s in slots) {'date': s.date.toString(), 'meal': s.type.name},
@@ -27,8 +30,7 @@ String planOutlinePrompt({
   final libraryJson = jsonEncode([
     for (final r in library) {'id': r.id, 'title': r.title},
   ]);
-  return '''
-Plan one dish for EVERY slot below, and nothing else: no extra or missing slots.
+  return '''${preferencesBlock(preferences)}Plan one dish for EVERY slot below, and nothing else: no extra or missing slots.
 The household eats $servings servings per meal.
 ${rules.isEmpty ? '' : 'Day rules (follow every required rule exactly; follow preferred rules when possible):\n${rules.map((r) => '- $r').join('\n')}\n'}${wishes == null || wishes.trim().isEmpty ? '' : 'Wishes of the household: ${wishes.trim()}\n'}${pantry.isEmpty ? '' : 'Prefer using what is at home: ${jsonEncode(pantry)}\n'}${alreadyPlanned.isEmpty ? '' : 'Already planned in other weeks (avoid repeating too often): ${jsonEncode(alreadyPlanned)}\n'}You may reuse the household's own saved recipes by their "id"; never invent ids.
 Library: $libraryJson
@@ -40,9 +42,11 @@ Return:
 }
 
 /// Sažeci novih recepata (naziv i sastojci, bez koraka).
-String recipeSummariesPrompt(List<String> titles) =>
-    '''
-Write a short recipe summary for each dish below, exactly once each, with the
+String recipeSummariesPrompt(
+  List<String> titles, {
+  UserPreferences? preferences,
+}) =>
+    '''${preferencesBlock(preferences)}Write a short recipe summary for each dish below, exactly once each, with the
 same title. No preparation steps.
 Recipes: ${jsonEncode(titles)}
 Return:

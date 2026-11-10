@@ -152,6 +152,32 @@ void main() {
     );
   });
 
+  test(
+    'preferencije domaćinstva: liste su JSON nizovi, id je domaćinstvo',
+    () async {
+      await roundTrip(
+        const HouseholdPreferenceEntity(),
+        HouseholdPreferencesCompanion.insert(
+          id: 'h1',
+          householdId: const Value('h1'),
+          dietJson: const Value('["vegan","glutenFree"]'),
+          dislikesJson: const Value('["cilantro"]'),
+          allergiesJson: const Value('["orasasti plodovi"]'),
+          servings: const Value(3),
+        ),
+        'h1',
+        (r) {
+          expect(r['id'], 'h1');
+          expect(r['household_id'], 'h1');
+          expect(r['diet'], ['vegan', 'glutenFree']);
+          expect(r['dislikes'], ['cilantro']);
+          expect(r['allergies'], ['orasasti plodovi']);
+          expect(r['servings'], 3);
+        },
+      );
+    },
+  );
+
   test('verzija recepta', () async {
     await roundTrip(
       const RecipeVersionEntity(),
@@ -379,7 +405,7 @@ void main() {
         );
       }
     }
-    expect(names, hasLength(17));
+    expect(names, hasLength(18));
     expect(const SupplyAllocationEntity().parents, [
       'shopping_contribution',
       'pantry_item',

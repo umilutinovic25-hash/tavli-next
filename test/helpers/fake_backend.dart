@@ -77,6 +77,7 @@ class FakeServer {
     'recipes': 'recipe',
     'recipe_versions': 'recipe_version',
     'day_time_budgets': 'day_time_budget',
+    'household_preferences': 'household_preference',
     'shopping_lists': 'shopping_list',
     'shopping_items': 'shopping_item',
     'pantry_items': 'pantry_item',

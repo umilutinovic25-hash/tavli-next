@@ -146,7 +146,7 @@ void main() {
       containsAll(['shopping_list', 'shopping_item']),
     );
     final uuid = RegExp(
-      r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+      r'^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
     );
     for (final row in outbox) {
       expect(uuid.hasMatch(row.recordId), isTrue);

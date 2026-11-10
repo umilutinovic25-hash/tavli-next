@@ -180,7 +180,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 14);
+    expect(db.schemaVersion, 15);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -690,5 +690,46 @@ void main() {
     final again = AppDatabase(NativeDatabase(file));
     addTearDown(again.close);
     expect(await again.select(again.dayRules).get(), isEmpty);
+  });
+
+  test(
+    'migracija 14 → 15 dodaje preferencije ishrane; pravila ostaju',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('tavli-v15-');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File('${directory.path}/cache.sqlite');
+      final before = AppDatabase(NativeDatabase(file));
+      await before.customStatement(
+        'INSERT INTO day_rules (id, household_id, weekday, kind, mode, '
+        "created_at) VALUES ('d1', 'h1', 1, 'vegetarian', 'required', 1)",
+      );
+      await before.customStatement('DROP TABLE household_preferences');
+      await before.customStatement('PRAGMA user_version = 14');
+      await before.close();
+
+      final after = AppDatabase(NativeDatabase(file));
+      addTearDown(after.close);
+      expect((await after.select(after.dayRules).get()).single.id, 'd1');
+      expect(await after.select(after.householdPreferences).get(), isEmpty);
+      expect(
+        (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
+          'user_version',
+        ),
+        15,
+      );
+    },
+  );
+
+  test('ponovljena v15 migracija ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v15b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 14');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.householdPreferences).get(), isEmpty);
   });
 }
