@@ -22,6 +22,8 @@ class HouseholdScreen extends ConsumerStatefulWidget {
 
 class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
   var _stale = false;
+  String? _selected;
+  var _switching = false;
 
   @override
   void initState() {
@@ -79,6 +81,20 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
     await _finish(await ref.read(householdActionsProvider).leave());
   }
 
+  Future<void> _switch(String householdId) async {
+    setState(() => _switching = true);
+    final outcome = await ref
+        .read(householdActionsProvider)
+        .selectActive(householdId);
+    if (!mounted) return;
+    setState(() {
+      _switching = false;
+      _selected = null;
+    });
+    _show(outcome.message);
+    if (outcome is HouseholdDone) await _refresh();
+  }
+
   /// Poruka ishoda; posle odbijanja lista se usklađuje sa serverom.
   Future<void> _finish(HouseholdOutcome outcome) async {
     _show(outcome.message);
@@ -116,6 +132,8 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
       _ => null,
     };
     final members = ref.watch(householdMembersProvider).value ?? const [];
+    final memberships =
+        ref.watch(householdMembershipsProvider).value ?? const [];
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Domaćinstvo')),
@@ -132,6 +150,20 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
                 children: [
                   _Header(account: account),
                   const SizedBox(height: 8),
+                  if (memberships.length > 1) ...[
+                    _ActiveHousehold(
+                      memberships: memberships,
+                      selected: _selected ?? account.householdId,
+                      onChanged: (id) => setState(() => _selected = id),
+                      onSwitch:
+                          _switching ||
+                              (_selected ?? account.householdId) ==
+                                  account.householdId
+                          ? null
+                          : () => _switch(_selected!),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   Text('Članovi', style: theme.textTheme.titleMedium),
                   if (_stale)
                     Padding(
@@ -196,6 +228,58 @@ class _Header extends StatelessWidget {
       leading: const Icon(Icons.home_outlined),
       title: Text(account.householdName, style: theme.textTheme.titleLarge),
       subtitle: Text(roleLabel(account.role)),
+    );
+  }
+}
+
+/// Izbor aktivnog domaćinstva kad je korisnik član više njih.
+class _ActiveHousehold extends StatelessWidget {
+  const _ActiveHousehold({
+    required this.memberships,
+    required this.selected,
+    required this.onChanged,
+    required this.onSwitch,
+  });
+
+  final List<Membership> memberships;
+  final String selected;
+  final ValueChanged<String> onChanged;
+  final VoidCallback? onSwitch;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Aktivno domaćinstvo',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        RadioGroup<String>(
+          groupValue: selected,
+          onChanged: (id) {
+            if (id != null) onChanged(id);
+          },
+          child: Column(
+            children: [
+              for (final m in memberships)
+                RadioListTile<String>(
+                  value: m.householdId,
+                  title: Text(m.householdName),
+                  subtitle: Text(roleLabel(m.role.wire)),
+                  contentPadding: EdgeInsets.zero,
+                ),
+            ],
+          ),
+        ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: FilledButton.tonal(
+            onPressed: onSwitch,
+            child: const Text('Prebaci'),
+          ),
+        ),
+      ],
     );
   }
 }

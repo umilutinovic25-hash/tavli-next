@@ -442,9 +442,112 @@ void main() {
         size: const Size(390, 844),
         backend: anaIsMember(),
       );
+      // Lista gradi redove lenjo; dugme je ispod izbora domaćinstva.
+      await tester.scrollUntilVisible(
+        find.text('Napusti domaćinstvo'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tapButton(tester, 'Napusti domaćinstvo');
       expect(find.text('Napustiti domaćinstvo?'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+  });
+
+  group('aktivno domaćinstvo', () {
+    FakeBackend twoHouseholds() {
+      final backend = FakeBackend();
+      final owner = backend.server.userFor('vlasnik@mail.com');
+      final home = backend.server.households[owner]!;
+      backend.server.householdNames[home] = 'Kod Vlasnika';
+      backend.server.addMember(home, backend.server.userFor(testEmail));
+      return backend;
+    }
+
+    Future<void> chooseOwn(WidgetTester tester) async {
+      final own = find.widgetWithText(
+        RadioListTile<String>,
+        'Moje domaćinstvo',
+      );
+      await tester.ensureVisible(own);
+      await tester.tap(own);
+      await tester.pumpAndSettle();
+      await tapButton(tester, 'Prebaci');
+    }
+
+    testTavli('uz jedno članstvo nema izbora', (tester) async {
+      await pumpTavli(tester, location: '/profile/household');
+      expect(find.text('Aktivno domaćinstvo'), findsNothing);
+    });
+
+    testTavli('prebacivanje na lično domaćinstvo ostaje i posle osvežavanja', (
+      tester,
+    ) async {
+      await pumpTavli(
+        tester,
+        location: '/profile/household',
+        backend: twoHouseholds(),
+      );
+      expect(find.text('Aktivno domaćinstvo'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ListTile).first,
+          matching: find.text('Kod Vlasnika'),
+        ),
+        findsOneWidget,
+      );
+
+      await chooseOwn(tester);
+      expect(
+        find.descendant(
+          of: find.byType(ListTile).first,
+          matching: find.text('Moje domaćinstvo'),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.fling(find.text('Članovi'), const Offset(0, 400), 1000);
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: find.byType(ListTile).first,
+          matching: find.text('Moje domaćinstvo'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testTavli('bez mreže izbor ostaje isti', (tester) async {
+      final backend = twoHouseholds();
+      await pumpTavli(tester, location: '/profile/household', backend: backend);
+      backend.server.offline = true;
+      await chooseOwn(tester);
+      expect(find.text('Za ovo je potrebna internet veza.'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ListTile).first,
+          matching: find.text('Kod Vlasnika'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    for (final (name, size, scale) in [
+      ('široko', const Size(1200, 800), 1.0),
+      ('telefon, tekst 2×', const Size(390, 844), 2.0),
+    ]) {
+      testTavli('izbor domaćinstva bez prelivanja: $name', (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await pumpTavli(
+          tester,
+          location: '/profile/household',
+          size: size,
+          backend: twoHouseholds(),
+        );
+        expect(find.text('Aktivno domaćinstvo'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
   });
 }

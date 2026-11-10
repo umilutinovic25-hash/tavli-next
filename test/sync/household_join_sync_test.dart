@@ -1,11 +1,15 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tavli/account/account_service.dart';
 import 'package:tavli/account/auth_controller.dart';
 import 'package:tavli/data/database.dart';
 import 'package:tavli/sync/downloader.dart';
+import 'package:tavli/sync/synced_writer.dart';
+import 'package:tavli/sync/uploader.dart';
 
 import '../helpers/fake_backend.dart';
+import '../helpers/fake_photo_store.dart';
 
 /// Posle pridruživanja zajednički podaci mogu biti stariji od pozicije
 /// preuzimanja; osvežavanje naloga mora da vrati preuzimanje na početak.
@@ -72,5 +76,52 @@ void main() {
     expect(fresh.householdId, anaHome);
     await pull(anaHome).run();
     expect((await localRecipes())..sort(), ['anin', 'markov']);
+  });
+
+  test('izmena napravljena pre prebacivanja ide u svoje domaćinstvo', () async {
+    backend = FakeBackend();
+    final ana = await backend.auth.verifyCode('ana@mail.com', FakeServer.code);
+    final own = backend.server.households[ana.userId]!;
+    final owner = backend.server.userFor('vlasnik@mail.com');
+    final shared = backend.server.households[owner]!;
+    backend.server.addMember(shared, ana.userId);
+    final service = AccountService(db, backend.accounts);
+    await service.loadOrFetch(ana);
+    await service.setPreferredHousehold(ana.userId, own);
+    await service.refresh();
+
+    // Recept u ličnom domaćinstvu čeka slanje (npr. napravljen offline).
+    await db
+        .into(db.recipes)
+        .insert(
+          RecipesCompanion.insert(
+            id: 'licni',
+            title: 'Lični',
+            servings: 1,
+            source: 'manual',
+            ingredientsJson: '[]',
+            stepsJson: '[]',
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+            householdId: Value(own),
+          ),
+        );
+    await SyncedWriter(db, accountId: ana.userId).upsert('recipe', 'licni');
+
+    // Prebacivanje na zajedničko domaćinstvo pre slanja.
+    await service.setPreferredHousehold(ana.userId, shared);
+    final fresh = await service.refresh();
+    expect(fresh.householdId, shared);
+
+    await Uploader(
+      db: db,
+      remote: backend.sync,
+      photos: backend.photos,
+      photoStore: FakePhotoStore(),
+      scope: AccountScope(userId: ana.userId, householdId: shared),
+      refreshSession: () async => true,
+    ).run();
+
+    expect(backend.server.rows('recipes').single['household_id'], own);
   });
 }
