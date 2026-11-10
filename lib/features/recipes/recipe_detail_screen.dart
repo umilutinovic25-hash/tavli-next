@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../domain/recipe.dart';
 import '../../domain/shopping_source.dart';
+import 'cooking_screen.dart';
 import 'ingredient_review_sheet.dart';
 import 'keep_screen_on.dart';
 import 'recipe_providers.dart';
@@ -50,13 +51,40 @@ class RecipeDetailScreen extends ConsumerWidget {
   }
 }
 
-class _Detail extends ConsumerWidget {
+class _Detail extends ConsumerStatefulWidget {
   const _Detail({required this.recipe, required this.embedded});
 
   final Recipe recipe;
   final bool embedded;
 
+  @override
+  ConsumerState<_Detail> createState() => _DetailState();
+}
+
+class _DetailState extends ConsumerState<_Detail> {
+  bool _cooking = false;
+
+  Future<void> _startCooking() async {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final recipe = widget.recipe;
+    setState(() => _cooking = true);
+    // Dispose the detail's scope before the cooking screen takes ownership.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    final route = MaterialPageRoute<void>(
+      builder: (_) => CookingScreen(
+        snapshot: RecipeSnapshot.fromRecipe(recipe),
+        servings: recipe.servings,
+      ),
+    );
+    await navigator.push<void>(route);
+    // A pop completes before its exit transition disposes the old scope.
+    await route.completed;
+    if (mounted) setState(() => _cooking = false);
+  }
+
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final recipe = widget.recipe;
     final messenger = ScaffoldMessenger.of(context);
     final repo = ref.read(recipeRepositoryProvider);
     final confirmed = await showDialog<bool>(
@@ -85,7 +113,9 @@ class _Detail extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final recipe = widget.recipe;
+    final embedded = widget.embedded;
     final hasVersions =
         ref.watch(recipeVersionsProvider(recipe.id)).value?.isNotEmpty ?? false;
     return Scaffold(
@@ -129,27 +159,37 @@ class _Detail extends ConsumerWidget {
           ),
         ],
       ),
-      body: KeepScreenOnScope(
-        child: ReadableScroll(
-          children: [
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: FilledButton.tonalIcon(
-                onPressed: () => showIngredientReview(
-                  context,
-                  snapshot: RecipeSnapshot.fromRecipe(recipe),
-                  originKey: 'recipe:${recipe.id}',
-                  recipeId: recipe.id,
-                ),
-                icon: const Icon(Icons.checklist),
-                label: const Text('Proveri sastojke'),
+      body: _cooking
+          ? const SizedBox.shrink()
+          : KeepScreenOnScope(
+              child: ReadableScroll(
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      FilledButton.icon(
+                        onPressed: _startCooking,
+                        icon: const Icon(Icons.soup_kitchen_outlined),
+                        label: const Text('Kreni sa kuvanjem'),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: () => showIngredientReview(
+                          context,
+                          snapshot: RecipeSnapshot.fromRecipe(recipe),
+                          originKey: 'recipe:${recipe.id}',
+                          recipeId: recipe.id,
+                        ),
+                        icon: const Icon(Icons.checklist),
+                        label: const Text('Proveri sastojke'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  RecipeView(recipe),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            RecipeView(recipe),
-          ],
-        ),
-      ),
     );
   }
 }
