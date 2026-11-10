@@ -35,6 +35,59 @@ class StaleDraftException implements Exception {
   const StaleDraftException();
 }
 
+/// Nezavisan snimak obroka u nedelji (1 = ponedeljak).
+class TemplateMeal {
+  const TemplateMeal({
+    required this.weekday,
+    required this.type,
+    required this.snapshot,
+    this.recipeId,
+  });
+  final int weekday;
+  final MealType type;
+  final RecipeSnapshot snapshot;
+  final String? recipeId;
+
+  Map<String, Object?> toJson() => {
+    'weekday': weekday,
+    'type': type.name,
+    'snapshot': snapshot.toJson(),
+    'recipeId': recipeId,
+  };
+  factory TemplateMeal.fromJson(Map<String, dynamic> json) {
+    final day = json['weekday'] as int;
+    final type = MealType.tryParse(json['type']);
+    if (day < 1 || day > 7 || type == null) {
+      throw const FormatException('Neispravan obrok šablona');
+    }
+    return TemplateMeal(
+      weekday: day,
+      type: type,
+      snapshot: RecipeSnapshot.fromJson(
+        json['snapshot'] as Map<String, dynamic>,
+      ),
+      recipeId: json['recipeId'] as String?,
+    );
+  }
+}
+
+class WeekTemplate {
+  const WeekTemplate({
+    required this.id,
+    required this.name,
+    required this.meals,
+    required this.usePantry,
+  });
+  final String id;
+  final String name;
+  final List<TemplateMeal> meals;
+  final bool usePantry;
+}
+
+class InvalidWeekTemplateException implements Exception {
+  const InvalidWeekTemplateException();
+}
+
 /// Planovi obroka domaćinstva. Odobrenje upisuje plan, nove recepte, obroke i nabavku u
 /// jednoj transakciji, sa outbox-om; mreža se ne koristi.
 class MealPlanRepository {
@@ -76,6 +129,133 @@ class MealPlanRepository {
       _entriesQuery(planId)
           .watch()
           .map((rows) => rows.map(_mealFromRow).toList()..sort(_bySlot));
+
+  Stream<List<WeekTemplate>> watchWeekTemplates() {
+    final q = _db.select(_db.weekTemplates)
+      ..where((t) => t.householdId.equals(_scope.householdId))
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.createdAt),
+        (t) => OrderingTerm.asc(t.id),
+      ]);
+    return q.watch().map((rows) => rows.map(_templateFromRow).toList());
+  }
+
+  /// Čuva samo izabranu nedelju, kao nezavisan snimak obroka.
+  Future<String> saveWeekTemplate(
+    String planId,
+    CivilDate anchor,
+    String name,
+  ) => _db.transaction(() async {
+    final plan = await _planQuery(planId).getSingleOrNull();
+    final trimmed = name.trim();
+    if (plan == null || trimmed.isEmpty || trimmed.length > 100) {
+      throw const InvalidWeekTemplateException();
+    }
+    final week = weekOf(anchor);
+    final entries = (await _entriesQuery(
+      planId,
+    ).get()).where((e) => week.contains(CivilDate.fromWire(e.date))).toList();
+    if (entries.isEmpty) throw const InvalidWeekTemplateException();
+    final meals = <TemplateMeal>[];
+    for (final e in entries) {
+      final meal = _mealFromRow(e);
+      if (meal.snapshot == null) throw const InvalidWeekTemplateException();
+      meals.add(
+        TemplateMeal(
+          weekday: meal.slot.date.weekday,
+          type: meal.slot.type,
+          snapshot: meal.snapshot!,
+          recipeId: meal.recipeId,
+        ),
+      );
+    }
+    final id = newId();
+    await _db
+        .into(_db.weekTemplates)
+        .insert(
+          WeekTemplatesCompanion.insert(
+            id: id,
+            householdId: Value(_scope.householdId),
+            name: trimmed,
+            mealsJson: jsonEncode([for (final m in meals) m.toJson()]),
+            usePantry: Value(plan.usePantry),
+            createdAt: _clock().toUtc(),
+          ),
+        );
+    await _writer.upsert('week_template', id);
+    return id;
+  });
+
+  /// Potvrda kreira novi plan i nove izvore, bez izmene ranije kupovine.
+  Future<String> applyWeekTemplate(
+    String templateId,
+    CivilDate anchor,
+    int servings,
+  ) => _db.transaction(() async {
+    if (servings < minServings || servings > maxServings) {
+      throw ArgumentError.value(servings, 'servings');
+    }
+    final row =
+        await (_db.select(_db.weekTemplates)..where(
+              (t) =>
+                  t.id.equals(templateId) &
+                  t.householdId.equals(_scope.householdId),
+            ))
+            .getSingleOrNull();
+    if (row == null) throw const InvalidWeekTemplateException();
+    final template = _templateFromRow(row);
+    if (template.meals.isEmpty) throw const InvalidWeekTemplateException();
+    final range = weekOf(anchor);
+    final request = PlanRequest(
+      range: range,
+      mealTypes: {for (final m in template.meals) m.type},
+      servings: servings,
+      usePantry: template.usePantry,
+    );
+    final planId = newId();
+    await _insertPlan(planId, request);
+    final library = {
+      for (final r in await (_db.select(
+        _db.recipes,
+      )..where((t) => t.householdId.equals(_scope.householdId))).get())
+        r.id,
+    };
+    final slots = <MealSlot>{};
+    for (final meal in template.meals) {
+      final slot = MealSlot(range.start.addDays(meal.weekday - 1), meal.type);
+      if (!slots.add(slot)) throw const InvalidWeekTemplateException();
+      final id = newId();
+      await _db
+          .into(_db.mealPlanEntries)
+          .insert(
+            MealPlanEntriesCompanion.insert(
+              id: id,
+              planId: planId,
+              date: slot.date.toWire(),
+              mealType: slot.type.name,
+              recipeId: Value(
+                library.contains(meal.recipeId) ? meal.recipeId : null,
+              ),
+              servings: Value(servings),
+              recipeSnapshotJson: Value(jsonEncode(meal.snapshot.toJson())),
+              householdId: Value(_scope.householdId),
+            ),
+          );
+      await _writer.upsert(_entry, id);
+    }
+    await _shopping.reconcilePlan(planId);
+    return planId;
+  });
+
+  static WeekTemplate _templateFromRow(WeekTemplateRow row) => WeekTemplate(
+    id: row.id,
+    name: row.name,
+    usePantry: row.usePantry,
+    meals: [
+      for (final m in jsonDecode(row.mealsJson) as List<dynamic>)
+        TemplateMeal.fromJson(m as Map<String, dynamic>),
+    ],
+  );
 
   /// Nazivi potvrđene zalihe domaćinstva (za predlog plana; samo čitanje).
   Future<List<String>> confirmedPantryNames() async => [

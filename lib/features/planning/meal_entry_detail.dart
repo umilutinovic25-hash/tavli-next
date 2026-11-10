@@ -5,6 +5,7 @@ import '../../domain/meal_plan.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
 import '../../domain/shopping_demand.dart' show maxServings, scaleQuantity;
+import '../recipes/cooking_screen.dart';
 import '../recipes/recipe_view.dart';
 import 'meal_actions.dart';
 import 'plan_format.dart';
@@ -81,6 +82,25 @@ class MealEntryDetail extends ConsumerWidget {
           ),
         ],
         const SizedBox(height: 12),
+        if (snapshot != null) ...[
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: FilledButton.icon(
+              onPressed: () =>
+                  Navigator.of(context, rootNavigator: true).push<void>(
+                    MaterialPageRoute<void>(
+                      builder: (_) => CookingScreen(
+                        snapshot: snapshot,
+                        servings: meal.servings,
+                      ),
+                    ),
+                  ),
+              icon: const Icon(Icons.soup_kitchen_outlined),
+              label: const Text('Kreni sa kuvanjem'),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         Row(
           children: [
             const Expanded(child: Text('Broj porcija')),

@@ -68,10 +68,22 @@ class SyncedWriter {
     await _add('photo', localPath, OutboxOp.photoUpload);
   }
 
-  Future<void> photoDelete(String localPath) async {
+  Future<void> photoDelete(
+    String localPath, {
+    Duration delay = Duration.zero,
+  }) async {
     await _remove('photo', localPath, OutboxOp.photoUpload);
-    await _add('photo', localPath, OutboxOp.photoDelete);
+    await _add(
+      'photo',
+      localPath,
+      OutboxOp.photoDelete,
+      nextAttemptAt: delay == Duration.zero ? null : _clock().add(delay),
+    );
   }
+
+  /// Poništavanje brisanja pre isteka mogućnosti vraćanja stavke.
+  Future<void> cancelPhotoDelete(String localPath) =>
+      _remove('photo', localPath, OutboxOp.photoDelete);
 
   /// Izmene ovog naloga koje još nisu na serveru (čekaju, šalju se ili
   /// su odbijene).
@@ -115,7 +127,12 @@ class SyncedWriter {
           ))
           .go();
 
-  Future<void> _add(String entity, String id, String op) async {
+  Future<void> _add(
+    String entity,
+    String id,
+    String op, {
+    DateTime? nextAttemptAt,
+  }) async {
     await _db
         .into(_db.syncOutbox)
         .insert(
@@ -125,6 +142,7 @@ class SyncedWriter {
             recordId: id,
             op: op,
             createdAt: _clock(),
+            nextAttemptAt: Value(nextAttemptAt),
           ),
         );
     _changed();

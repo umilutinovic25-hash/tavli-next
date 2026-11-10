@@ -45,7 +45,8 @@ void main() {
         title: 'Sarma',
         servings: 4,
         prepMinutes: const Value(60),
-        source: 'manual',
+        source: 'url',
+        sourceUrl: const Value('https://example.com/pita'),
         ingredientsJson: '[{"name":"kupus","quantity":0.5}]',
         stepsJson: '["Kuvati."]',
         imagePath: const Value('recipe_photos/a.jpg'),
@@ -61,12 +62,14 @@ void main() {
         ]);
         expect(r['steps'], ['Kuvati.']);
         expect(r['image_path'], 'a.jpg');
+        expect(r['source_url'], 'https://example.com/pita');
         expect(r['created_at'], '2026-10-30T10:05:07.000Z');
         expect(r.containsKey('updated_at'), isFalse);
       },
     );
     final row = (await db.select(db.recipes).get()).single;
     expect(row.imagePath, 'recipe_photos/a.jpg');
+    expect(row.sourceUrl, 'https://example.com/pita');
     expect(row.updatedAt.toUtc(), DateTime.utc(2026, 10, 30, 12));
   });
 
@@ -114,12 +117,18 @@ void main() {
         quantity: const Value(1.5),
         isBought: const Value(true),
         fromRecipeIdsJson: const Value('["r1"]'),
+        brand: const Value('Brend'),
+        note: const Value('Napomena'),
+        photoPath: const Value('recipe_photos/proizvod.jpg'),
         householdId: const Value('h1'),
       ),
       'i1',
       (r) {
         expect(r['from_recipe_ids'], ['r1']);
         expect(r['is_bought'], isTrue);
+        expect(r['brand'], 'Brend');
+        expect(r['note'], 'Napomena');
+        expect(r['photo_path'], 'proizvod.jpg');
       },
     );
   });
@@ -215,6 +224,23 @@ void main() {
     );
   });
 
+  test('šablon nedelje prolazi kroz sinhronizaciju', () async {
+    await roundTrip(
+      const WeekTemplateEntity(),
+      WeekTemplatesCompanion.insert(
+        id: 't1',
+        householdId: const Value('h1'),
+        name: 'Nedelja',
+        mealsJson: '[{"weekday":2}]',
+        createdAt: t,
+      ),
+      't1',
+      (r) => expect(r['meals'], [
+        {'weekday': 2},
+      ]),
+    );
+  });
+
   test('registar: svi roditelji uvek pre deteta', () {
     final names = [for (final e in syncEntities) e.name];
     for (final e in syncEntities) {
@@ -227,7 +253,7 @@ void main() {
         );
       }
     }
-    expect(names, hasLength(13));
+    expect(names, hasLength(14));
     expect(const SupplyAllocationEntity().parents, [
       'shopping_contribution',
       'pantry_item',

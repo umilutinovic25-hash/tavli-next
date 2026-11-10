@@ -1,0 +1,13 @@
+# Plan
+
+Nadograditi Recipe, RecipeRepository, RecipeEntity, postojeći formular i prikaz. Dodati nullable source_url u drift (migracija) i postojeću serversku tabelu; postojeće RLS politike važe i za novu kolonu. Testirati migraciju, povratni sync i očuvanje u verzijama.
+
+Edge funkcija autentifikuje poziv kroz postojeću Supabase infrastrukturu i preuzima samo javne adrese uz DNS proveru i vezivanje IP-a, ručno ograničena preusmeravanja, vremensko i veličinsko ograničenje; JSON-LD se parsira kao nepouzdan ulaz. Bez AI fallbacka dok nije moguće bezbedno i pouzdano obraditi nepoznati sadržaj.
+
+## Constitution Check
+
+I srpski tekst; II repozitorijum/outbox i migracija; III bez AI poziva; IV bez tajni; V testovi parsera, mrežne granice, migracije i toka; VI telefon i široki ekran; VII mali commit; VIII jedan spec/grana; IX standardne provere i hook. Nove zavisnosti: `ipaddr.js` za proveru opsega IP adresa i `node-html-parser` za izdvajanje JSON-LD iz HTML-a.
+
+## Granice provere
+
+Funkcija je proverena u lokalnom Supabase Edge runtime-u (`supabase functions serve`, runtime 1.78.1 / Deno 2.1.4) sa pravim nalogom. Ta provera je otkrila da runtime nema globalni `Buffer` niti opciju `lookup` u `node:http`, pa transport sada otvara TCP vezu direktno ka proverenoj IP adresi (`Deno.connect`), TLS proverava sertifikat za originalno ime (`Deno.startTls`), a mali HTTP/1.1 čitač zadržava ograničenja (zaglavlje 32 KB, telo 1 MB, chunked, 12 s, 3 preusmerenja). Potvrđeno: uvoz sa javnih sajtova recepata; 401 bez naloga, 405, 400 za telo preko 4 KB; odbijeni loopback, link-local/metadata, privatni opsezi, Docker imena servisa, IPv6-mapped, decimalni i hex IP, nestandardni port, `file:`, preusmerenja ka privatnim adresama, istekli, pogrešni i samopotpisani sertifikati. HTML entiteti u tekstu recepta se dekodiraju. Ograničenje po nalogu: 10 uvoza u minuti i 60 dnevno, fiksni prozori. Brojač je `private.recipe_import_usage` (briše se sa nalogom); `public.consume_recipe_import(uid)` izvršava samo service_role iz Edge funkcije, odmah posle provere naloga i pre bilo kakvog mrežnog posla. Odbijeni pozivi se takođe broje; ako brojač nije dostupan, funkcija vraća 503 umesto da propusti zahtev. Aplikacija za 429 prikazuje „Previše uvoza zaredom. Sačekaj malo pa pokušaj ponovo.“ Pre objave ostaje nezavisan bezbednosni pregled. Uvezeni sastojci se čuvaju kao izvorni tekst; korisnik ih razdvaja na naziv, količinu i jedinicu u pregledu. Ova grana koristi drift schemaVersion 7 (redosled spajanja: 019 → v6, 020 → v7, 021 → v8, 023 → v9), a serverska migracija 20261110120100, pa ne sudara sa ostalim samostalnim granama.

@@ -80,6 +80,7 @@ class FakeServer {
     'shopping_items': 'shopping_item',
     'pantry_items': 'pantry_item',
     'meal_plans': 'meal_plan',
+    'week_templates': 'week_template',
     'meal_plan_entries': 'meal_plan_entry',
     'shopping_sources': 'shopping_source',
     'shopping_contributions': 'shopping_contribution',

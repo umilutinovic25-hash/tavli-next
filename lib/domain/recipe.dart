@@ -1,4 +1,4 @@
-enum RecipeSource { photo, ai, manual }
+enum RecipeSource { photo, ai, manual, url }
 
 /// `summary` = naziv i sastojci (dovoljno za plan i listu za kupovinu),
 /// `full` = i koraci pripreme.
@@ -67,6 +67,7 @@ class Recipe {
     this.prepMinutes,
     this.imagePath,
     this.answeredBy,
+    this.sourceUrl,
   });
 
   final String id;
@@ -77,6 +78,7 @@ class Recipe {
   final List<String> steps;
   final RecipeSource source;
   final String? imagePath;
+  final String? sourceUrl;
 
   /// Oznaka modela koji je napravio ili poslednji izmenio recept.
   final String? answeredBy;
@@ -94,6 +96,7 @@ class Recipe {
     required DateTime createdAt,
     String? answeredBy,
     String? imagePath,
+    String? sourceUrl,
   }) {
     final title = (json['title'] as String?)?.trim() ?? '';
     if (title.isEmpty) throw const FormatException('Recept nema naziv');
@@ -121,6 +124,7 @@ class Recipe {
       createdAt: createdAt,
       answeredBy: answeredBy,
       imagePath: imagePath,
+      sourceUrl: sourceUrl,
     );
   }
 
@@ -142,6 +146,7 @@ class Recipe {
     steps: steps ?? this.steps,
     source: source,
     imagePath: imagePath ?? this.imagePath,
+    sourceUrl: sourceUrl,
     answeredBy: answeredBy ?? this.answeredBy,
     createdAt: createdAt,
   );
@@ -152,6 +157,7 @@ class Recipe {
     ...toAiJson(),
     'source': source.name,
     'imagePath': imagePath,
+    'sourceUrl': sourceUrl,
     'answeredBy': answeredBy,
     'createdAt': createdAt.toUtc().toIso8601String(),
   };
@@ -171,6 +177,7 @@ class Recipe {
       createdAt: createdAt,
       answeredBy: json['answeredBy'] as String?,
       imagePath: json['imagePath'] as String?,
+      sourceUrl: json['sourceUrl'] as String?,
     );
   }
 

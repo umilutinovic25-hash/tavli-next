@@ -22,6 +22,7 @@ class Recipes extends Table {
   TextColumn get stepsJson => text()();
   TextColumn get imagePath => text().nullable()();
   TextColumn get answeredBy => text().nullable()();
+  TextColumn get sourceUrl => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   TextColumn get householdId => text().nullable()();
@@ -119,6 +120,10 @@ class ShoppingItems extends Table {
   /// izmene plana ne menjaju istoriju kupovine.
   TextColumn get purchaseProvenanceJson => text().nullable()();
 
+  TextColumn get brand => text().nullable()();
+  TextColumn get note => text().nullable()();
+  TextColumn get photoPath => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -135,6 +140,19 @@ class MealPlans extends Table {
 
   /// Porcije za nove obroke plana (1–20, v5).
   IntColumn get defaultServings => integer().withDefault(const Constant(2))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('WeekTemplateRow')
+class WeekTemplates extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+  TextColumn get name => text()();
+  TextColumn get mealsJson => text()();
+  BoolColumn get usePantry => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -390,6 +408,7 @@ class SyncCursors extends Table {
     ShoppingLists,
     ShoppingItems,
     MealPlans,
+    WeekTemplates,
     MealPlanEntries,
     ShoppingSources,
     ShoppingContributions,
@@ -409,7 +428,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -431,6 +450,33 @@ class AppDatabase extends _$AppDatabase {
           "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'saved_recipe_searches'",
         ).get();
         if (rows.isEmpty) await m.createTable(savedRecipeSearches);
+      }
+      if (from < 7) {
+        final columns = await customSelect('PRAGMA table_info("recipes")')
+            .get();
+        if (!columns.any((row) => row.read<String>('name') == 'source_url')) {
+          await m.addColumn(recipes, recipes.sourceUrl);
+        }
+      }
+      if (from < 8) {
+        final rows = await customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'week_templates'",
+        ).get();
+        if (rows.isEmpty) await m.createTable(weekTemplates);
+      }
+      if (from < 9) {
+        final columns = await customSelect('PRAGMA table_info(shopping_items)')
+            .get();
+        final names = {for (final c in columns) c.read<String>('name')};
+        if (!names.contains('brand')) {
+          await m.addColumn(shoppingItems, shoppingItems.brand);
+        }
+        if (!names.contains('note')) {
+          await m.addColumn(shoppingItems, shoppingItems.note);
+        }
+        if (!names.contains('photo_path')) {
+          await m.addColumn(shoppingItems, shoppingItems.photoPath);
+        }
       }
     },
   );
