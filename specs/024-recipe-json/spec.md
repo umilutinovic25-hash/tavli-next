@@ -1,0 +1,7 @@
+# Prenosivi recepti u schema.org/Recipe JSON formatu
+
+Korisnik izvozi recept iz detalja recepta kao schema.org/Recipe JSON (JSON-LD) i uvozi jedan ili više recepata iz takvog fajla preko „Dodaj recept“. Izvezen fajl čitaju druge aplikacije (naziv, porcije, ukupno vreme, sastojci kao tekst, koraci kao HowToStep); Tavli uz to čuva strukturisane sastojke, pa povratni uvoz vraća količinu, jedinicu, kategoriju i napomenu bez gubitka. Uvoz prihvata objekat, niz i `@graph`, tekstualne sastojke, sekcije koraka (HowToSection), ISO 8601 trajanje i različite oblike `recipeYield`. Posle uvoza prikazuje se izveštaj: uvezeni recepti, preskočeni (bez naziva, bez sastojaka, duplikat po nazivu u receptima ili u fajlu) i polja koja Tavli ne čuva. Uvezeni recepti se čuvaju kao ručno uneti, kroz repozitorijum i outbox.
+
+Tekst: „Izvezi kao JSON“, „Recept je izvezen.“, „Izvoz nije uspeo. Pokušaj ponovo.“, „Iz JSON fajla“, „Uvezi schema.org recepte iz druge aplikacije“, „Uvoz recepata“, „Uvezeno recepata: N“, „Nijedan recept nije uvezen.“, „Preskočeno“, „Recept bez naziva“, „nema naziv“, „nema sastojke“, „već postoji u receptima“, „ponavlja se u fajlu“, „Nije preneto“, „U redu“, „Fajl nije ispravan JSON recepta.“, „Uvoz nije uspeo. Pokušaj ponovo.“
+
+Slike, nutritivne vrednosti, autor i ostala polja se ne prenose (navode se u izveštaju). Uvoz kolekcija iz drugih aplikacija (#23) i deljenje iz browsera (#24) nisu deo ove funkcije.

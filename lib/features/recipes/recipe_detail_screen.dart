@@ -7,11 +7,12 @@ import '../../domain/shopping_source.dart';
 import 'cooking_screen.dart';
 import 'ingredient_review_sheet.dart';
 import 'keep_screen_on.dart';
+import 'recipe_json_actions.dart';
 import 'recipe_providers.dart';
 import 'recipe_view.dart';
 import 'versions_sheet.dart';
 
-enum _MenuAction { undo, versions, delete }
+enum _MenuAction { undo, versions, export, delete }
 
 /// Detalji recepta. [embedded] je desni deo podeljenog prikaza (bez "nazad").
 class RecipeDetailScreen extends ConsumerWidget {
@@ -139,6 +140,7 @@ class _DetailState extends ConsumerState<_Detail> {
             onSelected: (action) => switch (action) {
               _MenuAction.undo => undoLastChange(context, ref, recipe.id),
               _MenuAction.versions => showVersionsSheet(context, recipe.id),
+              _MenuAction.export => exportRecipeJson(context, ref, recipe),
               _MenuAction.delete => _delete(context, ref),
             },
             itemBuilder: (context) => [
@@ -150,6 +152,10 @@ class _DetailState extends ConsumerState<_Detail> {
               const PopupMenuItem(
                 value: _MenuAction.versions,
                 child: Text('Prethodne verzije'),
+              ),
+              const PopupMenuItem(
+                value: _MenuAction.export,
+                child: Text('Izvezi kao JSON'),
               ),
               const PopupMenuItem(
                 value: _MenuAction.delete,

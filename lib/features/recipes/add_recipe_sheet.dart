@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import 'recipe_json_actions.dart';
 
 /// Izbor načina dodavanja recepta.
 Future<void> showAddRecipeSheet(BuildContext context) {
@@ -11,6 +16,7 @@ Future<void> showAddRecipeSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
+    isScrollControlled: true,
     builder: (sheetContext) => SafeArea(
       child: SingleChildScrollView(
         child: Column(
@@ -39,6 +45,22 @@ Future<void> showAddRecipeSheet(BuildContext context) {
               title: const Text('Ručno'),
               subtitle: const Text('Upiši recept sam'),
               onTap: () => open(sheetContext, '/recipes/new/manual'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.file_open_outlined),
+              title: const Text('Iz JSON fajla'),
+              subtitle: const Text(
+                'Uvezi schema.org recepte iz druge aplikacije',
+              ),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                unawaited(
+                  importRecipeJson(
+                    context,
+                    ProviderScope.containerOf(context, listen: false),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 8),
           ],
