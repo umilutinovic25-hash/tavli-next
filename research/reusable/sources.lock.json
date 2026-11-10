@@ -1,0 +1,71 @@
+{
+  "acquired_on": "2026-11-09",
+  "files": [
+    {
+      "repo": "grocy/grocy",
+      "commit": "41206cb90154e0d17d3e108cc1f182b94fdb465d",
+      "upstream_path": "migrations/0225.sql",
+      "source_url": "https://raw.githubusercontent.com/grocy/grocy/41206cb90154e0d17d3e108cc1f182b94fdb465d/migrations/0225.sql",
+      "local_path": "research/reusable/grocy/migrations/0225.sql",
+      "sha256": "f937c33c46c8becc38ee26be0db09f8c8de99399e2e3a039a056ccd67e9eff0d",
+      "bytes": 13470,
+      "license": "MIT",
+      "integration": "reference-only; not executed or imported by Flutter"
+    },
+    {
+      "repo": "grocy/grocy",
+      "commit": "41206cb90154e0d17d3e108cc1f182b94fdb465d",
+      "upstream_path": "LICENSE.md",
+      "source_url": "https://raw.githubusercontent.com/grocy/grocy/41206cb90154e0d17d3e108cc1f182b94fdb465d/LICENSE.md",
+      "local_path": "research/reusable/grocy/LICENSE.md",
+      "sha256": "8ed5277fef47c50c718ec0816cbe79fc4ec0a751b9983745069a272060c63177",
+      "bytes": 1096,
+      "license": "MIT",
+      "integration": "reference-only; not executed or imported by Flutter"
+    },
+    {
+      "repo": "cooklang/cookcli",
+      "commit": "4e53c8c9c29a5ced2b444b19133cb38a5217c8bb",
+      "upstream_path": "crates/core/src/fs_atomic.rs",
+      "source_url": "https://raw.githubusercontent.com/cooklang/cookcli/4e53c8c9c29a5ced2b444b19133cb38a5217c8bb/crates/core/src/fs_atomic.rs",
+      "local_path": "research/reusable/cookcli/crates/core/src/fs_atomic.rs",
+      "sha256": "5dc1acfa84c0023468d46d5c29119af8489e5b60b1ffb5adb8db07cf124ab49c",
+      "bytes": 11627,
+      "license": "MIT",
+      "integration": "reference-only; not executed or imported by Flutter"
+    },
+    {
+      "repo": "cooklang/cookcli",
+      "commit": "4e53c8c9c29a5ced2b444b19133cb38a5217c8bb",
+      "upstream_path": "crates/core/LICENSE",
+      "source_url": "https://raw.githubusercontent.com/cooklang/cookcli/4e53c8c9c29a5ced2b444b19133cb38a5217c8bb/crates/core/LICENSE",
+      "local_path": "research/reusable/cookcli/crates/core/LICENSE",
+      "sha256": "af27681b98fd4549e7966762a119a1bd90c5ea547b42964da2407d7678dc6ddf",
+      "bytes": 1078,
+      "license": "MIT",
+      "integration": "reference-only; not executed or imported by Flutter"
+    },
+    {
+      "repo": "hhursev/recipe-scrapers",
+      "commit": "80266d1db324d58f1426d78facbe2e342662b990",
+      "upstream_path": "recipe_scrapers/_schemaorg.py",
+      "source_url": "https://raw.githubusercontent.com/hhursev/recipe-scrapers/80266d1db324d58f1426d78facbe2e342662b990/recipe_scrapers/_schemaorg.py",
+      "local_path": "research/reusable/recipe-scrapers/recipe_scrapers/_schemaorg.py",
+      "sha256": "70b6bc5257d283f7fce437685a75538b50410f0df5c6f684e6a057f343ce5f70",
+      "bytes": 15889,
+      "license": "MIT",
+      "integration": "reference-only; not executed or imported by Flutter"
+    },
+    {
+      "repo": "hhursev/recipe-scrapers",
+      "commit": "80266d1db324d58f1426d78facbe2e342662b990",
+      "upstream_path": "LICENSE",
+      "source_url": "https://raw.githubusercontent.com/hhursev/recipe-scrapers/80266d1db324d58f1426d78facbe2e342662b990/LICENSE",
+      "local_path": "research/reusable/recipe-scrapers/LICENSE",
+      "sha256": "de5dd1698c31b1b789b2859c8ea4b637dff98ca7bce95eb282f2492603c3c8f9",
+      "bytes": 1099,
+      "license": "MIT",
+      "integration": "reference-only; not executed or imported by Flutter"
+    }
+  ]
+}

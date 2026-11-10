@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/theme_choice.dart';
@@ -58,24 +60,30 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
     surfaceTint: const Color(0x00000000),
   );
 
+  final apple =
+      defaultTargetPlatform == TargetPlatform.macOS ||
+      defaultTargetPlatform == TargetPlatform.iOS;
   final base = ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
-    fontFamily: tavliFontFamily,
+    fontFamily: apple
+        ? const CupertinoThemeData().textTheme.textStyle.fontFamily
+        : tavliFontFamily,
+    fontFamilyFallback: const [tavliFontFamily],
   );
   final text = base.textTheme;
   TextStyle? heading(TextStyle? s, {FontWeight weight = FontWeight.w700}) => s
       ?.copyWith(fontWeight: weight, letterSpacing: -0.02 * (s.fontSize ?? 16));
   final textTheme = text.copyWith(
-    displayLarge: heading(text.displayLarge, weight: FontWeight.w800),
-    displayMedium: heading(text.displayMedium, weight: FontWeight.w800),
-    displaySmall: heading(text.displaySmall, weight: FontWeight.w800),
-    headlineLarge: heading(text.headlineLarge, weight: FontWeight.w800),
-    headlineMedium: heading(text.headlineMedium),
+    displayLarge: heading(text.displayLarge),
+    displayMedium: heading(text.displayMedium),
+    displaySmall: heading(text.displaySmall),
+    headlineLarge: heading(text.headlineLarge),
+    headlineMedium: heading(text.headlineMedium)?.copyWith(fontSize: 32),
     headlineSmall: heading(text.headlineSmall),
     titleLarge: heading(text.titleLarge),
-    titleMedium: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-    titleSmall: text.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+    titleMedium: text.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+    titleSmall: text.titleSmall?.copyWith(fontWeight: FontWeight.w600),
     bodyLarge: text.bodyLarge?.copyWith(fontSize: 16, height: 1.55),
     bodyMedium: text.bodyMedium?.copyWith(fontSize: 16, height: 1.5),
     labelLarge: text.labelLarge?.copyWith(fontWeight: FontWeight.w600),
@@ -103,6 +111,8 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
     ],
     appBarTheme: AppBarTheme(
       backgroundColor: p.bg,
+      toolbarHeight: 64,
+      shape: Border(bottom: lineSide),
       foregroundColor: p.text,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
@@ -114,7 +124,7 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         side: lineSide,
       ),
     ),
@@ -123,7 +133,7 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
       side: WidgetStateBorderSide.resolveWith(
         (s) => s.contains(WidgetState.selected) ? BorderSide.none : lineSide,
       ),
-      shape: const StadiumBorder(),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       labelStyle: textTheme.labelLarge?.copyWith(
         color: WidgetStateColor.resolveWith(
           (s) => s.contains(WidgetState.selected) ? p.onPrimary : p.text,
@@ -134,8 +144,9 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size(64, 56),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        minimumSize: const Size(64, 48),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         textStyle: textTheme.labelLarge?.copyWith(
           fontSize: 16,
           fontWeight: FontWeight.w700,
@@ -147,13 +158,13 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
         minimumSize: const Size(64, 48),
         foregroundColor: p.text,
         side: BorderSide(color: p.boxLine),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         minimumSize: const Size(48, 48),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     ),
     searchBarTheme: SearchBarThemeData(
@@ -162,7 +173,7 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
       surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
       side: WidgetStatePropertyAll(lineSide),
       shape: WidgetStatePropertyAll(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       constraints: const BoxConstraints(minHeight: 50),
       padding: const WidgetStatePropertyAll(
@@ -178,16 +189,17 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: p.surface,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         borderSide: lineSide,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         borderSide: lineSide,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: p.primary, width: 2),
       ),
     ),
@@ -196,7 +208,9 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       indicatorColor: p.container,
-      indicatorShape: const StadiumBorder(),
+      indicatorShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       iconTheme: selected(
         IconThemeData(color: p.onContainer),
         IconThemeData(color: p.muted),
@@ -213,11 +227,13 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
       ),
     ),
     navigationRailTheme: NavigationRailThemeData(
-      backgroundColor: p.surface,
+      backgroundColor: p.bg,
       indicatorColor: p.container,
-      indicatorShape: const StadiumBorder(),
-      selectedIconTheme: IconThemeData(color: p.onContainer),
-      unselectedIconTheme: IconThemeData(color: p.muted),
+      indicatorShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      selectedIconTheme: IconThemeData(color: p.onContainer, size: 20),
+      unselectedIconTheme: IconThemeData(color: p.muted, size: 20),
       selectedLabelTextStyle: textTheme.labelLarge?.copyWith(
         color: p.onContainer,
         fontWeight: FontWeight.w700,
@@ -225,33 +241,39 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
       unselectedLabelTextStyle: textTheme.labelLarge?.copyWith(color: p.muted),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
+      elevation: 0,
+      focusElevation: 0,
+      hoverElevation: 0,
+      highlightElevation: 0,
       backgroundColor: p.primary,
       foregroundColor: p.onPrimary,
       extendedTextStyle: textTheme.labelLarge?.copyWith(
         fontSize: 15,
         fontWeight: FontWeight.w700,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
     ),
     dividerTheme: DividerThemeData(color: p.line, thickness: 1, space: 1),
     listTileTheme: ListTileThemeData(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      minVerticalPadding: 12,
       iconColor: p.muted,
       selectedColor: p.onContainer,
       selectedTileColor: p.container,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: p.surface,
       surfaceTintColor: Colors.transparent,
       dragHandleColor: p.boxLine,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: p.surface,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(
       color: p.primary,
@@ -269,6 +291,22 @@ ThemeData buildTavliTheme(TavliTheme theme, Brightness brightness) {
         side: WidgetStatePropertyAll(lineSide),
         minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
       ),
+    ),
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(
+        minimumSize: const Size(44, 44),
+        foregroundColor: p.muted,
+        hoverColor: p.container,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    ),
+    tooltipTheme: TooltipThemeData(
+      waitDuration: const Duration(milliseconds: 500),
+      decoration: BoxDecoration(
+        color: p.text,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      textStyle: textTheme.labelMedium?.copyWith(color: p.surface),
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: p.text,
