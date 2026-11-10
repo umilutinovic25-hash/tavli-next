@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:http/http.dart' as http;
 import 'package:supabase/supabase.dart';
@@ -14,11 +13,6 @@ sealed class HouseholdInviteFailure implements Exception {
 
   @override
   String toString() => runtimeType.toString();
-}
-
-/// Kod je već zauzet (sudar pri pravljenju); repozitorijum pravi novi.
-class InviteCodeTaken extends HouseholdInviteFailure {
-  const InviteCodeTaken();
 }
 
 /// Kod ne postoji, istekao je ili je poništen. Namerno jedna greška: ne
@@ -45,10 +39,10 @@ class InviteServerError extends HouseholdInviteFailure {
   const InviteServerError();
 }
 
-/// Udaljeni sloj za pozivnice (tabela i RPC). Baca [HouseholdInviteFailure].
+/// Udaljeni sloj za pozivnice (RPC i tabela). Baca [HouseholdInviteFailure].
 abstract interface class HouseholdInviteRemote {
-  /// Novi red sa kodom; server dodaje created_by i expires_at.
-  Future<HouseholdInvite> insert(String householdId, String code);
+  /// Server pravi pozivnicu i vraća njen kod (create_household_invite).
+  Future<String> create(String householdId);
 
   Future<List<HouseholdInvite>> listForHousehold(String householdId);
 
@@ -58,7 +52,8 @@ abstract interface class HouseholdInviteRemote {
   Future<String?> redeem(String code);
 }
 
-/// Pozivnice kroz PostgREST i RPC `redeem_household_invite`.
+/// Pozivnice kroz PostgREST i RPC `create_household_invite` /
+/// `redeem_household_invite`.
 class SupabaseHouseholdInviteRemote implements HouseholdInviteRemote {
   SupabaseHouseholdInviteRemote(this._client);
 
@@ -67,15 +62,13 @@ class SupabaseHouseholdInviteRemote implements HouseholdInviteRemote {
   static const _table = 'household_invites';
 
   @override
-  Future<HouseholdInvite> insert(String householdId, String code) =>
-      _guard(() async {
-        final row = await _client.rest
-            .from(_table)
-            .insert({'household_id': householdId, 'code': code})
-            .select()
-            .single();
-        return _fromRow(row);
-      });
+  Future<String> create(String householdId) => _guard(() async {
+    final code = await _client.rpc<dynamic>(
+      'create_household_invite',
+      params: {'p_household_id': householdId},
+    );
+    return code as String;
+  });
 
   @override
   Future<List<HouseholdInvite>> listForHousehold(String householdId) =>
@@ -122,7 +115,6 @@ class SupabaseHouseholdInviteRemote implements HouseholdInviteRemote {
       return await action();
     } on PostgrestException catch (e) {
       throw switch (e.code) {
-        '23505' => const InviteCodeTaken(),
         'P0429' => const InviteTooManyAttempts(),
         '42501' => const InviteForbidden(),
         _ => const InviteServerError(),
@@ -137,30 +129,15 @@ class SupabaseHouseholdInviteRemote implements HouseholdInviteRemote {
   }
 }
 
-/// Pozivnice za domaćinstvo: pravljenje (sa ponovnim pokušajem kod sudara
-/// koda), pregled, poništavanje i unos koda.
+/// Pozivnice za domaćinstvo: pravljenje (kod pravi server), pregled,
+/// poništavanje i unos koda.
 class HouseholdInviteRepository {
-  HouseholdInviteRepository(this._remote, {this.random});
+  HouseholdInviteRepository(this._remote);
 
   final HouseholdInviteRemote _remote;
 
-  /// Izvor slučajnosti za kodove; u testovima se zadaje seme.
-  final Random? random;
-
-  static const _createAttempts = 3;
-
-  Future<HouseholdInvite> create(String householdId) async {
-    for (var attempt = 1; ; attempt++) {
-      try {
-        return await _remote.insert(
-          householdId,
-          generateInviteCode(random: random),
-        );
-      } on InviteCodeTaken {
-        if (attempt == _createAttempts) rethrow;
-      }
-    }
-  }
+  /// Pravi pozivnicu i vraća njen kod za deljenje.
+  Future<String> create(String householdId) => _remote.create(householdId);
 
   Future<List<HouseholdInvite>> listForHousehold(String householdId) =>
       _remote.listForHousehold(householdId);

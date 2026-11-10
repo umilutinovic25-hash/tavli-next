@@ -1,13 +1,7 @@
 /// Pozivnica za domaćinstvo: kod koji vlasnik deli, a drugi nalog unosi da
-/// bi postao član. Čist domen (bez Fluttera i Supabase-a).
+/// bi postao član. Čist domen (bez Fluttera i Supabase-a). Kod pravi server
+/// (create_household_invite); klijent ga samo prikazuje i normalizuje unos.
 library;
-
-import 'dart:math';
-
-/// Dozvoljeni znaci za kod: bez 0, O, 1, I i L, jer se lako mešaju pri
-/// čitanju i prepisivanju. Mora da se slaže sa proverom u bazi.
-const inviteCodeAlphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
-const inviteCodeLength = 6;
 
 class HouseholdInvite {
   const HouseholdInvite({
@@ -27,15 +21,6 @@ class HouseholdInvite {
   final DateTime expiresAt;
   final DateTime? revokedAt;
   final int uses;
-}
-
-/// Nasumičan kod od [inviteCodeLength] znakova iz [inviteCodeAlphabet].
-String generateInviteCode({Random? random}) {
-  final r = random ?? Random.secure();
-  return String.fromCharCodes([
-    for (var i = 0; i < inviteCodeLength; i++)
-      inviteCodeAlphabet.codeUnitAt(r.nextInt(inviteCodeAlphabet.length)),
-  ]);
 }
 
 /// Kod kako ga unosi korisnik: bez razmaka i velikim slovima. Server radi

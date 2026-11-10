@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -13,15 +12,13 @@ import 'package:tavli/domain/household_invite.dart';
 
 import '../helpers/fake_supabase.dart';
 
-/// Udaljeni sloj u memoriji: beleži pozive i vraća unapred zadate odgovore.
+/// Udaljeni sloj u memoriji: server pravi kod, beleži pozive i vraća unapred
+/// zadate odgovore.
 class FakeInviteRemote implements HouseholdInviteRemote {
-  /// Kodovi koji već postoje (sudar pri pravljenju).
-  final takenCodes = <String>{};
+  /// Ako nije null, svaki zahtev za kod baca ovu grešku.
+  HouseholdInviteFailure? createFails;
 
-  /// Ako nije null, svaki unos baca ovu grešku.
-  HouseholdInviteFailure? insertFails;
-
-  final insertedCodes = <String>[];
+  final createdFor = <String>[];
   final rows = <HouseholdInvite>[];
   final revokedIds = <String>[];
   final redeemedCodes = <String>[];
@@ -30,20 +27,21 @@ class FakeInviteRemote implements HouseholdInviteRemote {
   String? redeemResult;
 
   @override
-  Future<HouseholdInvite> insert(String householdId, String code) async {
-    insertedCodes.add(code);
-    if (insertFails case final f?) throw f;
-    if (takenCodes.contains(code)) throw const InviteCodeTaken();
-    final invite = HouseholdInvite(
-      id: 'inv-${rows.length + 1}',
-      householdId: householdId,
-      code: code,
-      createdAt: DateTime.utc(2026, 11, 10),
-      expiresAt: DateTime.utc(2026, 11, 17),
-      uses: 0,
+  Future<String> create(String householdId) async {
+    createdFor.add(householdId);
+    if (createFails case final f?) throw f;
+    final code = 'CODE${(rows.length + 1).toString().padLeft(4, '0')}';
+    rows.add(
+      HouseholdInvite(
+        id: 'inv-${rows.length + 1}',
+        householdId: householdId,
+        code: code,
+        createdAt: DateTime.utc(2026, 11, 10),
+        expiresAt: DateTime.utc(2026, 11, 17),
+        uses: 0,
+      ),
     );
-    rows.add(invite);
-    return invite;
+    return code;
   }
 
   @override
@@ -68,60 +66,46 @@ void main() {
 
     setUp(() => remote = FakeInviteRemote());
 
-    test('pravi pozivnicu sa generisanim kodom', () async {
-      final repo = HouseholdInviteRepository(remote, random: Random(3));
-      final invite = await repo.create('home-1');
-      expect(invite.householdId, 'home-1');
-      expect(invite.code, remote.insertedCodes.single);
-      expect(remote.insertedCodes.single.length, 6);
+    test('pravi pozivnicu kroz server i vraća njen kod', () async {
+      final repo = HouseholdInviteRepository(remote);
+
+      final code = await repo.create('home-1');
+
+      expect(remote.createdFor, ['home-1']);
+      expect(code, 'CODE0001');
+      expect(remote.rows.single.code, code);
     });
 
-    test('kod sudara se preskače i pravi se novi', () async {
-      final first = generateInviteCode(random: Random(3));
-      remote.takenCodes.add(first);
-      final repo = HouseholdInviteRepository(remote, random: Random(3));
-
-      final invite = await repo.create('home-1');
-
-      expect(remote.insertedCodes.length, 2);
-      expect(remote.insertedCodes.first, first);
-      expect(invite.code, isNot(first));
-    });
-
-    test('posle tri sudara odustaje', () async {
-      remote.insertFails = const InviteCodeTaken();
-      final repo = HouseholdInviteRepository(remote, random: Random(3));
-
-      await expectLater(repo.create('home-1'), throwsA(isA<InviteCodeTaken>()));
-      expect(remote.insertedCodes.length, 3);
-    });
-
-    test('ostale greške se ne ponavljaju', () async {
-      remote.insertFails = const InviteForbidden();
-      final repo = HouseholdInviteRepository(remote, random: Random(3));
+    test('greška servera se prosleđuje bez ponavljanja', () async {
+      remote.createFails = const InviteForbidden();
+      final repo = HouseholdInviteRepository(remote);
 
       await expectLater(repo.create('home-1'), throwsA(isA<InviteForbidden>()));
-      expect(remote.insertedCodes.length, 1);
+      expect(remote.createdFor.length, 1);
     });
 
     test('unos normalizuje kod pre slanja', () async {
       remote.redeemResult = 'home-1';
       final repo = HouseholdInviteRepository(remote);
 
-      expect(await repo.redeem('  k7p2md '), 'home-1');
-      expect(remote.redeemedCodes, ['K7P2MD']);
+      expect(await repo.redeem('  k7p2mdxn '), 'home-1');
+      expect(remote.redeemedCodes, ['K7P2MDXN']);
     });
 
     test('neupotrebljiv kod daje jednu grešku bez razloga', () async {
       remote.redeemResult = null;
       final repo = HouseholdInviteRepository(remote);
 
-      await expectLater(repo.redeem('ZZZZZZ'), throwsA(isA<InviteUnusable>()));
+      await expectLater(
+        repo.redeem('ZZZZZZZZ'),
+        throwsA(isA<InviteUnusable>()),
+      );
     });
 
     test('poništavanje šalje id pozivnice', () async {
-      final repo = HouseholdInviteRepository(remote, random: Random(3));
-      final invite = await repo.create('home-1');
+      final repo = HouseholdInviteRepository(remote);
+      await repo.create('home-1');
+      final invite = remote.rows.single;
 
       await repo.revoke(invite);
 
@@ -129,7 +113,7 @@ void main() {
     });
 
     test('pregled vraća pozivnice domaćinstva', () async {
-      final repo = HouseholdInviteRepository(remote, random: Random(3));
+      final repo = HouseholdInviteRepository(remote);
       await repo.create('home-1');
       await repo.create('home-2');
 
@@ -169,46 +153,32 @@ void main() {
     test('redeem šalje p_code i vraća id domaćinstva', () async {
       handler = (_) => jsonResponse('home-1');
 
-      expect(await remote.redeem('K7P2MD'), 'home-1');
+      expect(await remote.redeem('K7P2MDXN'), 'home-1');
 
       final r = requests.single;
       expect(r.method, 'POST');
       expect(r.url.path, '/rest/v1/rpc/redeem_household_invite');
-      expect(jsonDecode(r.body), {'p_code': 'K7P2MD'});
+      expect(jsonDecode(r.body), {'p_code': 'K7P2MDXN'});
     });
 
     test('redeem bez pogodka vraća null', () async {
       handler = (_) => jsonResponse(null);
-      expect(await remote.redeem('ZZZZZZ'), isNull);
+      expect(await remote.redeem('ZZZZZZZZ'), isNull);
     });
 
     test('P0429 je previše pokušaja', () async {
       handler = (_) => jsonResponse(pgError('P0429', 'too_many_attempts'), 400);
       await expectLater(
-        remote.redeem('K7P2MD'),
+        remote.redeem('K7P2MDXN'),
         throwsA(isA<InviteTooManyAttempts>()),
       );
     });
 
     test('42501 je zabranjeno', () async {
-      handler = (_) => jsonResponse(
-        pgError('42501', 'new row violates row-level security policy'),
-        403,
-      );
+      handler = (_) => jsonResponse(pgError('42501', 'not_owner'), 403);
       await expectLater(
-        remote.insert('home-1', 'K7P2MD'),
+        remote.create('home-1'),
         throwsA(isA<InviteForbidden>()),
-      );
-    });
-
-    test('23505 je zauzet kod', () async {
-      handler = (_) => jsonResponse(
-        pgError('23505', 'duplicate key value violates unique constraint'),
-        409,
-      );
-      await expectLater(
-        remote.insert('home-1', 'K7P2MD'),
-        throwsA(isA<InviteCodeTaken>()),
       );
     });
 
@@ -222,29 +192,22 @@ void main() {
 
     test('nema mreže je offline', () async {
       handler = (_) => throw const SocketException('offline');
-      await expectLater(remote.redeem('K7P2MD'), throwsA(isA<InviteOffline>()));
+      await expectLater(
+        remote.redeem('K7P2MDXN'),
+        throwsA(isA<InviteOffline>()),
+      );
     });
 
-    test('insert šalje household_id i kod, vraća pozivnicu', () async {
-      handler = (_) => jsonResponse({
-        'id': 'inv-9',
-        'household_id': 'home-1',
-        'code': 'K7P2MD',
-        'created_at': '2026-11-10T12:00:00+00:00',
-        'expires_at': '2026-11-17T12:00:00+00:00',
-        'revoked_at': null,
-        'uses': 0,
-      }, 201);
+    test('create šalje household_id na RPC i vraća kod iz servera', () async {
+      handler = (_) => jsonResponse('K7P2MDXN');
 
-      final invite = await remote.insert('home-1', 'K7P2MD');
+      final code = await remote.create('home-1');
 
-      expect(jsonDecode(requests.single.body), {
-        'household_id': 'home-1',
-        'code': 'K7P2MD',
-      });
-      expect(invite.id, 'inv-9');
-      expect(invite.expiresAt.toUtc(), DateTime.utc(2026, 11, 17, 12));
-      expect(invite.revokedAt, isNull);
+      final r = requests.single;
+      expect(r.method, 'POST');
+      expect(r.url.path, '/rest/v1/rpc/create_household_invite');
+      expect(jsonDecode(r.body), {'p_household_id': 'home-1'});
+      expect(code, 'K7P2MDXN');
     });
   });
 }
