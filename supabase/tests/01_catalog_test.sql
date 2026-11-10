@@ -29,8 +29,8 @@ select is(
         order by 1),
   array[
     'cook_soon_items:delete', 'cook_soon_items:insert', 'cook_soon_items:select', 'cook_soon_items:update',
-    'day_time_budgets:delete', 'day_time_budgets:insert', 'day_time_budgets:select', 'day_time_budgets:update',
     'day_rules:delete', 'day_rules:insert', 'day_rules:select', 'day_rules:update',
+    'day_time_budgets:delete', 'day_time_budgets:insert', 'day_time_budgets:select', 'day_time_budgets:update',
     'deletions:select', 'household_members:select', 'households:select',
     'meal_plan_entries:delete', 'meal_plan_entries:insert', 'meal_plan_entries:select', 'meal_plan_entries:update',
     'meal_plans:delete', 'meal_plans:insert', 'meal_plans:select', 'meal_plans:update',
