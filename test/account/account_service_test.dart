@@ -222,6 +222,20 @@ void main() {
               householdId: Value(a.householdId),
             ),
           );
+      for (final (id, user) in [('sa', a.userId), ('sb', 'drugi')]) {
+        await db
+            .into(db.savedRecipeSearches)
+            .insert(
+              SavedRecipeSearchesCompanion.insert(
+                id: id,
+                userId: user,
+                name: 'Brzo',
+                query: '',
+                includeIngredient: '',
+                excludeIngredient: '',
+              ),
+            );
+      }
       await db
           .into(db.ratings)
           .insert(
@@ -332,6 +346,10 @@ void main() {
       );
       expect(await db.select(db.recipeVersions).get(), isEmpty);
       expect(await db.select(db.ratings).get(), isEmpty);
+      expect(
+        [for (final r in await db.select(db.savedRecipeSearches).get()) r.id],
+        ['sb'],
+      );
       // Nabavka drugog domaćinstva ostaje.
       expect(
         [for (final r in await db.select(db.shoppingSources).get()) r.id],

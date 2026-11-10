@@ -219,6 +219,7 @@ void main() {
       'fetch:supply_allocations',
       'fetch:ratings',
       'fetch:taste_profiles',
+      'fetch:saved_recipe_searches',
       'fetch:deletions',
     ]);
     final recipe = (await db.select(db.recipes).get()).single;

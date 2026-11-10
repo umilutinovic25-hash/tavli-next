@@ -193,6 +193,28 @@ void main() {
     );
   });
 
+  test('sačuvana pretraga se prenosi sa svim uslovima', () async {
+    await roundTrip(
+      const SavedRecipeSearchEntity(),
+      SavedRecipeSearchesCompanion.insert(
+        id: 's1',
+        userId: 'u1',
+        name: 'Brzo',
+        query: 'jelo',
+        maxMinutes: const Value(30),
+        includeIngredient: 'piletina',
+        excludeIngredient: 'orah',
+      ),
+      's1',
+      (r) {
+        expect(r['user_id'], 'u1');
+        expect(r['max_minutes'], 30);
+        expect(r['include_ingredient'], 'piletina');
+        expect(r['exclude_ingredient'], 'orah');
+      },
+    );
+  });
+
   test('registar: svi roditelji uvek pre deteta', () {
     final names = [for (final e in syncEntities) e.name];
     for (final e in syncEntities) {
@@ -205,7 +227,7 @@ void main() {
         );
       }
     }
-    expect(names, hasLength(12));
+    expect(names, hasLength(13));
     expect(const SupplyAllocationEntity().parents, [
       'shopping_contribution',
       'pantry_item',
