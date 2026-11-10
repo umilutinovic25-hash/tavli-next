@@ -68,6 +68,50 @@ void main() {
       );
 
   test(
+    'preuzima samo slike stavki svog domaćinstva i osvežava prikaz',
+    () async {
+      for (final (id, home) in [('a', 'h1'), ('b', 'h2')]) {
+        await db
+            .into(db.shoppingLists)
+            .insert(
+              ShoppingListsCompanion.insert(
+                id: 'l$id',
+                name: 'Lista',
+                createdAt: DateTime.utc(2026),
+                householdId: Value(home),
+              ),
+            );
+        await db
+            .into(db.shoppingItems)
+            .insert(
+              ShoppingItemsCompanion.insert(
+                id: id,
+                listId: 'l$id',
+                name: id,
+                category: 'ostalo',
+                householdId: Value(home),
+                photoPath: Value('recipe_photos/$id.jpg'),
+              ),
+            );
+        backend.server.photos['$home/$id.jpg'] = Uint8List.fromList([1]);
+      }
+      final notified = <String>[];
+      expect(
+        await PhotoSync(
+          db: db,
+          remote: backend.photos,
+          store: store,
+          scope: scope,
+          onFetched: notified.add,
+        ).fetchMissing(),
+        1,
+      );
+      expect(store.saved.keys, ['recipe_photos/a.jpg']);
+      expect(notified, ['recipe_photos/a.jpg']);
+    },
+  );
+
+  test(
     'preuzima slike recepata i verzija kojih nema, najviše 4 odjednom',
     () async {
       for (var i = 0; i < 9; i++) {

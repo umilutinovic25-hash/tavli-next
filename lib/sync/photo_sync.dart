@@ -16,6 +16,7 @@ class PhotoSync {
     required this._store,
     required this._scope,
     this.parallel = 4,
+    this.onFetched,
   });
 
   final AppDatabase _db;
@@ -23,6 +24,7 @@ class PhotoSync {
   final RecipePhotoStore _store;
   final AccountScope _scope;
   final int parallel;
+  final void Function(String path)? onFetched;
 
   /// Vraća broj preuzetih slika.
   Future<int> fetchMissing() async {
@@ -45,6 +47,7 @@ class PhotoSync {
         '${_scope.householdId}/${photoFileName(path)}',
       );
       await _store.write(path, bytes);
+      onFetched?.call(path);
       return true;
     } on SyncError {
       return false;
@@ -71,6 +74,12 @@ class PhotoSync {
       } on FormatException {
         // Pokvaren zapis verzije se preskače.
       }
+    }
+    final shoppingItems = await (_db.select(
+      _db.shoppingItems,
+    )..where((t) => t.householdId.equals(_scope.householdId))).get();
+    for (final item in shoppingItems) {
+      if (item.photoPath case final p?) paths.add(p);
     }
     return paths;
   }

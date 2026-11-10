@@ -8,6 +8,7 @@ import 'package:tavli/sync/sync_remote.dart';
 import 'package:tavli/sync/synced_writer.dart';
 
 import '../helpers/fake_backend.dart';
+import '../helpers/fake_photo_store.dart';
 
 void main() {
   late AppDatabase db;
@@ -344,6 +345,58 @@ void main() {
     await downloader().run();
     final rows = await db.select(db.recipes).get();
     expect(rows.map((r) => r.title), ['Lokalno', 'Lokalno']);
+  });
+
+  test('udaljena zamena i brisanje čiste lokalnu fotografiju stavke', () async {
+    seedAll();
+    backend.server.upsert('shopping_items', [
+      {'id': 'i-mleko', 'household_id': hid, 'photo_path': 'old.jpg'},
+    ], 'id');
+    final photos = FakePhotoStore();
+    final pull = Downloader(
+      db: db,
+      remote: backend.sync,
+      scope: scope,
+      photoStore: photos,
+    );
+    await pull.run();
+    await photos.write('recipe_photos/old.jpg', Uint8List(1));
+    backend.server.upsert('shopping_items', [
+      {'id': 'i-mleko', 'household_id': hid, 'photo_path': 'new.jpg'},
+    ], 'id');
+    await pull.run();
+    expect(await photos.exists('recipe_photos/old.jpg'), isFalse);
+    expect(
+      (await (db.select(
+        db.shoppingItems,
+      )..where((t) => t.id.equals('i-mleko'))).getSingle()).photoPath,
+      'recipe_photos/new.jpg',
+    );
+    await photos.write('recipe_photos/new.jpg', Uint8List(1));
+    await SyncedWriter(
+      db,
+      accountId: scope.userId,
+    ).photoUpload('recipe_photos/new.jpg');
+    backend.server.delete('shopping_items', ['i-mleko'], 'id');
+    await pull.run();
+    expect(await photos.exists('recipe_photos/new.jpg'), isFalse);
+    final outbox = await db.select(db.syncOutbox).get();
+    expect(
+      outbox.any(
+        (e) =>
+            e.recordId == 'recipe_photos/new.jpg' &&
+            e.op == OutboxOp.photoDelete,
+      ),
+      isTrue,
+    );
+    expect(
+      outbox.any(
+        (e) =>
+            e.recordId == 'recipe_photos/new.jpg' &&
+            e.op == OutboxOp.photoUpload,
+      ),
+      isFalse,
+    );
   });
 
   test('trag brisanja briše lokalni red i izmene koje čekaju', () async {

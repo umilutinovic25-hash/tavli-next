@@ -2555,6 +2555,35 @@ class $ShoppingItemsTable extends ShoppingItems
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _brandMeta = const VerificationMeta('brand');
+  @override
+  late final GeneratedColumn<String> brand = GeneratedColumn<String>(
+    'brand',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _photoPathMeta = const VerificationMeta(
+    'photoPath',
+  );
+  @override
+  late final GeneratedColumn<String> photoPath = GeneratedColumn<String>(
+    'photo_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2568,6 +2597,9 @@ class $ShoppingItemsTable extends ShoppingItems
     fromRecipeIdsJson,
     householdId,
     purchaseProvenanceJson,
+    brand,
+    note,
+    photoPath,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2661,6 +2693,24 @@ class $ShoppingItemsTable extends ShoppingItems
         ),
       );
     }
+    if (data.containsKey('brand')) {
+      context.handle(
+        _brandMeta,
+        brand.isAcceptableOrUnknown(data['brand']!, _brandMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('photo_path')) {
+      context.handle(
+        _photoPathMeta,
+        photoPath.isAcceptableOrUnknown(data['photo_path']!, _photoPathMeta),
+      );
+    }
     return context;
   }
 
@@ -2714,6 +2764,18 @@ class $ShoppingItemsTable extends ShoppingItems
         DriftSqlType.string,
         data['${effectivePrefix}purchase_provenance_json'],
       ),
+      brand: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}brand'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      photoPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_path'],
+      ),
     );
   }
 
@@ -2738,6 +2800,9 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
   /// Zamrznuti izvori, porcije i raspodela u trenutku kupovine (v5); kasnije
   /// izmene plana ne menjaju istoriju kupovine.
   final String? purchaseProvenanceJson;
+  final String? brand;
+  final String? note;
+  final String? photoPath;
   const ShoppingItemRow({
     required this.id,
     required this.listId,
@@ -2750,6 +2815,9 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
     required this.fromRecipeIdsJson,
     this.householdId,
     this.purchaseProvenanceJson,
+    this.brand,
+    this.note,
+    this.photoPath,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2775,6 +2843,15 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
         purchaseProvenanceJson,
       );
     }
+    if (!nullToAbsent || brand != null) {
+      map['brand'] = Variable<String>(brand);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || photoPath != null) {
+      map['photo_path'] = Variable<String>(photoPath);
+    }
     return map;
   }
 
@@ -2797,6 +2874,13 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
       purchaseProvenanceJson: purchaseProvenanceJson == null && nullToAbsent
           ? const Value.absent()
           : Value(purchaseProvenanceJson),
+      brand: brand == null && nullToAbsent
+          ? const Value.absent()
+          : Value(brand),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      photoPath: photoPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(photoPath),
     );
   }
 
@@ -2819,6 +2903,9 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
       purchaseProvenanceJson: serializer.fromJson<String?>(
         json['purchaseProvenanceJson'],
       ),
+      brand: serializer.fromJson<String?>(json['brand']),
+      note: serializer.fromJson<String?>(json['note']),
+      photoPath: serializer.fromJson<String?>(json['photoPath']),
     );
   }
   @override
@@ -2838,6 +2925,9 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
       'purchaseProvenanceJson': serializer.toJson<String?>(
         purchaseProvenanceJson,
       ),
+      'brand': serializer.toJson<String?>(brand),
+      'note': serializer.toJson<String?>(note),
+      'photoPath': serializer.toJson<String?>(photoPath),
     };
   }
 
@@ -2853,6 +2943,9 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
     String? fromRecipeIdsJson,
     Value<String?> householdId = const Value.absent(),
     Value<String?> purchaseProvenanceJson = const Value.absent(),
+    Value<String?> brand = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+    Value<String?> photoPath = const Value.absent(),
   }) => ShoppingItemRow(
     id: id ?? this.id,
     listId: listId ?? this.listId,
@@ -2867,6 +2960,9 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
     purchaseProvenanceJson: purchaseProvenanceJson.present
         ? purchaseProvenanceJson.value
         : this.purchaseProvenanceJson,
+    brand: brand.present ? brand.value : this.brand,
+    note: note.present ? note.value : this.note,
+    photoPath: photoPath.present ? photoPath.value : this.photoPath,
   );
   ShoppingItemRow copyWithCompanion(ShoppingItemsCompanion data) {
     return ShoppingItemRow(
@@ -2887,6 +2983,9 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
       purchaseProvenanceJson: data.purchaseProvenanceJson.present
           ? data.purchaseProvenanceJson.value
           : this.purchaseProvenanceJson,
+      brand: data.brand.present ? data.brand.value : this.brand,
+      note: data.note.present ? data.note.value : this.note,
+      photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
     );
   }
 
@@ -2903,7 +3002,10 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
           ..write('isManual: $isManual, ')
           ..write('fromRecipeIdsJson: $fromRecipeIdsJson, ')
           ..write('householdId: $householdId, ')
-          ..write('purchaseProvenanceJson: $purchaseProvenanceJson')
+          ..write('purchaseProvenanceJson: $purchaseProvenanceJson, ')
+          ..write('brand: $brand, ')
+          ..write('note: $note, ')
+          ..write('photoPath: $photoPath')
           ..write(')'))
         .toString();
   }
@@ -2921,6 +3023,9 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
     fromRecipeIdsJson,
     householdId,
     purchaseProvenanceJson,
+    brand,
+    note,
+    photoPath,
   );
   @override
   bool operator ==(Object other) =>
@@ -2936,7 +3041,10 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
           other.isManual == this.isManual &&
           other.fromRecipeIdsJson == this.fromRecipeIdsJson &&
           other.householdId == this.householdId &&
-          other.purchaseProvenanceJson == this.purchaseProvenanceJson);
+          other.purchaseProvenanceJson == this.purchaseProvenanceJson &&
+          other.brand == this.brand &&
+          other.note == this.note &&
+          other.photoPath == this.photoPath);
 }
 
 class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
@@ -2951,6 +3059,9 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
   final Value<String> fromRecipeIdsJson;
   final Value<String?> householdId;
   final Value<String?> purchaseProvenanceJson;
+  final Value<String?> brand;
+  final Value<String?> note;
+  final Value<String?> photoPath;
   final Value<int> rowid;
   const ShoppingItemsCompanion({
     this.id = const Value.absent(),
@@ -2964,6 +3075,9 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
     this.fromRecipeIdsJson = const Value.absent(),
     this.householdId = const Value.absent(),
     this.purchaseProvenanceJson = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.note = const Value.absent(),
+    this.photoPath = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ShoppingItemsCompanion.insert({
@@ -2978,6 +3092,9 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
     this.fromRecipeIdsJson = const Value.absent(),
     this.householdId = const Value.absent(),
     this.purchaseProvenanceJson = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.note = const Value.absent(),
+    this.photoPath = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        listId = Value(listId),
@@ -2995,6 +3112,9 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
     Expression<String>? fromRecipeIdsJson,
     Expression<String>? householdId,
     Expression<String>? purchaseProvenanceJson,
+    Expression<String>? brand,
+    Expression<String>? note,
+    Expression<String>? photoPath,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3010,6 +3130,9 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
       if (householdId != null) 'household_id': householdId,
       if (purchaseProvenanceJson != null)
         'purchase_provenance_json': purchaseProvenanceJson,
+      if (brand != null) 'brand': brand,
+      if (note != null) 'note': note,
+      if (photoPath != null) 'photo_path': photoPath,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3026,6 +3149,9 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
     Value<String>? fromRecipeIdsJson,
     Value<String?>? householdId,
     Value<String?>? purchaseProvenanceJson,
+    Value<String?>? brand,
+    Value<String?>? note,
+    Value<String?>? photoPath,
     Value<int>? rowid,
   }) {
     return ShoppingItemsCompanion(
@@ -3041,6 +3167,9 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
       householdId: householdId ?? this.householdId,
       purchaseProvenanceJson:
           purchaseProvenanceJson ?? this.purchaseProvenanceJson,
+      brand: brand ?? this.brand,
+      note: note ?? this.note,
+      photoPath: photoPath ?? this.photoPath,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3083,6 +3212,15 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
         purchaseProvenanceJson.value,
       );
     }
+    if (brand.present) {
+      map['brand'] = Variable<String>(brand.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (photoPath.present) {
+      map['photo_path'] = Variable<String>(photoPath.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3103,6 +3241,9 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
           ..write('fromRecipeIdsJson: $fromRecipeIdsJson, ')
           ..write('householdId: $householdId, ')
           ..write('purchaseProvenanceJson: $purchaseProvenanceJson, ')
+          ..write('brand: $brand, ')
+          ..write('note: $note, ')
+          ..write('photoPath: $photoPath, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11056,6 +11197,9 @@ typedef $$ShoppingItemsTableCreateCompanionBuilder =
       Value<String> fromRecipeIdsJson,
       Value<String?> householdId,
       Value<String?> purchaseProvenanceJson,
+      Value<String?> brand,
+      Value<String?> note,
+      Value<String?> photoPath,
       Value<int> rowid,
     });
 typedef $$ShoppingItemsTableUpdateCompanionBuilder =
@@ -11071,6 +11215,9 @@ typedef $$ShoppingItemsTableUpdateCompanionBuilder =
       Value<String> fromRecipeIdsJson,
       Value<String?> householdId,
       Value<String?> purchaseProvenanceJson,
+      Value<String?> brand,
+      Value<String?> note,
+      Value<String?> photoPath,
       Value<int> rowid,
     });
 
@@ -11186,6 +11333,21 @@ class $$ShoppingItemsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoPath => $composableBuilder(
+    column: $table.photoPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ShoppingListsTableFilterComposer get listId {
     final $$ShoppingListsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -11295,6 +11457,21 @@ class $$ShoppingItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get photoPath => $composableBuilder(
+    column: $table.photoPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ShoppingListsTableOrderingComposer get listId {
     final $$ShoppingListsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -11363,6 +11540,15 @@ class $$ShoppingItemsTableAnnotationComposer
     column: $table.purchaseProvenanceJson,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get brand =>
+      $composableBuilder(column: $table.brand, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get photoPath =>
+      $composableBuilder(column: $table.photoPath, builder: (column) => column);
 
   $$ShoppingListsTableAnnotationComposer get listId {
     final $$ShoppingListsTableAnnotationComposer composer = $composerBuilder(
@@ -11453,6 +11639,9 @@ class $$ShoppingItemsTableTableManager
                 Value<String> fromRecipeIdsJson = const Value.absent(),
                 Value<String?> householdId = const Value.absent(),
                 Value<String?> purchaseProvenanceJson = const Value.absent(),
+                Value<String?> brand = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String?> photoPath = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShoppingItemsCompanion(
                 id: id,
@@ -11466,6 +11655,9 @@ class $$ShoppingItemsTableTableManager
                 fromRecipeIdsJson: fromRecipeIdsJson,
                 householdId: householdId,
                 purchaseProvenanceJson: purchaseProvenanceJson,
+                brand: brand,
+                note: note,
+                photoPath: photoPath,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -11481,6 +11673,9 @@ class $$ShoppingItemsTableTableManager
                 Value<String> fromRecipeIdsJson = const Value.absent(),
                 Value<String?> householdId = const Value.absent(),
                 Value<String?> purchaseProvenanceJson = const Value.absent(),
+                Value<String?> brand = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String?> photoPath = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShoppingItemsCompanion.insert(
                 id: id,
@@ -11494,6 +11689,9 @@ class $$ShoppingItemsTableTableManager
                 fromRecipeIdsJson: fromRecipeIdsJson,
                 householdId: householdId,
                 purchaseProvenanceJson: purchaseProvenanceJson,
+                brand: brand,
+                note: note,
+                photoPath: photoPath,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

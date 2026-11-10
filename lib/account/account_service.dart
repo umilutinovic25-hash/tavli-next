@@ -109,6 +109,11 @@ class AccountService {
         )..where((t) => t.householdId.equals(hid))).get()) {
           if (_imagePath(v.recipeJson) case final p?) photos.add(p);
         }
+        for (final item in await (_db.select(
+          _db.shoppingItems,
+        )..where((t) => t.householdId.equals(hid))).get()) {
+          if (item.photoPath case final p?) photos.add(p);
+        }
         // Deca pre roditelja: raspodela, doprinosi, izvori, pa liste i ostava.
         await (_db.delete(
           _db.supplyAllocations,
@@ -147,6 +152,13 @@ class AccountService {
       await (_db.delete(
         _db.userProfiles,
       )..where((t) => t.id.equals(userId))).go();
+      for (final pending
+          in await (_db.select(_db.syncOutbox)..where(
+                (t) => t.accountId.equals(userId) & t.entity.equals('photo'),
+              ))
+              .get()) {
+        photos.add(pending.recordId);
+      }
       await (_db.delete(
         _db.syncOutbox,
       )..where((t) => t.accountId.equals(userId))).go();

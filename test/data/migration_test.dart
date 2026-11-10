@@ -154,7 +154,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 5);
+    expect(db.schemaVersion, 9);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -323,5 +323,35 @@ void main() {
     addTearDown(again.close);
     expect((await again.select(again.shoppingLists).get()).single.id, 'l1');
     expect(await again.select(again.shoppingSources).get(), isEmpty);
+  });
+  test('v5 migracija čuva stavke i dodaje prazne detalje', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v9-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      "INSERT INTO shopping_lists (id, name, created_at, household_id) VALUES ('l', 'Lista', 1, 'h')",
+    );
+    await before.customStatement(
+      "INSERT INTO shopping_items (id, list_id, name, quantity, unit, category, household_id) VALUES ('i', 'l', 'Mleko', 2, 'l', 'ostalo', 'h')",
+    );
+    await before.customStatement(
+      'ALTER TABLE shopping_items DROP COLUMN brand',
+    );
+    await before.customStatement('ALTER TABLE shopping_items DROP COLUMN note');
+    await before.customStatement(
+      'ALTER TABLE shopping_items DROP COLUMN photo_path',
+    );
+    await before.customStatement('PRAGMA user_version = 5');
+    await before.close();
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final item = (await after.select(after.shoppingItems).get()).single;
+    expect(item.name, 'Mleko');
+    expect(item.quantity, 2);
+    expect(item.unit, 'l');
+    expect(item.brand, isNull);
+    expect(item.note, isNull);
+    expect(item.photoPath, isNull);
   });
 }

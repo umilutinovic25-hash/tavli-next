@@ -90,6 +90,53 @@ Future<void> tapIn(WidgetTester tester, Finder finder) async {
 }
 
 void main() {
+  testTavli('uređivanje detalja i fotografije stavke bez promene količine', (
+    tester,
+  ) async {
+    final app = await pumpShopping(tester);
+    final edit = find.descendant(
+      of: tileOf('krompir'),
+      matching: find.byTooltip('Detalji stavke'),
+    );
+    await tapIn(tester, edit);
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Brend'),
+      'Moj brend',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Napomena'),
+      'Sitniji',
+    );
+    expect(find.text('Dodaj fotografiju'), findsOneWidget);
+    app.picker.next = fakePhoto;
+    await tapIn(tester, find.text('Galerija'));
+    expect(find.text('Promeni fotografiju'), findsOneWidget);
+    await tapIn(tester, find.text('Sačuvaj'));
+    expect(find.textContaining('Moj brend'), findsOneWidget);
+    var item = (await app.db.select(app.db.shoppingItems).get()).firstWhere(
+      (i) => i.name == 'krompir',
+    );
+    expect(
+      [item.brand, item.note, item.quantity],
+      ['Moj brend', 'Sitniji', 7.0],
+    );
+    expect(item.photoPath, isNotNull);
+    await tapIn(
+      tester,
+      find.descendant(
+        of: tileOf('krompir'),
+        matching: find.byTooltip('Detalji stavke'),
+      ),
+    );
+    await tapIn(tester, find.text('Ukloni fotografiju'));
+    await tapIn(tester, find.text('Sačuvaj'));
+    item = (await app.db.select(app.db.shoppingItems).get()).firstWhere(
+      (i) => i.name == 'krompir',
+    );
+    expect(item.photoPath, isNull);
+    expect(item.brand, 'Moj brend');
+  });
+
   testTavli('iz plana u dva dodira: nabavka tekuće nedelje po kategorijama', (
     tester,
   ) async {

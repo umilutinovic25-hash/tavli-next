@@ -36,6 +36,99 @@ void main() {
 
   tearDown(() => db.close());
 
+  test(
+    'detalji su izolovani, menjaju se kroz outbox i ne diraju količinu',
+    () async {
+      final list = await repo.recipeList();
+      final id = await repo.addManual(list, 'Mleko', quantity: 2, unit: 'l');
+      expect(
+        await repo.updateDetails(
+          id,
+          brand: '  Brend  ',
+          note: '  Bez laktoze ',
+          photoPath: 'recipe_photos/a.jpg',
+        ),
+        isTrue,
+      );
+      var row = (await repo.listItems(list)).single;
+      expect(
+        [row.brand, row.note, row.photoPath],
+        ['Brend', 'Bez laktoze', 'recipe_photos/a.jpg'],
+      );
+      expect([row.quantity, row.unit, row.isBought], [2.0, 'l', false]);
+      final other = ShoppingRepository(
+        db,
+        scope: const AccountScope(userId: 'two', householdId: 'home-two'),
+        writer: SyncedWriter(db, accountId: 'two'),
+      );
+      expect(await other.updateDetails(id, brand: 'tuđe'), isFalse);
+      await repo.updateDetails(id, brand: '', photoPath: 'recipe_photos/b.jpg');
+      row = (await repo.listItems(list)).single;
+      expect(
+        [row.brand, row.note, row.photoPath],
+        [null, null, 'recipe_photos/b.jpg'],
+      );
+      final pending = await db.select(db.syncOutbox).get();
+      expect(
+        pending.any(
+          (e) =>
+              e.op == OutboxOp.photoDelete &&
+              e.recordId == 'recipe_photos/a.jpg',
+        ),
+        isTrue,
+      );
+      expect(
+        pending.any(
+          (e) =>
+              e.op == OutboxOp.photoUpload &&
+              e.recordId == 'recipe_photos/b.jpg',
+        ),
+        isTrue,
+      );
+      await repo.setBought([id], bought: true);
+      row = (await repo.listItems(list)).single;
+      expect(
+        [row.quantity, row.unit, row.photoPath, row.isBought],
+        [2.0, 'l', 'recipe_photos/b.jpg', true],
+      );
+    },
+  );
+
+  test(
+    'vraćanje obrisane stavke čuva detalje i otkazuje brisanje fotografije',
+    () async {
+      final list = await repo.recipeList();
+      final id = await repo.addManual(list, 'Mleko', quantity: 2, unit: 'l');
+      await repo.updateDetails(
+        id,
+        brand: 'Brend',
+        note: 'Napomena',
+        photoPath: 'recipe_photos/a.jpg',
+      );
+      final original = (await repo.listItems(list)).single;
+      expect(await repo.deleteManual(id), isTrue);
+      final deletion = (await db.select(db.syncOutbox).get()).singleWhere(
+        (e) => e.op == OutboxOp.photoDelete,
+      );
+      expect(deletion.nextAttemptAt, isNotNull);
+      await repo.restoreManual(original);
+      final restored = (await repo.listItems(list)).single;
+      expect(
+        [
+          restored.brand,
+          restored.note,
+          restored.photoPath,
+          restored.quantity,
+          restored.unit,
+        ],
+        ['Brend', 'Napomena', 'recipe_photos/a.jpg', 2.0, 'l'],
+      );
+      final outbox = await db.select(db.syncOutbox).get();
+      expect(outbox.any((e) => e.op == OutboxOp.photoDelete), isFalse);
+      expect(outbox.any((e) => e.op == OutboxOp.photoUpload), isTrue);
+    },
+  );
+
   test('kupovina je odvojena po domaćinstvu i upisuje outbox sa UUID-jevima', () async {
     await repo.addMissing('musaka', missing: const [luk], have: const []);
     final other = ShoppingRepository(
@@ -330,10 +423,20 @@ void main() {
       final contribution =
           (await db.select(db.shoppingContributions).get()).single;
 
+      await shop.updateDetails(
+        item.id,
+        brand: 'Primer',
+        note: 'Sveže',
+        photoPath: 'recipe_photos/a.jpg',
+      );
       await entry('e1', mon, ingredients: const [kupus], servings: 3);
       await shop.reconcilePlan('p1');
       final after = (await db.select(db.shoppingItems).get()).single;
       expect(after.id, item.id);
+      expect(
+        [after.brand, after.note, after.photoPath],
+        ['Primer', 'Sveže', 'recipe_photos/a.jpg'],
+      );
       expect(after.quantity, 450);
       final c = (await db.select(db.shoppingContributions).get()).single;
       expect(c.id, contribution.id);

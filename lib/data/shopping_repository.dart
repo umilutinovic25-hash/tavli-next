@@ -211,6 +211,7 @@ class ShoppingRepository {
               _db.shoppingItems,
             )..where((t) => t.id.equals(row.id))).go();
             await _writer.delete('shopping_item', row.id);
+            if (row.photoPath case final p?) await _writer.photoDelete(p);
           } else {
             await (_db.update(
               _db.shoppingItems,
@@ -623,6 +624,69 @@ class ShoppingRepository {
       _db.shoppingItems,
     )..where((t) => t.id.equals(itemId))).go();
     await _writer.delete(_shoppingItem, itemId);
+    if (item.photoPath case final p?) {
+      await _writer.photoDelete(p, delay: const Duration(seconds: 30));
+    }
+    return true;
+  });
+
+  /// Vraća ručno obrisanu stavku sa svim detaljima dok je dostupno „Vrati”.
+  Future<void> restoreManual(ShoppingItemRow item) => _db.transaction(() async {
+    if (item.householdId != _scope.householdId ||
+        !item.isManual ||
+        item.isBought) {
+      return;
+    }
+    if (item.photoPath case final path?) await _writer.cancelPhotoDelete(path);
+    final id = await addManual(
+      item.listId,
+      item.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      category: item.category,
+    );
+    await updateDetails(
+      id,
+      brand: item.brand,
+      note: item.note,
+      photoPath: item.photoPath,
+    );
+  });
+
+  /// Menja samo opis proizvoda, bez uticaja na obračun nabavke.
+  Future<bool> updateDetails(
+    String id, {
+    String? brand,
+    String? note,
+    String? photoPath,
+  }) => _db.transaction(() async {
+    final item = await _item(id);
+    if (item == null) return false;
+    String? clean(String? value) {
+      final trimmed = value?.trim();
+      return trimmed == null || trimmed.isEmpty ? null : trimmed;
+    }
+
+    final cleanBrand = clean(brand);
+    final cleanNote = clean(note);
+    if ((cleanBrand?.length ?? 0) > 120 || (cleanNote?.length ?? 0) > 1000) {
+      throw ArgumentError('Detalji su predugački');
+    }
+    await (_db.update(_db.shoppingItems)..where(
+          (t) => t.id.equals(id) & t.householdId.equals(_scope.householdId),
+        ))
+        .write(
+          ShoppingItemsCompanion(
+            brand: Value(cleanBrand),
+            note: Value(cleanNote),
+            photoPath: Value(photoPath),
+          ),
+        );
+    await _writer.upsert(_shoppingItem, id);
+    if (photoPath != item.photoPath) {
+      if (photoPath != null) await _writer.photoUpload(photoPath);
+      if (item.photoPath case final old?) await _writer.photoDelete(old);
+    }
     return true;
   });
 
@@ -1377,6 +1441,7 @@ class ShoppingRepository {
       if (liveItems.contains(id)) continue;
       await (_db.delete(_db.shoppingItems)..where((t) => t.id.equals(id))).go();
       await _writer.delete(_shoppingItem, id);
+      if (old.photoPath case final p?) await _writer.photoDelete(p);
       items.remove(id);
     }
   }

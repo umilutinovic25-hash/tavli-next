@@ -114,12 +114,18 @@ void main() {
         quantity: const Value(1.5),
         isBought: const Value(true),
         fromRecipeIdsJson: const Value('["r1"]'),
+        brand: const Value('Brend'),
+        note: const Value('Napomena'),
+        photoPath: const Value('recipe_photos/proizvod.jpg'),
         householdId: const Value('h1'),
       ),
       'i1',
       (r) {
         expect(r['from_recipe_ids'], ['r1']);
         expect(r['is_bought'], isTrue);
+        expect(r['brand'], 'Brend');
+        expect(r['note'], 'Napomena');
+        expect(r['photo_path'], 'proizvod.jpg');
       },
     );
   });

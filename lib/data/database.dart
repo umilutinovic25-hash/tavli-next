@@ -119,6 +119,10 @@ class ShoppingItems extends Table {
   /// izmene plana ne menjaju istoriju kupovine.
   TextColumn get purchaseProvenanceJson => text().nullable()();
 
+  TextColumn get brand => text().nullable()();
+  TextColumn get note => text().nullable()();
+  TextColumn get photoPath => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -395,7 +399,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -412,6 +416,20 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) await transaction(() => _migrateToAccounts(m));
       if (from < 5) await transaction(() => _migrateToPlanShopping(m));
+      if (from < 9) {
+        final columns = await customSelect('PRAGMA table_info(shopping_items)')
+            .get();
+        final names = {for (final c in columns) c.read<String>('name')};
+        if (!names.contains('brand')) {
+          await m.addColumn(shoppingItems, shoppingItems.brand);
+        }
+        if (!names.contains('note')) {
+          await m.addColumn(shoppingItems, shoppingItems.note);
+        }
+        if (!names.contains('photo_path')) {
+          await m.addColumn(shoppingItems, shoppingItems.photoPath);
+        }
+      }
     },
   );
 
