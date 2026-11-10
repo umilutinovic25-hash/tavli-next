@@ -43,7 +43,7 @@ Korisnik koji je dobio kod otvori Profil → Domaćinstvo → „Pridruži se ko
 
 **Acceptance Scenarios**:
 
-1. **Given** važeći kod, **When** korisnik unese kod i potvrdi, **Then** vidi „Sada si član domaćinstva „{naziv}“.“, aktivno domaćinstvo je novo, a podaci zajedničkog domaćinstva se preuzimaju bez ponovne prijave.
+1. **Given** važeći kod, **When** korisnik unese kod i potvrdi, **Then** vidi „Sada si član domaćinstva „{naziv}“.“, „Sada si član domaćinstva.“ (kad naziv još nije poznat jer osvežavanje posle pridruživanja nije uspelo), aktivno domaćinstvo je novo, a podaci zajedničkog domaćinstva se preuzimaju bez ponovne prijave.
 2. **Given** kod unet malim slovima, sa razmakom ili crticom, **When** potvrdi, **Then** kod se prihvata kao da je unet tačno.
 3. **Given** nevažeći, istekao, poništen ili potrošen kod, **When** potvrdi, **Then** vidi „Kod nije važeći ili je istekao.“ i ostaje u svom domaćinstvu.
 4. **Given** previše neuspelih pokušaja, **When** potvrdi, **Then** vidi „Previše pokušaja. Pokušaj ponovo za 10 minuta.“

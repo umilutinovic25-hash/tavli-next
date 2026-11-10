@@ -32,6 +32,21 @@ void main() {
       expect(normalizeInviteCode('abcd\tefgh'), 'ABCDEFGH');
     });
 
+    test('kod iz cele poruke za deljenje', () {
+      expect(
+        normalizeInviteCode(
+          'Pridruži se mom domaćinstvu u aplikaciji Tavli. Kod: K7P2MDXN. '
+          'Otvori Tavli → Profil → Domaćinstvo → Pridruži se kodom.',
+        ),
+        'K7P2MDXN',
+      );
+    });
+
+    test('en i em crtica se uklanjaju', () {
+      expect(normalizeInviteCode('K7P2–MDXN'), 'K7P2MDXN');
+      expect(normalizeInviteCode('K7P2—MDXN'), 'K7P2MDXN');
+    });
+
     test('kod ostaje 8 znakova posle normalizacije', () {
       expect(normalizeInviteCode(' k7p2mdxn ').length, 8);
     });

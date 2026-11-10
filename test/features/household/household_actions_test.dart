@@ -194,4 +194,14 @@ void main() {
     expect(outcome.message, isEmpty);
     expect(c.read(authControllerProvider), isA<SignedOut>());
   });
+
+  test('pridružen, a osvežavanje ne uspe: i dalje uspeh', () async {
+    final code = await anaInvite();
+    backend.invites.afterRedeem = () => backend.server.offline = true;
+
+    final outcome = await actions().join(code);
+
+    expect(outcome, isA<HouseholdDone>());
+    expect(outcome.message, 'Sada si član domaćinstva.');
+  });
 }

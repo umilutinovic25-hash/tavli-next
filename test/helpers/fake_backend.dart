@@ -582,8 +582,13 @@ class FakeInviteRemote implements HouseholdInviteRemote {
   final invites = <HouseholdInvite>[];
   final calls = <String>[];
 
-  /// Ako nije null, svaki poziv čeka ovaj Completer (za test duplog dodira).
+  /// Ako nije null, poziv čeka ovaj Completer (za test duplog dodira);
+  /// sa [gateOnly] čeka samo poziv tog imena.
   Completer<void>? gate;
+  String? gateOnly;
+
+  /// Posle uspešnog redeem (npr. mreža nestane pre osvežavanja naloga).
+  void Function()? afterRedeem;
 
   /// Neuspeli pokušaji po korisniku (bez vremena: test je kratak).
   final _failures = <String, int>{};
@@ -596,7 +601,9 @@ class FakeInviteRemote implements HouseholdInviteRemote {
 
   Future<void> _enter(String call) async {
     calls.add(call);
-    if (gate case final g?) await g.future;
+    if (gate case final g? when gateOnly == null || gateOnly == call) {
+      await g.future;
+    }
     if (server.offline) throw const InviteOffline();
     if (failWith case final f?) {
       failWith = null;
@@ -679,6 +686,7 @@ class FakeInviteRemote implements HouseholdInviteRemote {
         maxUses: inv.maxUses,
       );
     }
+    afterRedeem?.call();
     return inv.householdId;
   }
 }
@@ -692,10 +700,14 @@ class FakeMembershipRemote implements HouseholdMembershipRemote {
   final FakeAuth auth;
   final calls = <String>[];
 
+  /// Ako nije null, radnje (osim liste) čekaju ovaj Completer.
+  Completer<void>? gate;
+
   String get _uid => auth.current!.userId;
 
-  void _enter(String call) {
+  Future<void> _enter(String call) async {
     calls.add(call);
+    if (gate case final g? when call != 'list') await g.future;
     if (server.offline) throw const MembershipOffline();
   }
 
@@ -710,7 +722,7 @@ class FakeMembershipRemote implements HouseholdMembershipRemote {
 
   @override
   Future<void> removeMember(String householdId, String userId) async {
-    _enter('remove');
+    await _enter('remove');
     _requireOwner(householdId);
     if (userId == _uid) throw const CannotRemoveSelf();
     if (_household(householdId).remove(userId) == null) {
@@ -720,7 +732,7 @@ class FakeMembershipRemote implements HouseholdMembershipRemote {
 
   @override
   Future<void> leave(String householdId) async {
-    _enter('leave');
+    await _enter('leave');
     final me = _household(householdId)[_uid];
     if (me == null) throw const NotHouseholdMember();
     if (me.role == 'owner') throw const OwnerMustTransfer();
@@ -729,7 +741,7 @@ class FakeMembershipRemote implements HouseholdMembershipRemote {
 
   @override
   Future<void> transferOwnership(String householdId, String userId) async {
-    _enter('transfer');
+    await _enter('transfer');
     _requireOwner(householdId);
     if (userId == _uid) throw const CannotTransferToSelf();
     final h = _household(householdId);
@@ -742,7 +754,7 @@ class FakeMembershipRemote implements HouseholdMembershipRemote {
 
   @override
   Future<List<HouseholdMember>> listMembers(String householdId) async {
-    _enter('list');
+    await _enter('list');
     final h = _household(householdId);
     if (!h.containsKey(_uid)) throw const NotHouseholdMember();
     final out =

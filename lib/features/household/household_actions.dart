@@ -85,8 +85,10 @@ class HouseholdActions {
     await _ref
         .read(accountServiceProvider)
         .setPreferredHousehold(_scope!.userId, householdId);
+    // Članstvo je već na serveru; ako osvežavanje ne uspe, novo domaćinstvo
+    // se otvara pri sledećem osvežavanju (izbor je zapamćen).
     if (!await _auth.refreshAccount()) {
-      return const HouseholdFailed('Za ovo je potrebna internet veza.');
+      return const HouseholdDone('Sada si član domaćinstva.');
     }
     return HouseholdDone('Sada si član domaćinstva „${_householdName ?? ''}“.');
   });
