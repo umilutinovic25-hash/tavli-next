@@ -26,6 +26,29 @@ class Recipes extends Table {
   DateTimeColumn get updatedAt => dateTime()();
   TextColumn get householdId => text().nullable()();
 
+  /// Potvrđeno aktivno i ukupno vreme u minutima (v13).
+  IntColumn get activeMinutes => integer().nullable()();
+  IntColumn get totalMinutes => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Raspoloživo vreme domaćinstva za jedan dan u nedelji (v13). Id je
+/// `<domaćinstvo>-<dan>`, pa dva uređaja pišu isti red.
+@DataClassName('DayTimeBudgetRow')
+class DayTimeBudgets extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+
+  /// 1 = ponedeljak … 7 = nedelja.
+  IntColumn get weekday => integer()();
+  IntColumn get maxActiveMinutes => integer().nullable()();
+
+  /// Prozor za kuvanje u minutima od ponoći.
+  IntColumn get windowStart => integer().nullable()();
+  IntColumn get windowEnd => integer().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -373,6 +396,7 @@ class SyncCursors extends Table {
   tables: [
     Recipes,
     RecipeVersions,
+    DayTimeBudgets,
     PantryItems,
     ShoppingLists,
     ShoppingItems,
@@ -395,7 +419,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -412,6 +436,23 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) await transaction(() => _migrateToAccounts(m));
       if (from < 5) await transaction(() => _migrateToPlanShopping(m));
+      // v6–v12 koriste druge grane (018–027); vreme po danu je v13.
+      if (from < 13) {
+        final columns = {
+          for (final c in await customSelect(
+            'PRAGMA table_info(recipes)',
+          ).get())
+            c.read<String>('name'),
+        };
+        for (final c in [recipes.activeMinutes, recipes.totalMinutes]) {
+          if (!columns.contains(c.$name)) await m.addColumn(recipes, c);
+        }
+        final tables = await customSelect(
+          "SELECT 1 FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'day_time_budgets'",
+        ).get();
+        if (tables.isEmpty) await m.createTable(dayTimeBudgets);
+      }
     },
   );
 

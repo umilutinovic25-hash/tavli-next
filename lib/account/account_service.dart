@@ -120,6 +120,9 @@ class AccountService {
           _db.shoppingSources,
         )..where((t) => t.householdId.equals(hid))).go();
         await (_db.delete(
+          _db.dayTimeBudgets,
+        )..where((t) => t.householdId.equals(hid))).go();
+        await (_db.delete(
           _db.recipeVersions,
         )..where((t) => t.householdId.equals(hid))).go();
         await (_db.delete(

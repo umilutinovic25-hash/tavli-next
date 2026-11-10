@@ -9,6 +9,7 @@ import '../recipes/recipe_view.dart';
 import 'meal_actions.dart';
 import 'plan_format.dart';
 import 'planning_providers.dart';
+import 'time_check_note.dart';
 
 /// Odobren recept obroka i izmene: porcije, zamena, zaključavanje,
 /// skuvano i uklanjanje. Prikazuje snimak iz plana, ne recept iz biblioteke.
@@ -67,6 +68,14 @@ class MealEntryDetail extends ConsumerWidget {
         Text(
           snapshot?.title ?? 'Recept nije dostupan',
           style: theme.textTheme.headlineSmall,
+        ),
+        TimeCheckNote(
+          mealTimeCheck(
+            snapshot,
+            meal.slot.date,
+            ref.watch(dayBudgetsProvider).value ?? const [],
+          ),
+          detailed: true,
         ),
         if (meal.isLocked || meal.isCooked) ...[
           const SizedBox(height: 4),

@@ -8,6 +8,7 @@ import '../../domain/ids.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
 import '../../domain/recipe_version.dart';
+import '../../domain/time_budget.dart';
 import 'recipe_providers.dart';
 
 /// Ručni unos novog recepta ([id] == null) ili izmena postojećeg.
@@ -24,6 +25,9 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
   final _title = TextEditingController();
   final _servings = TextEditingController(text: '2');
   final _prep = TextEditingController();
+  final _active = TextEditingController();
+  final _total = TextEditingController();
+  String? _timingError;
   final _steps = TextEditingController();
   List<Ingredient> _ingredients = [];
   Recipe? _original;
@@ -53,6 +57,8 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
         _title.text = recipe.title;
         _servings.text = '${recipe.servings}';
         _prep.text = recipe.prepMinutes?.toString() ?? '';
+        _active.text = recipe.activeMinutes?.toString() ?? '';
+        _total.text = recipe.totalMinutes?.toString() ?? '';
         _steps.text = recipe.steps.join('\n');
         _ingredients = [...recipe.ingredients];
       }
@@ -64,6 +70,8 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
     _title.dispose();
     _servings.dispose();
     _prep.dispose();
+    _active.dispose();
+    _total.dispose();
     _steps.dispose();
     super.dispose();
   }
@@ -99,7 +107,24 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
           ? 'Dodaj bar jedan sastojak.'
           : null;
     });
-    if (_titleError != null || _ingredientsError != null) return;
+    int? minutes(TextEditingController c) => int.tryParse(c.text.trim());
+    final active = minutes(_active);
+    final total = minutes(_total);
+    String? timingError;
+    if ((_active.text.trim().isNotEmpty && active == null) ||
+        (_total.text.trim().isNotEmpty && total == null)) {
+      timingError = 'Vreme upiši u celim minutima.';
+    } else if (!isValidTiming(activeMinutes: active, totalMinutes: total)) {
+      timingError =
+          'Aktivno vreme je broj minuta veći od nule i nije duže od '
+          'ukupnog.';
+    }
+    setState(() => _timingError = timingError);
+    if (_titleError != null ||
+        _ingredientsError != null ||
+        timingError != null) {
+      return;
+    }
 
     final servings = (int.tryParse(_servings.text.trim()) ?? 2).clamp(1, 99);
     final prep = int.tryParse(_prep.text.trim());
@@ -123,6 +148,8 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
         steps: steps,
         source: RecipeSource.manual,
         createdAt: now,
+        activeMinutes: active,
+        totalMinutes: total,
       );
       await repo.create(recipe);
     } else {
@@ -133,6 +160,9 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
         clearPrepMinutes: prep == null,
         ingredients: _ingredients,
         steps: steps,
+        clearTiming: true,
+        activeMinutes: active,
+        totalMinutes: total,
       );
       await repo.update(recipe, kind: ChangeKind.manual);
     }
@@ -236,8 +266,44 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
                                   ),
                                 ),
                               ),
+                              SizedBox(
+                                width: 200,
+                                child: TextField(
+                                  controller: _active,
+                                  onChanged: (_) => _changed(),
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Aktivno vreme (min)',
+                                    helperText: 'Koliko radiš',
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 200,
+                                child: TextField(
+                                  controller: _total,
+                                  onChanged: (_) => _changed(),
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Ukupno vreme (min)',
+                                    helperText: 'Od početka do stola',
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
+                          if (_timingError case final error?)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                error,
+                                style: TextStyle(
+                                  color: theme.colorScheme.error,
+                                ),
+                              ),
+                            ),
                           const SizedBox(height: 20),
                           Text('Sastojci', style: theme.textTheme.titleMedium),
                           for (final (n, i) in _ingredients.indexed)

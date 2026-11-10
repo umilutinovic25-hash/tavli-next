@@ -1,0 +1,9 @@
+# Vreme po danu
+
+Recept dobija potvrđeno **aktivno** vreme (koliko se radi) i **ukupno** vreme (od početka do stola), odvojeno od starog „Vreme pripreme (min)“, koje ostaje kakvo jeste i ne računa se ni kao jedno od njih. Aktivno vreme ne sme biti duže od ukupnog. U receptu se vide oznake „Aktivno N min“ i „Ukupno N min“.
+
+Domaćinstvo u „Vreme po danu“ (Plan) za svaki dan u nedelji može da zada najviše aktivnog rada po obroku i prozor za kuvanje (npr. utorak do 20 min, kuvanje 18:00–18:45; nedelja do 90 min). Ograničenje važi za sve planove i proverava ga kod: obrok koji ne staje dobija „Preko vremena“, obrok bez potvrđenog vremena „Vreme nepoznato“ (staro vreme pripreme se ne pretvara u potvrđeno), a obrok koji staje nema oznaku u listi i ima „Staje u vreme za taj dan“ u obroku. Oznaka se vidi u predlogu plana, na kartici obroka i, sa razlogom, u obroku. Podaci se sinhronizuju kroz outbox i rade offline.
+
+Tekst: „Aktivno vreme (min)“, „Koliko radiš“, „Ukupno vreme (min)“, „Od početka do stola“, „Vreme upiši u celim minutima.“, „Aktivno vreme je broj minuta veći od nule i nije duže od ukupnog.“, „Aktivno N min“, „Ukupno N min“, „Vreme po danu“, opis ekrana, nazivi dana, „Bez ograničenja“, „do N min aktivnog rada“, „kuvanje HH:MM–HH:MM“, „Najviše aktivnog rada po obroku (min)“, „prazno = bez ograničenja“, „Kuvam od“, „do“, „Limit je broj minuta veći od nule.“, „Vreme upiši kao 18:00.“, „Upiši i početak i kraj prozora.“, „Kraj prozora mora biti posle početka.“, „Vreme nije sačuvano. Pokušaj ponovo.“, „Preko vremena“, „Vreme nepoznato“, „Staje u vreme za taj dan“, razlozi „Aktivno N min, limit M min.“, „Ukupno N min ne staje u HH:MM–HH:MM.“, „Aktivno/Ukupno vreme nije potvrđeno (…).“
+
+Ograničenje se meri po obroku, ne kao zbir dana. AI generator još ne filtrira po vremenu (samo se prekršaj prikazuje pre čuvanja), a AI ne popunjava potvrđeno vreme.

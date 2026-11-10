@@ -67,13 +67,18 @@ class RecipeAI {
             system: recipeSystemPrompt,
             prompt: refineRecipePrompt(current, instruction),
           ),
-          (json) => Recipe.fromAiJson(
-            json,
-            id: current.id,
-            source: current.source,
-            createdAt: current.createdAt,
-            imagePath: current.imagePath,
-          ),
+          // Potvrđeno vreme ostaje; AI ga ne menja.
+          (json) =>
+              Recipe.fromAiJson(
+                json,
+                id: current.id,
+                source: current.source,
+                createdAt: current.createdAt,
+                imagePath: current.imagePath,
+              ).copyWith(
+                activeMinutes: current.activeMinutes,
+                totalMinutes: current.totalMinutes,
+              ),
         )
         .then(_stampModel);
   }
@@ -100,6 +105,8 @@ class RecipeAI {
         prepMinutes: v.prepMinutes,
         ingredients: v.ingredients,
         steps: v.steps,
+        activeMinutes: v.activeMinutes,
+        totalMinutes: v.totalMinutes,
         source: v.source,
         imagePath: v.imagePath,
         createdAt: v.createdAt,

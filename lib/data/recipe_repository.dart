@@ -273,6 +273,8 @@ class RecipeRepository {
     stepsJson: jsonEncode(r.steps),
     imagePath: Value(r.imagePath),
     answeredBy: Value(r.answeredBy),
+    activeMinutes: Value(r.activeMinutes),
+    totalMinutes: Value(r.totalMinutes),
     createdAt: r.createdAt,
     updatedAt: _clock(),
     householdId: Value(_scope.householdId),
@@ -297,6 +299,8 @@ class RecipeRepository {
     imagePath: row.imagePath,
     answeredBy: row.answeredBy,
     createdAt: row.createdAt,
+    activeMinutes: row.activeMinutes,
+    totalMinutes: row.totalMinutes,
   );
 
   static RecipeVersion? _versionFromRow(RecipeVersionRow row) {

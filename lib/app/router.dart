@@ -7,6 +7,7 @@ import '../features/account/sign_in_screen.dart';
 import '../features/planning/plan_preview_screen.dart';
 import '../features/planning/plan_screen.dart';
 import '../features/planning/plan_setup_screen.dart';
+import '../features/planning/time_budget_screen.dart';
 import '../features/recipes/from_name_screen.dart';
 import '../features/recipes/from_photo_screen.dart';
 import '../features/recipes/recipe_chat_screen.dart';
@@ -96,6 +97,10 @@ GoRouter createRouter({
                     planId: state.pathParameters['planId']!,
                     entryId: state.pathParameters['entryId']!,
                   ),
+                ),
+                GoRoute(
+                  path: 'time',
+                  builder: (context, state) => const TimeBudgetScreen(),
                 ),
                 GoRoute(
                   path: 'new',

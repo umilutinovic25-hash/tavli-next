@@ -154,7 +154,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 5);
+    expect(db.schemaVersion, 13);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -323,5 +323,44 @@ void main() {
     addTearDown(again.close);
     expect((await again.select(again.shoppingLists).get()).single.id, 'l1');
     expect(await again.select(again.shoppingSources).get(), isEmpty);
+  });
+
+  test('migracija 5 → 13 dodaje vreme recepta i vreme po danu', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v13-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      'INSERT INTO recipes (id, title, servings, prep_minutes, source, '
+      'ingredients_json, steps_json, created_at, updated_at) VALUES '
+      "('r1', 'Pasulj', 4, 15, 'manual', '[]', '[]', 1, 2)",
+    );
+    for (final c in ['active_minutes', 'total_minutes']) {
+      await before.customStatement('ALTER TABLE recipes DROP COLUMN $c');
+    }
+    await before.customStatement('DROP TABLE day_time_budgets');
+    await before.customStatement('PRAGMA user_version = 5');
+    await before.close();
+
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final r = (await after.select(after.recipes).get()).single;
+    expect(r.prepMinutes, 15);
+    expect(r.activeMinutes, isNull);
+    expect(r.totalMinutes, isNull);
+    expect(await after.select(after.dayTimeBudgets).get(), isEmpty);
+  });
+
+  test('ponovljena v13 migracija ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v13b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 12');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.dayTimeBudgets).get(), isEmpty);
   });
 }

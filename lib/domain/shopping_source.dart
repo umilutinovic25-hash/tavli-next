@@ -23,6 +23,8 @@ class RecipeSnapshot {
     this.steps = const [],
     this.prepMinutes,
     this.imagePath,
+    this.activeMinutes,
+    this.totalMinutes,
   });
 
   factory RecipeSnapshot.fromRecipe(Recipe r) => RecipeSnapshot(
@@ -32,6 +34,8 @@ class RecipeSnapshot {
     steps: r.steps,
     prepMinutes: r.prepMinutes,
     imagePath: r.imagePath,
+    activeMinutes: r.activeMinutes,
+    totalMinutes: r.totalMinutes,
   );
 
   /// Čita oblik iz [toJson]. Baca [FormatException] na pokvaren zapis.
@@ -57,6 +61,8 @@ class RecipeSnapshot {
       steps: [for (final s in steps) s.toString()],
       prepMinutes: json['prepMinutes'] as int?,
       imagePath: json['imagePath'] as String?,
+      activeMinutes: json['activeMinutes'] as int?,
+      totalMinutes: json['totalMinutes'] as int?,
     );
   }
 
@@ -67,6 +73,10 @@ class RecipeSnapshot {
   final int? prepMinutes;
   final String? imagePath;
 
+  /// Potvrđeno aktivno i ukupno vreme (minuti) u trenutku planiranja.
+  final int? activeMinutes;
+  final int? totalMinutes;
+
   /// Isti recept sa drugim sastojcima (npr. samo onima koji fale).
   RecipeSnapshot withIngredients(List<Ingredient> ingredients) =>
       RecipeSnapshot(
@@ -76,6 +86,8 @@ class RecipeSnapshot {
         steps: steps,
         prepMinutes: prepMinutes,
         imagePath: imagePath,
+        activeMinutes: activeMinutes,
+        totalMinutes: totalMinutes,
       );
 
   /// Isti ključevi kao recept u bazi (`Recipe.toAiJson`) i kao zapis koji
@@ -87,6 +99,8 @@ class RecipeSnapshot {
     'ingredients': [for (final i in ingredients) i.toJson()],
     'steps': steps,
     'imagePath': imagePath,
+    'activeMinutes': ?activeMinutes,
+    'totalMinutes': ?totalMinutes,
   };
 }
 

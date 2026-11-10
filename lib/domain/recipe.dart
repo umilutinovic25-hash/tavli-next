@@ -67,7 +67,14 @@ class Recipe {
     this.prepMinutes,
     this.imagePath,
     this.answeredBy,
+    this.activeMinutes,
+    this.totalMinutes,
   });
+
+  /// Potvrđeno aktivno (rad) i ukupno vreme u minutima. [prepMinutes] je
+  /// staro, nespecificirano vreme i ne računa se kao ni jedno od njih.
+  final int? activeMinutes;
+  final int? totalMinutes;
 
   final String id;
   final String title;
@@ -133,6 +140,9 @@ class Recipe {
     List<String>? steps,
     String? imagePath,
     String? answeredBy,
+    int? activeMinutes,
+    int? totalMinutes,
+    bool clearTiming = false,
   }) => Recipe(
     id: id,
     title: title ?? this.title,
@@ -144,6 +154,12 @@ class Recipe {
     imagePath: imagePath ?? this.imagePath,
     answeredBy: answeredBy ?? this.answeredBy,
     createdAt: createdAt,
+    activeMinutes: clearTiming
+        ? activeMinutes
+        : (activeMinutes ?? this.activeMinutes),
+    totalMinutes: clearTiming
+        ? totalMinutes
+        : (totalMinutes ?? this.totalMinutes),
   );
 
   /// Ceo recept za čuvanje (npr. prethodne verzije u bazi).
@@ -154,6 +170,8 @@ class Recipe {
     'imagePath': imagePath,
     'answeredBy': answeredBy,
     'createdAt': createdAt.toUtc().toIso8601String(),
+    'activeMinutes': ?activeMinutes,
+    'totalMinutes': ?totalMinutes,
   };
 
   /// Čita oblik iz [toJson]. Baca [FormatException] na pokvaren zapis.
@@ -164,6 +182,8 @@ class Recipe {
     if (id is! String || source == null || createdAt == null) {
       throw const FormatException('Pokvaren zapis recepta');
     }
+    // Vreme se čita samo iz sačuvanog zapisa, ne iz AI odgovora: potvrđuje
+    // ga osoba.
     return Recipe.fromAiJson(
       json,
       id: id,
@@ -171,6 +191,9 @@ class Recipe {
       createdAt: createdAt,
       answeredBy: json['answeredBy'] as String?,
       imagePath: json['imagePath'] as String?,
+    ).copyWith(
+      activeMinutes: _positiveInt(json['activeMinutes']),
+      totalMinutes: _positiveInt(json['totalMinutes']),
     );
   }
 
@@ -202,3 +225,5 @@ String? _blankToNull(Object? v) {
   final s = v?.toString().trim();
   return (s == null || s.isEmpty) ? null : s;
 }
+
+int? _positiveInt(Object? v) => v is num && v > 0 ? v.round() : null;

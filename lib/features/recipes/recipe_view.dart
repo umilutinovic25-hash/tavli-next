@@ -66,6 +66,16 @@ class RecipeView extends StatelessWidget {
                 avatar: const Icon(Icons.timer_outlined, size: 18),
                 label: Text('${recipe.prepMinutes} min'),
               ),
+            if (recipe.activeMinutes case final m?)
+              Chip(
+                avatar: const Icon(Icons.back_hand_outlined, size: 18),
+                label: Text('Aktivno $m min'),
+              ),
+            if (recipe.totalMinutes case final m?)
+              Chip(
+                avatar: const Icon(Icons.hourglass_bottom, size: 18),
+                label: Text('Ukupno $m min'),
+              ),
           ],
         ),
         const SizedBox(height: 16),
