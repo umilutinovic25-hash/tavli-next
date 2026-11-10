@@ -36,6 +36,176 @@ PantryStock stock(
 
 void main() {
   test(
+    'brz izbor bez Ostave rangira različite namirnice, bez izmišljene zalihe',
+    () {
+      final recipes = [
+        recipe('Jedan', const [
+          Ingredient(name: 'kupus', quantity: 600, unit: 'g'),
+        ]),
+        recipe('Dva', const [
+          Ingredient(name: 'kupus', quantity: 600, unit: 'g'),
+          Ingredient(name: 'pirinač', quantity: 100, unit: 'g'),
+        ]),
+        recipe('Tri', const [
+          Ingredient(name: 'kupus', quantity: 600, unit: 'g'),
+          Ingredient(name: 'pirinač', quantity: 100, unit: 'g'),
+          Ingredient(name: 'so'),
+        ]),
+        recipe('Nema', const [
+          Ingredient(name: 'mleko', quantity: 1, unit: 'l'),
+        ]),
+      ];
+      final result = suggestRecipes(
+        recipes,
+        [],
+        now: now,
+        selectedIngredients: ['kupus', 'pirinač', 'so'],
+      );
+      expect(result.map((s) => s.recipe.id), ['Tri', 'Dva', 'Jedan']);
+      expect(result.map((s) => s.selectedIngredientCount), [3, 2, 1]);
+      expect(result.every((s) => s.selectionSize == 3 && !s.ready), isTrue);
+      expect(result.last.ingredients.single.matchedMicros, 0);
+      expect(result.last.ingredients.single.missingMicros, 600000000);
+      expect(result.last.ingredients.single.selected, isTrue);
+      expect(result.every((s) => !s.missingOneOrTwo), isTrue);
+      expect(result.first.ingredients.last.missingMicros, isNull);
+    },
+  );
+
+  test(
+    'brz izbor koristi potvrđeni sinonim, ali ne podstring ili duple redove',
+    () {
+      final result = suggestRecipes(
+        [
+          recipe('Luk', const [
+            Ingredient(name: 'beli luk', quantity: 1, unit: 'kom'),
+            Ingredient(name: 'beli luk', quantity: 10, unit: 'g'),
+          ]),
+          recipe('Ne', const [
+            Ingredient(name: 'mladi beli luk', quantity: 1, unit: 'kom'),
+          ]),
+          recipe('Nula', const [
+            Ingredient(name: 'beli luk', quantity: 0, unit: 'g'),
+          ]),
+        ],
+        [],
+        now: now,
+        selectedIngredients: ['  Češnjak  '],
+      );
+      expect(result.single.recipe.id, 'Luk');
+      expect(result.single.selectedIngredientCount, 1);
+      expect(result.single.ingredients.every((i) => i.selected), isTrue);
+    },
+  );
+
+  test('izbor ne potvrđuje količinu: 600 g − 400 g = 200 g; porcije i rezerve ostaju', () {
+    final r = recipe('R', const [
+      Ingredient(name: 'kupus', quantity: 600, unit: 'g'),
+    ]);
+    final items = [stock('p', 'kupus', 500, 'g', reserved: 100000000)];
+    final result = suggestRecipes(
+      [r],
+      items,
+      now: now,
+      selectedIngredients: ['kupus'],
+    ).single;
+    expect(result.ingredients.single.missingMicros, 200000000);
+    expect(result.ingredients.single.matchedMicros, 400000000);
+    expect(result.ready, isFalse);
+    expect(
+      suggestRecipes(
+        [r],
+        items,
+        now: now,
+        servings: 1,
+        selectedIngredients: ['kupus'],
+      ).single.ready,
+      isTrue,
+    );
+    final expired = stock(
+      'p',
+      'kupus',
+      1000,
+      'g',
+      expires: now.subtract(const Duration(days: 1)),
+    );
+    expect(
+      suggestRecipes(
+        [r],
+        [expired],
+        now: now,
+        selectedIngredients: ['kupus'],
+      ).single.ingredients.single.matchedMicros,
+      0,
+    );
+    expect(items.single.quantity, 500);
+  });
+
+  test(
+    'broj izabranih ima prednost, a isti broj čuva rangiranje po rokovima',
+    () {
+      final recipes = [
+        recipe('Jedan', const [
+          Ingredient(name: 'kupus', quantity: 100, unit: 'g'),
+        ]),
+        recipe('Dva', const [
+          Ingredient(name: 'pirinač', quantity: 100, unit: 'g'),
+          Ingredient(name: 'so', quantity: 1, unit: 'g'),
+        ]),
+        recipe('Jedan kasnije', const [
+          Ingredient(name: 'pirinač', quantity: 100, unit: 'g'),
+        ]),
+      ];
+      final items = [
+        stock(
+          'k',
+          'kupus',
+          200,
+          'g',
+          expires: now.add(const Duration(days: 1)),
+        ),
+        stock(
+          'p',
+          'pirinač',
+          200,
+          'g',
+          expires: now.add(const Duration(days: 5)),
+        ),
+      ];
+      expect(
+        suggestRecipes(
+          recipes,
+          items,
+          now: now,
+          selectedIngredients: ['kupus', 'pirinač', 'so'],
+        ).map((s) => s.recipe.id),
+        ['Dva', 'Jedan', 'Jedan kasnije'],
+      );
+    },
+  );
+
+  test('prazan izbor čuva stari tok; nevalidni izbori se odbijaju', () {
+    final r = recipe('R', const [
+      Ingredient(name: 'so', quantity: 1, unit: 'g'),
+    ]);
+    expect(suggestRecipes([r], [], now: now), isEmpty);
+    expect(suggestRecipes([r], [], now: now, selectedIngredients: []), isEmpty);
+    for (final selection in [
+      [''],
+      ['  '],
+      ['a', 'b', 'c', 'd'],
+      ['beli luk', 'češnjak'],
+      ['So', ' so '],
+      ['x' * 81],
+    ]) {
+      expect(
+        () => suggestRecipes([r], [], now: now, selectedIngredients: selection),
+        throwsArgumentError,
+      );
+    }
+  });
+
+  test(
     'filter računa jedan ili dva poznata manjka, a ne nepoznate količine',
     () {
       final items = [stock('a', 'pirinač', 400, 'g')];
