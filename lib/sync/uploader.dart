@@ -272,7 +272,8 @@ class Uploader {
   }
 
   Future<void> _sendPhoto(OutboxRow e) async {
-    final key = '${_scope.householdId}/${photoFileName(e.recordId)}';
+    final household = await _photoHousehold(e.recordId);
+    final key = '$household/${photoFileName(e.recordId)}';
     if (e.op == OutboxOp.photoDelete) {
       await _photos.remove([key]);
       await _photoStore.delete(e.recordId);
@@ -282,5 +283,23 @@ class Uploader {
       if (bytes != null) await _photos.upload(key, bytes);
     }
     await _done([e]);
+  }
+
+  /// Domaćinstvo reda koji koristi sliku (slika napravljena pre prebacivanja
+  /// pripada svom domaćinstvu); bez takvog reda — trenutno domaćinstvo.
+  Future<String> _photoHousehold(String path) async {
+    final recipe = await (_db.select(
+      _db.recipes,
+    )..where((t) => t.imagePath.equals(path))).getSingleOrNull();
+    if (recipe?.householdId case final h?) return h;
+    final item = await (_db.select(
+      _db.shoppingItems,
+    )..where((t) => t.photoPath.equals(path))).getSingleOrNull();
+    if (item?.householdId case final h?) return h;
+    final version = await (_db.select(
+      _db.recipeVersions,
+    )..where((t) => t.recipeJson.contains(path))).get();
+    if (version.firstOrNull?.householdId case final h?) return h;
+    return _scope.householdId;
   }
 }

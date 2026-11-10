@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
@@ -255,4 +256,53 @@ void main() {
 
     expect(profileFetches, 2);
   });
+
+  test(
+    'slika koja čeka slanje ide u svoje domaćinstvo i posle prebacivanja',
+    () async {
+      backend = FakeBackend();
+      final ana = await backend.auth.verifyCode(
+        'ana@mail.com',
+        FakeServer.code,
+      );
+      final own = backend.server.households[ana.userId]!;
+      final owner = backend.server.userFor('vlasnik@mail.com');
+      final shared = backend.server.households[owner]!;
+      backend.server.addMember(shared, ana.userId);
+      final photos = FakePhotoStore();
+      photos.saved['recipe_photos/p1.jpg'] = Uint8List.fromList([1, 2, 3]);
+      await db
+          .into(db.recipes)
+          .insert(
+            RecipesCompanion.insert(
+              id: 'licni',
+              title: 'Lični',
+              servings: 1,
+              source: 'manual',
+              ingredientsJson: '[]',
+              stepsJson: '[]',
+              createdAt: DateTime.utc(2026),
+              updatedAt: DateTime.utc(2026),
+              imagePath: const Value('recipe_photos/p1.jpg'),
+              householdId: Value(own),
+            ),
+          );
+      await SyncedWriter(
+        db,
+        accountId: ana.userId,
+      ).photoUpload('recipe_photos/p1.jpg');
+
+      // Slanje se dešava tek kad je aktivno zajedničko domaćinstvo.
+      await Uploader(
+        db: db,
+        remote: backend.sync,
+        photos: backend.photos,
+        photoStore: photos,
+        scope: AccountScope(userId: ana.userId, householdId: shared),
+        refreshSession: () async => true,
+      ).run();
+
+      expect(backend.server.photos.keys, ['$own/p1.jpg']);
+    },
+  );
 }
