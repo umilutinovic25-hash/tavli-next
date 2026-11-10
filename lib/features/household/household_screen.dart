@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../account/auth_controller.dart';
 import '../../domain/account.dart';
+import 'invites_section.dart';
 
 /// Profil → Domaćinstvo: naziv, uloga, članovi, pozivnice i radnje.
 class HouseholdScreen extends ConsumerWidget {
@@ -20,7 +21,14 @@ class HouseholdScreen extends ConsumerWidget {
           ? const SizedBox.shrink()
           : ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              children: [_Header(account: account)],
+              children: [
+                _Header(account: account),
+                const SizedBox(height: 8),
+                if (account.role == 'owner') ...[
+                  const InvitesSection(),
+                  const SizedBox(height: 16),
+                ],
+              ],
             ),
     );
   }
