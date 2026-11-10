@@ -150,6 +150,13 @@ class AccountService {
     return (await cached(userId))!;
   }
 
+  /// Sačuvani ručni izbor aktivnog domaćinstva (null = nema izbora).
+  Future<String?> cachedPreferred(String userId) async =>
+      (await (_db.select(
+            _db.accounts,
+          )..where((t) => t.userId.equals(userId))).getSingleOrNull())
+          ?.preferredHouseholdId;
+
   /// Ručni izbor aktivnog domaćinstva (null = poslednje pridruženo). Važi
   /// od sledećeg [refresh]; mreža se ne zove.
   Future<void> setPreferredHousehold(String userId, String? householdId) =>

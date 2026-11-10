@@ -605,7 +605,8 @@ class FakeInviteRemote implements HouseholdInviteRemote {
     await _enter('create');
     if (!_owner(householdId)) throw const InviteForbidden();
     final code = 'K7P2MDX${++_n}'.padRight(8, 'N').substring(0, 8);
-    final now = DateTime.utc(2026, 11, 10, 12);
+    // Rok se računa od stvarnog vremena: ekrani i akcije filtriraju po njemu.
+    final now = DateTime.now().toUtc();
     invites.add(
       HouseholdInvite(
         id: 'inv-$_n',
@@ -643,7 +644,7 @@ class FakeInviteRemote implements HouseholdInviteRemote {
       expiresAt: old.expiresAt,
       uses: old.uses,
       maxUses: old.maxUses,
-      revokedAt: DateTime.utc(2026, 11, 10, 13),
+      revokedAt: DateTime.now().toUtc(),
     );
   }
 
