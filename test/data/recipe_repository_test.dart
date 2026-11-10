@@ -6,6 +6,7 @@ import 'package:tavli/data/database.dart';
 import 'package:tavli/data/recipe_repository.dart';
 import 'package:tavli/domain/recipe.dart';
 import 'package:tavli/domain/recipe_version.dart';
+import 'package:tavli/domain/step_links.dart';
 import 'package:tavli/sync/synced_writer.dart';
 
 import '../helpers/fake_photo_store.dart';
@@ -77,6 +78,33 @@ void main() {
     );
     await repo.undoLast('url');
     expect((await repo.get('url'))?.sourceUrl, imported.sourceUrl);
+  });
+
+  test('veze koraka se čuvaju u receptu i u prethodnoj verziji', () async {
+    final linked = recipe('r1').copyWith(
+      ingredients: const [Ingredient(id: 'i-k', name: 'kupus')],
+      stepUses: const [
+        [StepUse(ingredientId: 'i-k', quantity: 1, unit: 'glavica')],
+      ],
+    );
+    await repo.create(linked);
+    expect((await repo.get('r1'))!.stepUses, linked.stepUses);
+    expect((await repo.get('r1'))!.ingredients.single.id, 'i-k');
+
+    await repo.update(
+      linked.copyWith(steps: const ['Kuvati.', 'Poslužiti.']),
+      kind: ChangeKind.manual,
+    );
+    final now = (await repo.get('r1'))!;
+    expect(now.usesFor(0).single.unit, 'glavica');
+    expect(now.usesFor(1), isEmpty);
+    final version = (await repo.watchVersions('r1').first).single;
+    expect(version.recipe.stepUses, linked.stepUses);
+  });
+
+  test('recept bez veza ne upisuje zapis veza', () async {
+    await repo.create(recipe('r1'));
+    expect((await db.select(db.recipes).get()).single.stepLinksJson, isNull);
   });
 
   test('lista je od najnovijeg ka najstarijem', () async {

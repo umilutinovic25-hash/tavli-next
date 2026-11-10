@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'plan_calendar.dart';
 import 'recipe.dart';
 import 'shopping_demand.dart';
+import 'step_links.dart';
 
 /// Odakle dolazi potražnja u kupovini.
 enum ShoppingSourceKind {
@@ -24,6 +25,7 @@ class RecipeSnapshot {
     this.prepMinutes,
     this.imagePath,
     this.dictionaryVersion = 0,
+    this.stepUses = const [],
   });
 
   factory RecipeSnapshot.fromRecipe(Recipe r) => RecipeSnapshot(
@@ -33,6 +35,7 @@ class RecipeSnapshot {
     steps: r.steps,
     prepMinutes: r.prepMinutes,
     imagePath: r.imagePath,
+    stepUses: r.stepUses,
   );
 
   /// Čita oblik iz [toJson]. Baca [FormatException] na pokvaren zapis.
@@ -56,6 +59,9 @@ class RecipeSnapshot {
           Ingredient.fromJson(i as Map<String, dynamic>),
       ],
       steps: [for (final s in steps) s.toString()],
+      stepUses: readStepLinks([
+        for (final s in steps) s.toString(),
+      ], json['stepLinks']),
       prepMinutes: json['prepMinutes'] as int?,
       imagePath: json['imagePath'] as String?,
       dictionaryVersion: json['dictionaryVersion'] as int? ?? 0,
@@ -70,6 +76,9 @@ class RecipeSnapshot {
   final int? prepMinutes;
   final String? imagePath;
 
+  /// Sastojci po koracima, poravnati sa [steps].
+  final List<List<StepUse>> stepUses;
+
   /// Isti recept sa drugim sastojcima (npr. samo onima koji fale).
   RecipeSnapshot withIngredients(List<Ingredient> ingredients) =>
       RecipeSnapshot(
@@ -80,6 +89,7 @@ class RecipeSnapshot {
         prepMinutes: prepMinutes,
         imagePath: imagePath,
         dictionaryVersion: dictionaryVersion,
+        stepUses: stepUses,
       );
 
   /// Version is frozen at approval; legacy snapshots are not rewritten.
@@ -103,6 +113,7 @@ class RecipeSnapshot {
     'ingredients': [for (final i in ingredients) i.toJson()],
     'steps': steps,
     'imagePath': imagePath,
+    'stepLinks': ?writeStepLinks(steps, stepUses),
   };
 }
 

@@ -1,3 +1,5 @@
+import 'step_links.dart';
+
 enum RecipeSource { photo, ai, manual, url }
 
 /// `summary` = naziv i sastojci (dovoljno za plan i listu za kupovinu),
@@ -25,8 +27,12 @@ class Ingredient {
     this.unit,
     this.category = 'ostalo',
     this.note,
+    this.id,
   });
 
+  /// Stabilan id u receptu (za veze sa koracima); null kod starih recepata
+  /// dok se sastojak ne poveže.
+  final String? id;
   final String name;
   final double? quantity;
   final String? unit;
@@ -43,8 +49,18 @@ class Ingredient {
       unit: _blankToNull(json['unit']),
       category: ingredientCategories.contains(category) ? category! : 'ostalo',
       note: _blankToNull(json['note']),
+      id: _blankToNull(json['id']),
     );
   }
+
+  Ingredient withId(String id) => Ingredient(
+    name: name,
+    quantity: quantity,
+    unit: unit,
+    category: category,
+    note: note,
+    id: id,
+  );
 
   Map<String, dynamic> toJson() => {
     'name': name,
@@ -52,6 +68,7 @@ class Ingredient {
     'unit': unit,
     'category': category,
     'note': note,
+    'id': ?id,
   };
 }
 
@@ -68,7 +85,14 @@ class Recipe {
     this.imagePath,
     this.answeredBy,
     this.sourceUrl,
+    this.stepUses = const [],
   });
+
+  /// Sastojci po koracima, poravnati sa [steps] (može biti kraće).
+  final List<List<StepUse>> stepUses;
+
+  List<StepUse> usesFor(int step) =>
+      step < stepUses.length ? stepUses[step] : const [];
 
   final String id;
   final String title;
@@ -105,6 +129,12 @@ class Recipe {
       throw const FormatException('Recept nema sastojke');
     }
     final rawSteps = json['steps'];
+    final steps = rawSteps is List
+        ? [
+            for (final s in rawSteps)
+              if (s.toString().trim().isNotEmpty) s.toString().trim(),
+          ]
+        : const <String>[];
     return Recipe(
       id: id,
       title: title,
@@ -114,12 +144,8 @@ class Recipe {
         for (final i in rawIngredients)
           Ingredient.fromJson(i as Map<String, dynamic>),
       ],
-      steps: rawSteps is List
-          ? [
-              for (final s in rawSteps)
-                if (s.toString().trim().isNotEmpty) s.toString().trim(),
-            ]
-          : const [],
+      steps: steps,
+      stepUses: readStepLinks(steps, json['stepLinks']),
       source: source,
       createdAt: createdAt,
       answeredBy: answeredBy,
@@ -137,6 +163,7 @@ class Recipe {
     List<String>? steps,
     String? imagePath,
     String? answeredBy,
+    List<List<StepUse>>? stepUses,
   }) => Recipe(
     id: id,
     title: title ?? this.title,
@@ -144,6 +171,12 @@ class Recipe {
     prepMinutes: clearPrepMinutes ? null : (prepMinutes ?? this.prepMinutes),
     ingredients: ingredients ?? this.ingredients,
     steps: steps ?? this.steps,
+    // Novi koraci bez novih veza: veze idu za istim tekstom koraka.
+    stepUses:
+        stepUses ??
+        (steps == null
+            ? this.stepUses
+            : realignStepUses(this.steps, this.stepUses, steps)),
     source: source,
     imagePath: imagePath ?? this.imagePath,
     sourceUrl: sourceUrl,
@@ -155,9 +188,10 @@ class Recipe {
   Map<String, dynamic> toJson() => {
     'id': id,
     ...toAiJson(),
+    'stepLinks': ?writeStepLinks(steps, stepUses),
     'source': source.name,
     'imagePath': imagePath,
-    'sourceUrl': sourceUrl,
+    'sourceUrl': ?sourceUrl,
     'answeredBy': answeredBy,
     'createdAt': createdAt.toUtc().toIso8601String(),
   };
