@@ -5,6 +5,7 @@ import 'package:tavli/account/auth_controller.dart';
 import 'package:tavli/account/auth_gateway.dart';
 import 'package:tavli/account/session_store.dart';
 import 'package:tavli/data/database.dart';
+import 'package:tavli/data/household_invite_repository.dart';
 import 'package:tavli/domain/household.dart';
 import 'package:tavli/domain/household_role.dart';
 import 'package:tavli/features/household/household_actions.dart';
@@ -184,5 +185,13 @@ void main() {
       'Pozivnica je poništena.',
     );
     expect(await actions().loadInvites(), isEmpty);
+  });
+
+  test('istekla sesija pri pozivnici vodi na prijavu', () async {
+    backend.invites.failWith = const InviteUnauthorized();
+    final outcome = await actions().join('K7P2MDXN');
+    expect(outcome, isA<HouseholdFailed>());
+    expect(outcome.message, isEmpty);
+    expect(c.read(authControllerProvider), isA<SignedOut>());
   });
 }

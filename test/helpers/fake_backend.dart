@@ -591,10 +591,17 @@ class FakeInviteRemote implements HouseholdInviteRemote {
 
   String get _uid => auth.current!.userId;
 
+  /// Sledeći poziv baca ovu grešku (npr. istekla sesija).
+  HouseholdInviteFailure? failWith;
+
   Future<void> _enter(String call) async {
     calls.add(call);
     if (gate case final g?) await g.future;
     if (server.offline) throw const InviteOffline();
+    if (failWith case final f?) {
+      failWith = null;
+      throw f;
+    }
   }
 
   bool _owner(String householdId) =>

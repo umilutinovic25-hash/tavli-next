@@ -182,6 +182,14 @@ void main() {
       );
     });
 
+    test('istekla sesija (401 / PGRST301) je opozvana sesija', () async {
+      handler = (_) => jsonResponse(pgError('PGRST301', 'JWT expired'), 401);
+      await expectLater(
+        remote.redeem('K7P2MDXN'),
+        throwsA(isA<InviteUnauthorized>()),
+      );
+    });
+
     test('nepoznata greška je greška servera', () async {
       handler = (_) => jsonResponse(pgError('XX000', 'boom'), 500);
       await expectLater(

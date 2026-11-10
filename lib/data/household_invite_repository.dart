@@ -31,6 +31,11 @@ class InviteForbidden extends HouseholdInviteFailure {
   const InviteForbidden();
 }
 
+/// Sesija je istekla ili opozvana: nazad na prijavu.
+class InviteUnauthorized extends HouseholdInviteFailure {
+  const InviteUnauthorized();
+}
+
 class InviteOffline extends HouseholdInviteFailure {
   const InviteOffline();
 }
@@ -115,9 +120,12 @@ class SupabaseHouseholdInviteRemote implements HouseholdInviteRemote {
     try {
       return await action();
     } on PostgrestException catch (e) {
-      throw switch (e.code) {
+      final code = e.code ?? '';
+      throw switch (code) {
         'P0429' => const InviteTooManyAttempts(),
         '42501' => const InviteForbidden(),
+        _ when code == '401' || code.startsWith('PGRST3') =>
+          const InviteUnauthorized(),
         _ => const InviteServerError(),
       };
     } on SocketException {

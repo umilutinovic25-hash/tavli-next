@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../account/auth_controller.dart';
+import '../../data/household_invite_repository.dart';
 import '../../data/household_membership_repository.dart';
 import '../../domain/household.dart';
 import '../../domain/household_invite.dart';
@@ -165,6 +166,9 @@ class HouseholdActions {
     try {
       return await action();
     } on MembershipUnauthorized {
+      await _auth.sessionExpired();
+      return const HouseholdFailed('');
+    } on InviteUnauthorized {
       await _auth.sessionExpired();
       return const HouseholdFailed('');
     } on Exception catch (e) {
