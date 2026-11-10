@@ -1,0 +1,9 @@
+# Plan
+
+Domen `lib/domain/day_rules.dart`: `DayRule` (dan, opcioni obrok, vrsta, naziv sastojka, obavezno/želja), deterministički `evaluateRule` (srpski rečnik početaka reči za meso i ribu, kratke reči samo cele; neprepoznat sastojak iz kategorije „meso i riba“ je neprovereno), `blockingViolations`, tekstovi za prikaz i opis za AI. `PlanRequest.rules` ide u upit za raspored. `MealPlanRepository.approve` čita pravila iz baze i baca `RuleViolationException` za jelo koje krši obavezno pravilo bez izuzetka za to mesto; izuzeci (`overrides`) se čuvaju uz obrok samo za pravila koja jelo zaista krši, a zamena jela ih briše; `setRuleOverride` za sačuvan obrok. Lokalno drift v14 (tabela `day_rules`, kolona `rule_overrides_json`), na serveru migracija 20261110120800 (tabela sa RLS-om po članstvu, grants samo authenticated, tragovi brisanja, provere vrste/dana/obroka/naziva; kolona `rule_overrides` kao lista). Bez novih zavisnosti.
+
+schemaVersion: grane 019–028 zauzimaju v6–v13, pa ova uzima v14; korak je idempotentan. Serverska migracija dolazi posle 028 (20261110120700).
+
+## Constitution Check
+
+I: srpski Latin; II: keš i outbox, RLS, grants, pgTAP sa dva naloga; III: AI ide kroz `AIRouter`, a njegov rezultat se proverava u kodu pre čuvanja; IV: bez tajni; V: domen (matrica dana 1–7, obrok, obavezno/želja, neprovereno, prepoznavanje reči), repozitorijum (odbijanje bez izuzetka, izuzetak samo za taj ponedeljak, želja i neprovereno ne blokiraju, zamena briše izuzetak, izolacija, nepoznata vrsta), migracije, mapiranje, widget testovi (AI vrati zabranjeno jelo, ekran pravila, sačuvan plan, širok ekran); VI: oznake tekstom i ikonom, dugmad sa opisom; VII: jedan commit; VIII: jedan spec i grana iz main; IX: nova migracija, generisan drift kod, hook i provere.

@@ -81,7 +81,11 @@ class PlanGenerationState {
     this.draft,
     this.error,
     this.replacing,
+    this.overrides = const {},
   });
+
+  /// Izuzeci od obaveznih pravila dana po mestu (id-jevi pravila).
+  final Map<MealSlot, Set<String>> overrides;
 
   final PlanSetup setup;
   final GenerationPhase phase;
@@ -107,12 +111,14 @@ class PlanGenerationState {
     bool clearError = false,
     MealSlot? replacing,
     bool clearReplacing = false,
+    Map<MealSlot, Set<String>>? overrides,
   }) => PlanGenerationState(
     setup: setup ?? this.setup,
     phase: phase ?? this.phase,
     draft: clearDraft ? null : (draft ?? this.draft),
     error: clearError ? null : (error ?? this.error),
     replacing: clearReplacing ? null : (replacing ?? this.replacing),
+    overrides: overrides ?? this.overrides,
   );
 }
 
@@ -167,6 +173,7 @@ class PlanGenerationController extends Notifier<PlanGenerationState> {
                     .read(mealPlanRepositoryProvider)
                     .confirmedPantryNames()
               : const [],
+          rules: await ref.read(dayRuleRepositoryProvider).getAll(),
         );
     final run = ++_run;
     final cancel = _cancel = PlanCancellation();
@@ -238,6 +245,7 @@ class PlanGenerationController extends Notifier<PlanGenerationState> {
       pantryNames: plan.usePantry
           ? await repo.confirmedPantryNames()
           : const [],
+      rules: await ref.read(dayRuleRepositoryProvider).getAll(),
       only: slots,
     );
     _run++;
@@ -269,6 +277,7 @@ class PlanGenerationController extends Notifier<PlanGenerationState> {
       usePantry: base.usePantry,
       wishes: wishes,
       pantryNames: base.pantryNames,
+      rules: base.rules,
       only: {slot},
     );
     // Ostala jela idu kao već planirana, da se ne ponavljaju.
@@ -300,6 +309,8 @@ class PlanGenerationController extends Notifier<PlanGenerationState> {
       }
       state = state.copyWith(
         clearReplacing: true,
+        // Novo jelo: izuzetak za staro ne važi.
+        overrides: _without(slot),
         draft: draft.copyWith(
           proposals: {...draft.proposals, slot: next},
           newRecipes: {...draft.newRecipes, ...result.newRecipes},
@@ -328,6 +339,7 @@ class PlanGenerationController extends Notifier<PlanGenerationState> {
     }
     state = state.copyWith(
       clearError: true,
+      overrides: _without(slot),
       draft: draft.copyWith(
         proposals: {
           ...draft.proposals,
@@ -361,6 +373,31 @@ class PlanGenerationController extends Notifier<PlanGenerationState> {
     state = PlanGenerationState(setup: state.setup);
   }
 
+  Map<MealSlot, Set<String>> _without(MealSlot slot) => {
+    for (final e in state.overrides.entries)
+      if (e.key != slot) e.key: e.value,
+  };
+
+  /// Dozvoljava (ili ukida) izuzetak od pravila dana za jedno mesto.
+  void setOverride(
+    MealSlot slot,
+    Set<String> ruleIds, {
+    required bool allowed,
+  }) {
+    if (state.busy) return;
+    final current = state.overrides[slot] ?? const <String>{};
+    final next = allowed
+        ? {...current, ...ruleIds}
+        : current.difference(ruleIds);
+    state = state.copyWith(
+      overrides: {
+        for (final e in state.overrides.entries)
+          if (e.key != slot) e.key: e.value,
+        if (next.isNotEmpty) slot: next,
+      },
+    );
+  }
+
   /// Čuva nacrt i vraća id plana, ili null kad čuvanje nije uspelo (tada
   /// nacrt i poruka ostaju u pregledu).
   Future<String?> save({bool partial = false}) async {
@@ -371,9 +408,16 @@ class PlanGenerationController extends Notifier<PlanGenerationState> {
     try {
       final id = await ref
           .read(mealPlanRepositoryProvider)
-          .approve(draft, allowPartial: partial);
+          .approve(draft, allowPartial: partial, overrides: state.overrides);
       state = PlanGenerationState(setup: state.setup);
       return id;
+    } on RuleViolationException {
+      state = state.copyWith(
+        phase: before,
+        error:
+            'Neka jela krše obavezna pravila dana. Zameni ih ili dozvoli '
+            'izuzetak.',
+      );
     } on StaleDraftException {
       state = state.copyWith(
         phase: before,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/day_rules.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/recipe_format.dart';
+import 'rule_notes.dart';
 
 /// Jedno mesto u planu: vrsta obroka, jelo, vreme, porcije i oznake
 /// Zaključano/Skuvano (tekstom, ne samo bojom).
@@ -12,12 +14,16 @@ class MealEntryCard extends StatelessWidget {
     required this.meal,
     this.selected = false,
     this.onTap,
+    this.rules = const [],
   });
 
   final MealSlot slot;
   final PlannedMeal? meal;
   final bool selected;
   final VoidCallback? onTap;
+
+  /// Rezultati pravila dana za jelo na ovom mestu.
+  final List<RuleResult> rules;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +58,7 @@ class MealEntryCard extends StatelessWidget {
                     color: meal == null ? colors.onSurfaceVariant : null,
                   ),
                 ),
+                RuleNotes(rules, overrides: meal?.ruleOverrides ?? const {}),
                 if (details.isNotEmpty || meal != null) ...[
                   const SizedBox(height: 4),
                   Wrap(

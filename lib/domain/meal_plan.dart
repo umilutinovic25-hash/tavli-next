@@ -2,6 +2,7 @@
 /// čuvanja. Nacrt živi samo u sesiji; čuva se tek odobren.
 library;
 
+import 'day_rules.dart';
 import 'plan_calendar.dart';
 import 'shopping_demand.dart' show maxServings, minServings;
 import 'shopping_source.dart';
@@ -56,6 +57,7 @@ class PlanRequest {
     this.usePantry = true,
     this.wishes,
     this.pantryNames = const [],
+    this.rules = const [],
     Set<MealSlot>? only,
   }) : mealTypes = Set.unmodifiable(mealTypes),
        only = only == null ? null : Set.unmodifiable(only) {
@@ -87,6 +89,9 @@ class PlanRequest {
 
   /// Nazivi potvrđene zalihe; koriste se samo kad je [usePantry].
   final List<String> pantryNames;
+
+  /// Pravila po danima domaćinstva (AI ih dobija; čuvanje ih proverava).
+  final List<DayRule> rules;
 
   /// Samo ova mesta (zamena jednog jela ili ponovni predlog bez zaštićenih
   /// obroka); null = sva mesta plana.
@@ -238,12 +243,16 @@ class PlannedMeal {
     this.recipeId,
     this.isLocked = false,
     this.isCooked = false,
+    this.ruleOverrides = const {},
   });
 
   final String id;
   final String planId;
   final MealSlot slot;
   final int servings;
+
+  /// Obavezna pravila dana (id) dozvoljena baš za ovaj obrok.
+  final Set<String> ruleOverrides;
 
   /// null samo za stari unos bez snimka.
   final RecipeSnapshot? snapshot;

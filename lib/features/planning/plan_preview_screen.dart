@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../domain/day_rules.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/recipe_format.dart';
 import '../recipes/ai_preview.dart';
@@ -12,6 +13,7 @@ import 'meal_actions.dart';
 import 'plan_format.dart';
 import 'plan_generation.dart';
 import 'planning_providers.dart';
+import 'rule_notes.dart';
 
 /// Drugi i treći korak: napredak, predlog po danima i odobrenje. Ništa se
 /// ne čuva dok osoba ne izabere "Sačuvaj plan" (ili izričito nepotpun plan).
@@ -187,6 +189,19 @@ class PlanPreviewScreen extends ConsumerWidget {
                   _SlotTile(
                     draft: draft,
                     slot: slot,
+                    rules: evaluateSlot(
+                      ref.watch(dayRulesProvider).value ?? const [],
+                      slot,
+                      draft.snapshotFor(slot),
+                    ),
+                    overrides: state.overrides[slot] ?? const {},
+                    onOverride: state.busy
+                        ? null
+                        : (ids, allowed) => controller.setOverride(
+                            slot,
+                            ids,
+                            allowed: allowed,
+                          ),
                     previous: current[slot]?.snapshot?.title,
                     replacing: state.replacing == slot,
                     onReplace: state.busy
@@ -308,8 +323,16 @@ class _SlotTile extends StatelessWidget {
     this.replacing = false,
     this.onReplace,
     this.onCancelReplace,
+    this.rules = const [],
+    this.overrides = const {},
+    this.onOverride,
   });
 
+  final List<RuleResult> rules;
+  final Set<String> overrides;
+
+  /// Dozvoljava ili ukida izuzetak od obaveznih pravila za ovo mesto.
+  final void Function(Set<String> ruleIds, bool allowed)? onOverride;
   final PlanDraft draft;
   final MealSlot slot;
 
@@ -322,6 +345,12 @@ class _SlotTile extends StatelessWidget {
 
   /// Jelo koje predlog zamenjuje (pregled izmena).
   final String? previous;
+
+  /// Obavezna pravila koja jelo krši (sa izuzetkom ili bez).
+  Set<String> get _failing => {
+    for (final r in rules)
+      if (r.fit == RuleFit.fail && r.rule.mode == RuleMode.required) r.rule.id,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -383,7 +412,25 @@ class _SlotTile extends StatelessWidget {
     return ExpansionTile(
       tilePadding: EdgeInsets.zero,
       title: label,
-      subtitle: Text('${proposal.title}\n$origin', style: muted),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('${proposal.title}\n$origin', style: muted),
+          RuleNotes(rules, overrides: overrides),
+          if (_failing.isNotEmpty)
+            TextButton(
+              onPressed: onOverride == null
+                  ? null
+                  : () =>
+                        onOverride!(_failing, !overrides.containsAll(_failing)),
+              child: Text(
+                overrides.containsAll(_failing)
+                    ? 'Ukloni izuzetak'
+                    : 'Dozvoli ovaj put',
+              ),
+            ),
+        ],
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [replace, const Icon(Icons.expand_more)],

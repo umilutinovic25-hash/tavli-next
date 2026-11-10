@@ -28,6 +28,7 @@ select is(
           and has_table_privilege('authenticated', c.oid, p)
         order by 1),
   array[
+    'day_rules:delete', 'day_rules:insert', 'day_rules:select', 'day_rules:update',
     'deletions:select', 'household_members:select', 'households:select',
     'meal_plan_entries:delete', 'meal_plan_entries:insert', 'meal_plan_entries:select', 'meal_plan_entries:update',
     'meal_plans:delete', 'meal_plans:insert', 'meal_plans:select', 'meal_plans:update',

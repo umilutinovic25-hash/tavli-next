@@ -367,6 +367,7 @@ class MealPlanEntryEntity
     'is_cooked': r.isCooked,
     'servings': r.servings,
     'recipe_snapshot': _decodeOrNull(r.recipeSnapshotJson),
+    'rule_overrides': _decodeOrNull(r.ruleOverridesJson),
   };
 
   @override
@@ -382,7 +383,48 @@ class MealPlanEntryEntity
         isCooked: Value(j['is_cooked'] as bool? ?? false),
         servings: Value(j['servings'] as int?),
         recipeSnapshotJson: Value(_jsonOrNull(j['recipe_snapshot'])),
+        ruleOverridesJson: Value(_jsonOrNull(j['rule_overrides'])),
       );
+}
+
+class DayRuleEntity extends SyncEntity<$DayRulesTable, DayRuleRow> {
+  const DayRuleEntity();
+  @override
+  String get name => 'day_rule';
+  @override
+  String get remoteTable => 'day_rules';
+  @override
+  EntityScope get scope => EntityScope.household;
+  @override
+  $DayRulesTable table(AppDatabase db) => db.dayRules;
+  @override
+  Expression<String> idColumn($DayRulesTable t) => t.id;
+  @override
+  GeneratedColumn<String> scopeColumn($DayRulesTable t) => t.householdId;
+
+  @override
+  Map<String, Object?> toRemote(DayRuleRow r) => {
+    'id': r.id,
+    'household_id': r.householdId,
+    'weekday': r.weekday,
+    'meal_type': r.mealType,
+    'kind': r.kind,
+    'value': r.value,
+    'mode': r.mode,
+    'created_at': _ts(r.createdAt),
+  };
+
+  @override
+  DayRulesCompanion fromRemote(Map<String, Object?> j) => DayRulesCompanion(
+    id: Value(j['id']! as String),
+    householdId: Value(j['household_id'] as String?),
+    weekday: Value(j['weekday']! as int),
+    mealType: Value(j['meal_type'] as String?),
+    kind: Value(j['kind']! as String),
+    value: Value(j['value'] as String?),
+    mode: Value(j['mode'] as String? ?? 'required'),
+    createdAt: Value(_date(j['created_at'])),
+  );
 }
 
 class RatingEntity extends SyncEntity<$RatingsTable, RatingRow> {
@@ -630,6 +672,7 @@ const List<SyncEntity<Table, Object?>> syncEntities = [
   RecipeVersionEntity(),
   MealPlanEntity(),
   MealPlanEntryEntity(),
+  DayRuleEntity(),
   ShoppingListEntity(),
   ShoppingItemEntity(),
   PantryItemEntity(),

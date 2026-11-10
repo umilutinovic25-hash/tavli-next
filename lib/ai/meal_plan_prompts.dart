@@ -19,6 +19,7 @@ String planOutlinePrompt({
   List<String> alreadyPlanned = const [],
   String? wishes,
   List<String> pantry = const [],
+  List<String> rules = const [],
 }) {
   final slotsJson = jsonEncode([
     for (final s in slots) {'date': s.date.toString(), 'meal': s.type.name},
@@ -29,7 +30,7 @@ String planOutlinePrompt({
   return '''
 Plan one dish for EVERY slot below, and nothing else: no extra or missing slots.
 The household eats $servings servings per meal.
-${wishes == null || wishes.trim().isEmpty ? '' : 'Wishes of the household: ${wishes.trim()}\n'}${pantry.isEmpty ? '' : 'Prefer using what is at home: ${jsonEncode(pantry)}\n'}${alreadyPlanned.isEmpty ? '' : 'Already planned in other weeks (avoid repeating too often): ${jsonEncode(alreadyPlanned)}\n'}You may reuse the household's own saved recipes by their "id"; never invent ids.
+${rules.isEmpty ? '' : 'Day rules (follow every required rule exactly; follow preferred rules when possible):\n${rules.map((r) => '- $r').join('\n')}\n'}${wishes == null || wishes.trim().isEmpty ? '' : 'Wishes of the household: ${wishes.trim()}\n'}${pantry.isEmpty ? '' : 'Prefer using what is at home: ${jsonEncode(pantry)}\n'}${alreadyPlanned.isEmpty ? '' : 'Already planned in other weeks (avoid repeating too often): ${jsonEncode(alreadyPlanned)}\n'}You may reuse the household's own saved recipes by their "id"; never invent ids.
 Library: $libraryJson
 Slots: $slotsJson
 Return:

@@ -166,6 +166,26 @@ void main() {
     );
   });
 
+  test('pravilo dana', () async {
+    await roundTrip(
+      const DayRuleEntity(),
+      DayRulesCompanion.insert(
+        id: 'd1',
+        householdId: const Value('h1'),
+        weekday: 1,
+        kind: 'noMeat',
+        createdAt: t,
+      ),
+      'd1',
+      (r) {
+        expect(r['weekday'], 1);
+        expect(r['meal_type'], isNull);
+        expect(r['kind'], 'noMeat');
+        expect(r['mode'], 'required');
+      },
+    );
+  });
+
   test('ocena i profil ukusa pripadaju osobi', () async {
     await roundTrip(
       const RatingEntity(),
@@ -205,7 +225,7 @@ void main() {
         );
       }
     }
-    expect(names, hasLength(12));
+    expect(names, hasLength(13));
     expect(const SupplyAllocationEntity().parents, [
       'shopping_contribution',
       'pantry_item',
