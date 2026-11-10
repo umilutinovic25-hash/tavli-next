@@ -19,6 +19,7 @@ class InvitesSection extends ConsumerStatefulWidget {
 class _InvitesSectionState extends ConsumerState<InvitesSection> {
   List<HouseholdInvite> _invites = const [];
   var _creating = false;
+  var _stale = false;
 
   @override
   void initState() {
@@ -29,7 +30,11 @@ class _InvitesSectionState extends ConsumerState<InvitesSection> {
 
   Future<void> _reload() async {
     final invites = await ref.read(householdActionsProvider).loadInvites();
-    if (mounted && invites != null) setState(() => _invites = invites);
+    if (!mounted) return;
+    setState(() {
+      _stale = invites == null;
+      if (invites != null) _invites = invites;
+    });
   }
 
   void _show(String message) {
@@ -44,10 +49,11 @@ class _InvitesSectionState extends ConsumerState<InvitesSection> {
     setState(() => _creating = true);
     final outcome = await ref.read(householdActionsProvider).createInvite();
     if (!mounted) return;
-    setState(() => _creating = false);
     if (outcome case HouseholdDone(:final code?)) {
+      // Dugme ostaje zaključano dok se lista ne učita i list ne otvori.
       await _reload();
       if (!mounted) return;
+      setState(() => _creating = false);
       final invite = _invites.where((i) => i.code == code).firstOrNull;
       await showModalBottomSheet<void>(
         context: context,
@@ -60,6 +66,7 @@ class _InvitesSectionState extends ConsumerState<InvitesSection> {
         ),
       );
     } else {
+      setState(() => _creating = false);
       _show(outcome.message);
     }
   }
@@ -111,7 +118,15 @@ class _InvitesSectionState extends ConsumerState<InvitesSection> {
         ),
         const SizedBox(height: 16),
         Text('Aktivne pozivnice', style: theme.textTheme.titleMedium),
-        if (_invites.isEmpty)
+        if (_stale)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text(
+              'Prikazano je poslednje poznato stanje.',
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+        if (_invites.isEmpty && !_stale)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(

@@ -255,10 +255,7 @@ void main() {
       backend.server.offline = true;
       await tester.fling(find.text('Članovi'), const Offset(0, 400), 1000);
       await tester.pumpAndSettle();
-      expect(
-        find.text('Prikazano je poslednje poznato stanje.'),
-        findsOneWidget,
-      );
+      expect(find.text('Prikazano je poslednje poznato stanje.'), findsWidgets);
       expect(row('Marko'), findsOneWidget);
     });
 
@@ -550,5 +547,92 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     }
+  });
+
+  group('zaštita od duplih radnji', () {
+    testTavli('dodir dok se lista učitava ne pravi drugu pozivnicu', (
+      tester,
+    ) async {
+      final backend = FakeBackend();
+      await pumpTavli(tester, location: '/profile/household', backend: backend);
+      final gate = backend.invites.gate = Completer<void>();
+      backend.invites.gateOnly = 'list';
+
+      await tester.tap(button('Pozovi člana'));
+      await tester.pump();
+      await tester.pump();
+      await tester.tap(button('Pozovi člana'), warnIfMissed: false);
+      await tester.pump();
+      gate.complete();
+      backend.invites.gate = null;
+      await tester.pumpAndSettle();
+
+      expect(backend.invites.calls.where((c) => c == 'create'), hasLength(1));
+    });
+
+    testTavli('napuštanje dok zahtev traje: dugme je onemogućeno', (
+      tester,
+    ) async {
+      final backend = FakeBackend();
+      final owner = backend.server.userFor('vlasnik@mail.com');
+      backend.server.addMember(
+        backend.server.households[owner]!,
+        backend.server.userFor(testEmail),
+      );
+      await pumpTavli(tester, location: '/profile/household', backend: backend);
+      final gate = backend.membership.gate = Completer<void>();
+
+      await tapButton(tester, 'Napusti domaćinstvo');
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Napusti domaćinstvo'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final leave = tester.widget<ButtonStyleButton>(
+        button('Napusti domaćinstvo'),
+      );
+      expect(leave.onPressed, isNull);
+
+      gate.complete();
+      backend.membership.gate = null;
+      await tester.pumpAndSettle();
+      expect(backend.membership.calls.where((c) => c == 'leave'), hasLength(1));
+    });
+
+    testTavli('dupli dodir u dijalogu ne zatvara ekran', (tester) async {
+      final backend = FakeBackend();
+      final owner = backend.server.userFor('vlasnik@mail.com');
+      backend.server.addMember(
+        backend.server.households[owner]!,
+        backend.server.userFor(testEmail),
+      );
+      await pumpTavli(tester, location: '/profile/household', backend: backend);
+      await tapButton(tester, 'Napusti domaćinstvo');
+      final otkazi = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Otkaži'),
+      );
+      await tester.tap(otkazi);
+      await tester.tap(otkazi, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(AppBar, 'Domaćinstvo'), findsOneWidget);
+    });
+
+    testTavli('bez mreže pozivnice nisu „nema“, nego poslednje stanje', (
+      tester,
+    ) async {
+      final backend = FakeBackend();
+      final ana = backend.server.userFor(testEmail);
+      backend.auth.current = backend.auth.sessionFor(testEmail);
+      await backend.invites.create(backend.server.households[ana]!);
+      backend.server.offline = true;
+      await pumpTavli(tester, location: '/profile/household', backend: backend);
+
+      expect(find.text('Nema aktivnih pozivnica.'), findsNothing);
+      expect(find.text('Prikazano je poslednje poznato stanje.'), findsWidgets);
+    });
   });
 }

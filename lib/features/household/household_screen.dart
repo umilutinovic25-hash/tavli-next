@@ -25,6 +25,9 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
   String? _selected;
   var _switching = false;
 
+  /// Radnja nad članstvom (napusti, ukloni, prenesi) je u toku.
+  var _acting = false;
+
   @override
   void initState() {
     super.initState();
@@ -59,7 +62,7 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
           action: 'Ukloni iz domaćinstva',
         );
         if (!ok) return;
-        await _finish(await ref.read(householdActionsProvider).removeMember(m));
+        await _act(() => ref.read(householdActionsProvider).removeMember(m));
       case MemberAction.transfer:
         final ok = await _confirm(
           title: 'Preneti vlasništvo na $name?',
@@ -69,8 +72,8 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
           action: 'Prenesi vlasništvo',
         );
         if (!ok) return;
-        await _finish(
-          await ref.read(householdActionsProvider).transferOwnership(m),
+        await _act(
+          () => ref.read(householdActionsProvider).transferOwnership(m),
         );
     }
   }
@@ -82,7 +85,7 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
       action: 'Napusti domaćinstvo',
     );
     if (!ok) return;
-    await _finish(await ref.read(householdActionsProvider).leave());
+    await _act(() => ref.read(householdActionsProvider).leave());
   }
 
   Future<void> _switch(String householdId) async {
@@ -99,8 +102,14 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
     if (outcome is HouseholdDone) await _refresh();
   }
 
-  /// Poruka ishoda; posle odbijanja lista se usklađuje sa serverom.
-  Future<void> _finish(HouseholdOutcome outcome) async {
+  /// Jedna radnja nad članstvom odjednom; poruka ishoda, a posle odbijanja
+  /// lista se usklađuje sa serverom.
+  Future<void> _act(Future<HouseholdOutcome> Function() action) async {
+    if (_acting) return;
+    setState(() => _acting = true);
+    final outcome = await action();
+    if (!mounted) return;
+    setState(() => _acting = false);
     _show(outcome.message);
     if (outcome is HouseholdFailed) await _refresh();
   }
@@ -188,7 +197,7 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
                     MemberTile(
                       member: m,
                       isSelf: m.userId == account.userId,
-                      canManage: account.role == 'owner',
+                      canManage: account.role == 'owner' && !_acting,
                       onAction: (action) => _onMemberAction(m, action),
                     ),
                   const SizedBox(height: 16),
@@ -200,7 +209,7 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
                     Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: OutlinedButton.icon(
-                        onPressed: _leave,
+                        onPressed: _acting ? null : _leave,
                         icon: const Icon(Icons.logout),
                         label: const Text('Napusti domaćinstvo'),
                       ),
