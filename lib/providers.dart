@@ -19,7 +19,9 @@ import 'ai/meal_plan_ai.dart';
 import 'ai/recipe_ai.dart';
 import 'data/database.dart';
 import 'data/drift_model_status_store.dart';
+import 'data/preferences_repository.dart';
 import 'data/shopping_repository.dart';
+import 'domain/user_preferences.dart';
 import 'features/recipes/recipe_providers.dart';
 import 'sync/downloader.dart';
 import 'sync/legacy_mover.dart';
@@ -252,4 +254,17 @@ final shoppingRepositoryProvider = Provider<ShoppingRepository>(
     writer: ref.watch(syncedWriterProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+/// Preferencije ishrane prijavljenog domaćinstva.
+final preferencesRepositoryProvider = Provider<PreferencesRepository>(
+  (ref) => PreferencesRepository(
+    ref.watch(databaseProvider),
+    scope: ref.watch(accountScopeProvider) ?? noAccountScope,
+    writer: ref.watch(syncedWriterProvider),
+  ),
+);
+
+final preferencesProvider = StreamProvider.autoDispose<UserPreferences>(
+  (ref) => ref.watch(preferencesRepositoryProvider).watch(),
 );
