@@ -125,8 +125,9 @@
 
 - [x] T032 [P] `docs/architecture.md`: kratak odeljak o katalogu (tabele, v2, referentni podaci); `lib/data/personal_export.dart` — izvoz sadrži sopstvene namirnice domaćinstva (sa aliasima, konverzijama i alergenima), bez zajedničkog kataloga (odluka G1); test u `test/data/personal_export_test.dart`.
   - Izvedeno: nova sekcija menja oblik izvoza, pa `personalExportFormatVersion` 1 → 2; zaliha i stavka nabavke u izvozu nose i `foodId`.
-- [ ] T033 `spec-converge` (kod vs spec) dok ne kaže „Converged“; ispravke kao zasebni commitovi.
+- [x] T033 `spec-converge` (kod vs spec) dok ne kaže „Converged“; ispravke kao zasebni commitovi.
 - [ ] T034 `flutter test` ceo, `supabase db reset && supabase test db`, `flutter build macos --debug`; quickstart ručno na uskoj i širokoj širini.
+  - Stanje 2026-11-11: `flutter test` 1165/1165, `supabase db reset && supabase test db` 520/520. Ostaje: `flutter build macos --debug` (na mašini nema Xcode-a) i ručni quickstart na uskoj i širokoj širini.
 - [ ] T035 PR opis: veza na spec, upozorenje o mešovitim verzijama klijenata (v2 snimak na starom klijentu), CSV na pregled timu, lista migracija.
 
 ---
