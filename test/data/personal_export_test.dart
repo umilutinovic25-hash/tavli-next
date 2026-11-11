@@ -55,6 +55,7 @@ void main() {
       'savedRecipeSearches',
       'dayRules',
       'dayTimeBudgets',
+      'foods',
     ]);
     for (final list in sections.values) {
       expect(list, isEmpty);
@@ -176,6 +177,95 @@ void main() {
     expect(searches.map((s) => (s! as Map)['id']), ['s1']);
     expect(jsonEncode(export), isNot(contains('AIza-test')));
     expect(jsonEncode(export), isNot(contains('gemini_key')));
+  });
+
+  test('036: sopstvene namirnice sa aliasima, konverzijama i alergenima; '
+      'bez zajedničkog kataloga', () async {
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    Future<void> food(String id, String name, String? hh) => db
+        .into(db.foods)
+        .insert(
+          FoodsCompanion.insert(
+            id: id,
+            name: name,
+            category: 'ostalo',
+            baseUnit: 'g',
+            householdId: Value(hh),
+          ),
+        );
+    await food('f_jaje', 'jaje', null);
+    await food('own', 'sejtan', 'h1');
+    await food('tuđe', 'tuđa namirnica', 'h2');
+    for (final (id, foodId, alias, hh) in [
+      ('a1', 'f_jaje', 'jaja', null),
+      ('a2', 'own', 'sejtan', 'h1'),
+      ('a3', 'own', 'seitan', 'h1'),
+      ('a4', 'tuđe', 'tuđe', 'h2'),
+    ]) {
+      await db
+          .into(db.foodAliases)
+          .insert(
+            FoodAliasesCompanion.insert(
+              id: id,
+              foodId: foodId,
+              alias: alias,
+              householdId: Value(hh),
+            ),
+          );
+    }
+    await db
+        .into(db.foodConversions)
+        .insert(
+          FoodConversionsCompanion.insert(
+            id: 'c1',
+            foodId: 'own',
+            unit: 'pakovanje',
+            factorMicros: 250000000,
+            householdId: const Value('h1'),
+          ),
+        );
+    await db
+        .into(db.foodAllergens)
+        .insert(
+          FoodAllergensCompanion.insert(
+            id: 'al1',
+            foodId: 'own',
+            allergenCode: 'gluten',
+            householdId: const Value('h1'),
+          ),
+        );
+    await db
+        .into(db.pantryItems)
+        .insert(
+          PantryItemsCompanion.insert(
+            id: 'p1',
+            name: 'Sejtan',
+            category: 'ostalo',
+            addedAt: DateTime.utc(2026),
+            householdId: const Value('h1'),
+            foodId: const Value('own'),
+          ),
+        );
+
+    final export = await collectPersonalExport(db, _account, clock: () => _at);
+    final sections = export['sections']! as Map<String, Object?>;
+    expect(export['formatVersion'], 2);
+    expect(sections['foods'], [
+      {
+        'id': 'own',
+        'name': 'sejtan',
+        'category': 'ostalo',
+        'baseUnit': 'g',
+        'aliases': ['seitan', 'sejtan'],
+        'conversions': [
+          {'unit': 'pakovanje', 'factorMicros': 250000000},
+        ],
+        'allergens': ['gluten'],
+      },
+    ]);
+    expect(((sections['pantryItems']! as List).single as Map)['foodId'], 'own');
+    expect(jsonEncode(sections['foods']), isNot(contains('f_jaje')));
   });
 
   test('writePersonalExportFile upisuje JSON sa datumom u imenu', () async {

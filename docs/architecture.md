@@ -122,6 +122,36 @@ flowchart LR
 - **Later**: 008 adds invites and roles; 009 adds realtime updates between
   household members and conflict handling for simultaneous edits.
 
+## Food catalog (036)
+
+- **Tables**: `foods`, `food_aliases`, `food_conversions`, `food_allergens` and
+  the reference table `allergens` (EU 14). `household_id null` is the shared
+  catalog: reference data without personal data, readable by every signed-in
+  user, writable only by migrations (constitution exception for reference
+  data). Rows with a `household_id` are the household's own foods, visible and
+  editable only by members. An own alias may never shadow a shared one
+  (`food_alias_taken`).
+- **Ids, text for display**: a recipe ingredient stores `foodId` in its JSON,
+  `pantry_items` and `shopping_items` a `food_id` column; the typed text stays
+  as written. Repositories fill a missing id by exact alias after
+  normalization (never overwriting a person's choice); otherwise the row is
+  "Nepotvrđeno" and the person picks or creates a food
+  (`lib/features/foods/`). AI never writes to the catalog; it only suggests a
+  draft (`suggestFood`) that a person confirms.
+- **Shared catalog data**: `supabase/catalog/foods.csv` (reviewed by the team)
+  → `scripts/catalog_seed.dart` → seed migration. Existing rows were mapped
+  once on the server (`private.map_food_ids()`, exact shared alias only) and
+  reach devices through the normal download.
+- **Demand dictionary v2**: snapshots approved after 036 use
+  `dictionaryVersion: 2`: identity `food:<id>` when the ingredient has a food,
+  with food conversions (e.g. 1 čen garlic = 5 g) frozen in the snapshot.
+  v0/v1 snapshots are never recomputed differently (golden test).
+- **Allergens**: shown only from confirmed foods ("Sadrži: …"), with
+  "Podaci o alergenima nisu potpuni." while any ingredient is unconfirmed; the
+  app never claims a recipe is allergen-free.
+- **Personal export** (format 2) includes the household's own foods with
+  aliases, conversions and allergens, not the shared catalog.
+
 ## Local development backend
 
 `supabase start` in the repo root runs the local stack from

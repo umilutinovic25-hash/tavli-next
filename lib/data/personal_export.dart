@@ -7,12 +7,13 @@ import '../domain/account.dart';
 import 'database.dart';
 
 /// Verzija formata izvoza. Povećava se kad se menja oblik JSON-a.
-const personalExportFormatVersion = 1;
+const personalExportFormatVersion = 2;
 
 /// Lični izvoz (pravo pristupa podacima). Čist builder: prima samo redove iz
 /// baze i podatke naloga, pa u izvoz ne može da uđe ništa drugo (AI ključevi,
 /// tokeni sesije i sadržaj secure storage-a nisu u ulazu). Slike se ne
-/// izvoze kao bajtovi, samo kao putanje.
+/// izvoze kao bajtovi, samo kao putanje. Od verzije 2 (036) sadrži i
+/// sopstvene namirnice domaćinstva; zajednički katalog nije lični podatak.
 Map<String, Object?> buildPersonalExport({
   required DateTime exportedAt,
   required String email,
@@ -26,6 +27,10 @@ Map<String, Object?> buildPersonalExport({
   List<SavedRecipeSearchRow> savedRecipeSearches = const [],
   List<DayRuleRow> dayRules = const [],
   List<DayTimeBudgetRow> dayTimeBudgets = const [],
+  List<FoodRow> foods = const [],
+  List<FoodAliasRow> foodAliases = const [],
+  List<FoodConversionRow> foodConversions = const [],
+  List<FoodAllergenRow> foodAllergens = const [],
 }) => {
   'formatVersion': personalExportFormatVersion,
   'exportedAt': _date(exportedAt),
@@ -42,6 +47,10 @@ Map<String, Object?> buildPersonalExport({
     ],
     'dayRules': [for (final d in dayRules) _dayRule(d)],
     'dayTimeBudgets': [for (final b in dayTimeBudgets) _dayTimeBudget(b)],
+    'foods': [
+      for (final f in foods)
+        _food(f, foodAliases, foodConversions, foodAllergens),
+    ],
   },
 };
 
@@ -85,6 +94,18 @@ Future<Map<String, Object?>> collectPersonalExport(
     dayTimeBudgets: await byHousehold(
       db.dayTimeBudgets,
       db.dayTimeBudgets.householdId,
+    ),
+    // Samo sopstvene namirnice (household_id = domaćinstvo); zajednički
+    // katalog (null) ne ulazi u izvoz.
+    foods: await byHousehold(db.foods, db.foods.householdId),
+    foodAliases: await byHousehold(db.foodAliases, db.foodAliases.householdId),
+    foodConversions: await byHousehold(
+      db.foodConversions,
+      db.foodConversions.householdId,
+    ),
+    foodAllergens: await byHousehold(
+      db.foodAllergens,
+      db.foodAllergens.householdId,
     ),
   );
 }
@@ -180,6 +201,7 @@ Map<String, Object?> _shoppingItem(ShoppingItemRow i) => {
   'id': i.id,
   'listId': i.listId,
   'name': i.name,
+  'foodId': i.foodId,
   'quantity': i.quantity,
   'unit': i.unit,
   'category': i.category,
@@ -194,6 +216,7 @@ Map<String, Object?> _shoppingItem(ShoppingItemRow i) => {
 Map<String, Object?> _pantryItem(PantryItemRow p) => {
   'id': p.id,
   'name': p.name,
+  'foodId': p.foodId,
   'quantity': p.quantity,
   'unit': p.unit,
   'category': p.category,
@@ -227,4 +250,28 @@ Map<String, Object?> _dayTimeBudget(DayTimeBudgetRow b) => {
   'maxActiveMinutes': b.maxActiveMinutes,
   'windowStart': b.windowStart,
   'windowEnd': b.windowEnd,
+};
+
+Map<String, Object?> _food(
+  FoodRow f,
+  List<FoodAliasRow> aliases,
+  List<FoodConversionRow> conversions,
+  List<FoodAllergenRow> allergens,
+) => {
+  'id': f.id,
+  'name': f.name,
+  'category': f.category,
+  'baseUnit': f.baseUnit,
+  'aliases': [
+    for (final a in aliases)
+      if (a.foodId == f.id) a.alias,
+  ]..sort(),
+  'conversions': [
+    for (final c in conversions)
+      if (c.foodId == f.id) {'unit': c.unit, 'factorMicros': c.factorMicros},
+  ],
+  'allergens': [
+    for (final a in allergens)
+      if (a.foodId == f.id) a.allergenCode,
+  ]..sort(),
 };
