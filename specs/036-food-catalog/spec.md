@@ -115,7 +115,7 @@ Namirnica u katalogu ima oznake alergena iz fiksnog skupa (EU 14). U detalju rec
 
 - Isti alias u zajedničkom katalogu i u sopstvenoj namirnici domaćinstva: alias je jedinstven u okviru vidljivog skupa; sopstveni alias ne sme da zakloni zajednički, pa se pravljenje odbija sa „Ova namirnica već postoji u katalogu.“
 - Sopstvena namirnica kasnije dobije zajednički ekvivalent: ostaje sopstvena; spajanje je van opsega (posebna funkcija).
-- Domaćinstvo obriše sopstvenu namirnicu koju koriste recepti: sastojci se vraćaju na „Nepotvrđeno“ (tekst ostaje), snimci se ne menjaju.
+- Brisanje namirnice (sopstvene ili zajedničke) nije deo 036: namirnice se ne brišu, id se nikad ne koristi ponovo, pa `foodId` u receptu nikad ne visi. Sopstvenoj namirnici se mogu menjati samo naziv i kategorija; osnovna jedinica je stalna.
 - Osoba pređe u drugo domaćinstvo (034): sopstvene namirnice ostaju u starom; recepti novog domaćinstva koriste svoje.
 - Sastojak sa `food_id` čija namirnica nije (još) preuzeta na uređaj: prikazuje se tekst, obračun koristi `food:<id>` (id je dovoljan za sabiranje).
 - Ista namirnica u dve neuporedive jedinice (2 kom jaja + 100 g jaja): bez konverzije namirnice ostaju dve stavke (kao danas po grupi jedinica).
