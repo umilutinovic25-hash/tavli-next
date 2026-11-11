@@ -18,6 +18,7 @@ class RecipeView extends StatelessWidget {
     this.showTitle = false,
     this.reviewQuantities = false,
     this.onEditIngredient,
+    this.ingredientsNote,
   });
 
   final Recipe recipe;
@@ -27,6 +28,9 @@ class RecipeView extends StatelessWidget {
   final bool showTitle;
   final bool reviewQuantities;
   final ValueChanged<int>? onEditIngredient;
+
+  /// Ispod naslova „Sastojci“ (npr. oznake alergena u detalju recepta).
+  final Widget? ingredientsNote;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +90,7 @@ class RecipeView extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text('Sastojci', style: theme.textTheme.titleMedium),
+        ?ingredientsNote,
         for (final (category, items) in groupByCategory(
           recipe.ingredients,
         )) ...[

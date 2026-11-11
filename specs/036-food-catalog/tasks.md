@@ -115,7 +115,8 @@
 ## Phase 7: User Story 5 — Oznake alergena (P3)
 
 - [x] T029 [P] [US5] `recipeAllergens(Recipe, FoodCatalog)` → `({Set<String> codes, bool complete})` u `lib/domain/food.dart`, testovi: jaje + pšenično brašno → {eggs, gluten}, complete; jedan nepotvrđen sastojak → complete false; sve potvrđeno bez oznaka → prazno, complete.
-- [ ] T030 [US5] `AllergenLine` u `lib/features/foods/` i detalj recepta; widget testovi: „Sadrži: jaja, gluten“; „Podaci o alergenima nisu potpuni.“ kad complete false; nigde teksta „bez alergena“ (pretraga stabla widgeta).
+- [x] T030 [US5] `AllergenLine` u `lib/features/foods/` i detalj recepta; widget testovi: „Sadrži: jaja, gluten“; „Podaci o alergenima nisu potpuni.“ kad complete false; nigde teksta „bez alergena“ (pretraga stabla widgeta).
+  - Izvedeno: oznake idu redosledom EU liste (`euAllergens`), pa jaje + brašno daje „Sadrži: gluten, jaja“. `RecipeView` dobija opcioni `ingredientsNote`; `AllergenLine` je samo u detalju recepta, ne u AI pregledima.
 - [ ] T031 [US5] Izbor oznaka iz `euAllergens` u `NewFoodForm` → `food_allergens` kroz `FoodRepository.createOwn`; test: izabrane oznake upisane, slobodan tekst nije moguć.
 
 ---
