@@ -13,7 +13,7 @@ select tests.household_of(:'ub') as hb \gset
 insert into public.foods (id, name, category, base_unit)
   values ('f_t_jaje', 'jaje', 'mlečni proizvodi i jaja', 'kom');
 insert into public.food_aliases (id, food_id, alias)
-  values ('f_t_jaje:jaje', 'f_t_jaje', 'jaje'), ('f_t_jaje:jaja', 'f_t_jaje', 'jaja');
+  values ('f_t_jaje:t jaje', 'f_t_jaje', 't jaje'), ('f_t_jaje:t jaja', 'f_t_jaje', 't jaja');
 insert into public.food_allergens (id, food_id, allergen_code)
   values ('f_t_jaje:eggs', 'f_t_jaje', 'eggs');
 
@@ -35,7 +35,7 @@ select throws_ok($$insert into public.foods (id, name, category, base_unit) valu
   '42501', null, 'A ne dodaje zajedničku namirnicu');
 select is(tests.affected($$update public.foods set name = 'jaja' where id = 'f_t_jaje'$$), 0::bigint, 'A ne menja zajedničku namirnicu');
 select throws_ok($$delete from public.foods where id = 'f_t_jaje'$$, '42501', null, 'niko ne briše namirnice');
-select throws_ok($$insert into public.food_aliases (id, food_id, alias) values ('x', 'f_t_jaje', 'jajca')$$,
+select throws_ok($$insert into public.food_aliases (id, food_id, alias) values ('x', 'f_t_jaje', 't jajca')$$,
   '42501', null, 'A ne dodaje zajednički alias');
 select is(tests.affected($$delete from public.food_allergens where food_id = 'f_t_jaje'$$), 0::bigint, 'A ne briše zajednički alergen');
 
@@ -50,7 +50,7 @@ select lives_ok(format($$insert into public.food_allergens (id, food_id, househo
   'A dodaje oznaku alergena');
 select throws_ok(format($$insert into public.food_allergens (id, food_id, household_id, allergen_code) values ('ag-a2', 'own-a', %L, 'orasi')$$, :'ha'),
   '23503', null, 'alergen mora biti iz liste');
-select throws_ok(format($$insert into public.food_aliases (id, food_id, household_id, alias) values ('al-a3', 'own-a', %L, 'jaja')$$, :'ha'),
+select throws_ok(format($$insert into public.food_aliases (id, food_id, household_id, alias) values ('al-a3', 'own-a', %L, 't jaja')$$, :'ha'),
   '23505', null, 'sopstveni alias ne zaklanja zajednički');
 select throws_ok(format($$insert into public.food_aliases (id, food_id, household_id, alias) values ('al-a4', 'own-a', %L, 'pitaja')$$, :'ha'),
   '23505', null, 'sopstveni alias je jedinstven u domaćinstvu');

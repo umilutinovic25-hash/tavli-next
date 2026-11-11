@@ -1,0 +1,172 @@
+id,name,category,base_unit,aliases,conversions,allergens
+f_krompir,krompir,voće i povrće,g,krompira|krompiri|mladi krompir,,
+f_crni_luk,crni luk,voće i povrće,g,crnog luka|glavica crnog luka,,
+f_beli_luk,beli luk,voće i povrće,g,češnjak|belog luka|bijeli luk|čenovi belog luka,čen=5000000,
+f_mladi_luk,mladi luk,voće i povrće,g,mladog luka|vlašac,,
+f_praziluk,praziluk,voće i povrće,g,praziluka|poriluk,,
+f_sargarepa,šargarepa,voće i povrće,g,šargarepe|mrkva|mrkve,,
+f_paradajz,paradajz,voće i povrće,g,paradajza|rajčica|čeri paradajz,,
+f_krastavac,krastavac,voće i povrće,g,krastavci|krastavca,,
+f_paprika,paprika,voće i povrće,g,paprike|babura|crvena paprika|zelena paprika,,
+f_ljuta_papricica,ljuta papričica,voće i povrće,g,feferona|feferone|ljuta papričica čili|čili papričica,,
+f_tikvica,tikvica,voće i povrće,g,tikvice|tikvica zelena,,
+f_patlidzan,plavi patlidžan,voće i povrće,g,patlidžan|plavog patlidžana,,
+f_kupus,kupus,voće i povrće,g,kupusa|beli kupus|glavica kupusa,,
+f_kiseli_kupus,kiseli kupus,konzerve i tegle,g,kiselog kupusa|glavica kiselog kupusa,,
+f_karfiol,karfiol,voće i povrće,g,karfiola,,
+f_brokoli,brokoli,voće i povrće,g,brokolija,,
+f_spanac,spanać,voće i povrće,g,spanaća,,
+f_zelena_salata,zelena salata,voće i povrće,g,salata|zelene salate,,
+f_rukola,rukola,voće i povrće,g,rukole,,
+f_persun,peršun,voće i povrće,g,peršuna|list peršuna|peršunov list,,
+f_mirodjija,mirođija,voće i povrće,g,mirodjija|kopar,,
+f_celer,celer,voće i povrće,g,celera|koren celera|list celera,,celery
+f_pecurke,pečurke,voće i povrće,g,pečurka|šampinjoni|šampinjon|gljive,,
+f_grasak,grašak,voće i povrće,g,graška,,
+f_boranija,boranija,voće i povrće,g,boranije|mahune,,
+f_kukuruz,kukuruz šećerac,voće i povrće,g,kukuruz|kukuruza,,
+f_cvekla,cvekla,voće i povrće,g,cvekle|repa crvena,,
+f_rotkvica,rotkvica,voće i povrće,g,rotkvice,,
+f_bundeva,bundeva,voće i povrće,g,bundeve,,
+f_djumbir,đumbir,voće i povrće,g,djumbir|svež đumbir,,
+f_limun,limun,voće i povrće,kom,limuna,,
+f_limeta,limeta,voće i povrće,kom,limete,,
+f_pomorandza,pomorandža,voće i povrće,kom,narandža|pomorandže|narandže,,
+f_jabuka,jabuka,voće i povrće,kom,jabuke,,
+f_kruska,kruška,voće i povrće,kom,kruške,,
+f_banana,banana,voće i povrće,kom,banane,,
+f_jagode,jagode,voće i povrće,g,jagoda,,
+f_maline,maline,voće i povrće,g,malina,,
+f_borovnice,borovnice,voće i povrće,g,borovnica,,
+f_grozdje,grožđe,voće i povrće,g,grozdje,,
+f_sljive,šljive,voće i povrće,g,šljiva,,
+f_breskva,breskva,voće i povrće,kom,breskve,,
+f_kajsija,kajsija,voće i povrće,kom,kajsije,,
+f_avokado,avokado,voće i povrće,kom,avokada,,
+f_piletina,piletina,meso i riba,g,pileće meso|celo pile|pile,,
+f_pileci_file,pileći file,meso i riba,g,pileća prsa|pileće grudi|pileći grudi,,
+f_pileci_bataci,pileći bataci,meso i riba,g,bataci|batak|karabataci,,
+f_svinjetina,svinjetina,meso i riba,g,svinjsko meso,,
+f_svinjski_vrat,svinjski vrat,meso i riba,g,vrat svinjski,,
+f_junetina,junetina,meso i riba,g,juneće meso|junetine,,
+f_govedina,govedina,meso i riba,g,goveđe meso|govedine,,
+f_jagnjetina,jagnjetina,meso i riba,g,jagnjeće meso,,
+f_curetina,ćuretina,meso i riba,g,ćureće meso|curetina,,
+f_mleveno_meso,mleveno meso,meso i riba,g,mešano mleveno meso|mleveno mešano meso|mlevenog mesa,,
+f_slanina,slanina,meso i riba,g,slanine|dimljena slanina,,
+f_prsuta,pršuta,meso i riba,g,pršute,,
+f_sunka,šunka,meso i riba,g,šunke|šunka za sendvič,,
+f_kobasica,kobasica,meso i riba,g,kobasice,,
+f_losos,losos,meso i riba,g,lososa|file lososa,,fish
+f_tuna,tuna,meso i riba,g,tunjevina|tune,,fish
+f_oslic,oslić,meso i riba,g,oslića|file oslića,,fish
+f_skusa,skuša,meso i riba,g,skuše,,fish
+f_pastrmka,pastrmka,meso i riba,g,pastrmke,,fish
+f_sardine,sardine,meso i riba,g,sardina,,fish
+f_skampi,škampi,meso i riba,g,kozice|škampa,,crustaceans
+f_lignje,lignje,meso i riba,g,lignji|lignja,,molluscs
+f_jaje,jaje,mlečni proizvodi i jaja,kom,jaja|jajce|jajeta,,eggs
+f_mleko,mleko,mlečni proizvodi i jaja,ml,kravlje mleko|mleka|sveže mleko,,milk
+f_ovseno_mleko,ovseno mleko,mlečni proizvodi i jaja,ml,ovsenog mleka,,
+f_jogurt,jogurt,mlečni proizvodi i jaja,ml,jogurta,,milk
+f_kiselo_mleko,kiselo mleko,mlečni proizvodi i jaja,ml,kiselog mleka,,milk
+f_kisela_pavlaka,kisela pavlaka,mlečni proizvodi i jaja,g,kisele pavlake,,milk
+f_slatka_pavlaka,slatka pavlaka,mlečni proizvodi i jaja,ml,pavlaka za kuvanje|slatke pavlake|pavlaka za šlag,,milk
+f_maslac,maslac,mlečni proizvodi i jaja,g,puter|maslaca|putera,,milk
+f_margarin,margarin,mlečni proizvodi i jaja,g,margarina,,
+f_beli_sir,beli sir,mlečni proizvodi i jaja,g,belog sira|sitan sir,,milk
+f_mladi_sir,mladi sir,mlečni proizvodi i jaja,g,mladog sira|svež sir,,milk
+f_kackavalj,kačkavalj,mlečni proizvodi i jaja,g,kačkavalja|rendani kačkavalj,,milk
+f_mocarela,mocarela,mlečni proizvodi i jaja,g,mozzarella|mocarele,,milk
+f_parmezan,parmezan,mlečni proizvodi i jaja,g,parmezana|parmigiano,,milk
+f_krem_sir,krem sir,mlečni proizvodi i jaja,g,krem sira|sirni namaz,,milk
+f_kajmak,kajmak,mlečni proizvodi i jaja,g,kajmaka,,milk
+f_urda,urda,mlečni proizvodi i jaja,g,urde,,milk
+f_hleb,hleb,pekara,g,hleba|beli hleb|vekna,,gluten
+f_integralni_hleb,integralni hleb,pekara,g,crni hleb|integralnog hleba,,gluten
+f_tost,tost,pekara,g,tost hleb|hleb za tost,,gluten
+f_lepinja,lepinja,pekara,kom,lepinje,,gluten
+f_kifla,kifla,pekara,kom,kifle,,gluten
+f_kore_za_pitu,kore za pitu,pekara,g,kore|jufke|kora za pitu,,gluten
+f_lisnato_testo,lisnato testo,pekara,g,lisnatog testa,,gluten|milk
+f_tortilja,tortilja,pekara,kom,tortilje,,gluten
+f_prezle,prezle,pekara,g,prezli|mrvice hleba,,gluten
+f_psenicno_brasno,pšenično brašno,suvi proizvodi,g,brašno|brasno|belo brašno|brašno t-400|brašno t-500,,gluten
+f_integralno_brasno,integralno brašno,suvi proizvodi,g,integralnog brašna,,gluten
+f_kukuruzno_brasno,kukuruzno brašno,suvi proizvodi,g,palenta|kukuruzni griz,,
+f_griz,griz,suvi proizvodi,g,pšenični griz|griza,,gluten
+f_pirinac,pirinač,suvi proizvodi,g,riža|pirinča|pirinac,,
+f_testenina,testenina,suvi proizvodi,g,pasta|testenine,,gluten
+f_spagete,špagete,suvi proizvodi,g,spagete|špageta,,gluten
+f_makarone,makarone,suvi proizvodi,g,makaroni,,gluten
+f_rezanci,rezanci,suvi proizvodi,g,rezanaca|domaći rezanci,,gluten|eggs
+f_ovsene_pahuljice,ovsene pahuljice,suvi proizvodi,g,zobene pahuljice|ovsenih pahuljica,,gluten
+f_secer,šećer,suvi proizvodi,g,beli šećer|secer|šećera|kristal šećer,,
+f_smedji_secer,smeđi šećer,suvi proizvodi,g,braon šećer,,
+f_secer_u_prahu,šećer u prahu,suvi proizvodi,g,prah šećer,,
+f_vanilin_secer,vanilin šećer,suvi proizvodi,g,vanila šećer|vanilin šećera,,
+f_prasak_za_pecivo,prašak za pecivo,suvi proizvodi,g,praška za pecivo,,
+f_soda_bikarbona,soda bikarbona,suvi proizvodi,g,soda bikarbone|soda za kolače,,
+f_kvasac,kvasac,suvi proizvodi,g,suvi kvasac|svež kvasac|kvasca,,
+f_kakao,kakao,suvi proizvodi,g,kakao prah|kakaa,,
+f_cokolada,čokolada,suvi proizvodi,g,čokolade|čokolada za kuvanje|crna čokolada,,milk|soy
+f_pasulj,pasulj,suvi proizvodi,g,pasulja|beli pasulj|tetovac,,
+f_socivo,sočivo,suvi proizvodi,g,sočiva|leća|crveno sočivo,,
+f_leblebija,leblebija,suvi proizvodi,g,naut|slanutak|leblebije,,
+f_orasi,orasi,suvi proizvodi,g,orah|oraha|mleveni orasi,,nuts
+f_lesnici,lešnici,suvi proizvodi,g,lešnik|lešnika,,nuts
+f_bademi,bademi,suvi proizvodi,g,badem|badema,,nuts
+f_kikiriki,kikiriki,suvi proizvodi,g,kikirikija|kikiriki puter,,peanuts
+f_susam,susam,suvi proizvodi,g,susama|sezam,,sesame
+f_suvo_grozdje,suvo grožđe,suvi proizvodi,g,suvog grožđa|grožđice,,sulphites
+f_med,med,suvi proizvodi,g,meda,,
+f_kokos,kokos,suvi proizvodi,g,kokosovo brašno|rendani kokos,,
+f_kinoa,kinoa,suvi proizvodi,g,kinoe,,
+f_heljda,heljda,suvi proizvodi,g,heljde,,
+f_jecam,ječam,suvi proizvodi,g,ječma|jecam,,gluten
+f_so,so,začini i sosovi,g,soli|kuhinjska so|morska so,,
+f_biber,biber,začini i sosovi,g,crni biber|bibera|mleveni biber,,
+f_aleva_paprika,aleva paprika,začini i sosovi,g,slatka aleva paprika|mlevena paprika|slatka paprika,,
+f_ljuta_paprika,ljuta aleva paprika,začini i sosovi,g,ljuta paprika mlevena|čili prah,,
+f_origano,origano,začini i sosovi,g,origana,,
+f_bosiljak,bosiljak,začini i sosovi,g,bosiljka,,
+f_ruzmarin,ruzmarin,začini i sosovi,g,ruzmarina,,
+f_majcina_dusica,majčina dušica,začini i sosovi,g,timijan,,
+f_lovorov_list,lovorov list,začini i sosovi,g,lovor|lovorovog lista|list lovora,,
+f_cimet,cimet,začini i sosovi,g,cimeta,,
+f_muskatni_orascic,muskatni oraščić,začini i sosovi,g,muskatni orah|muskatnog oraščića,,
+f_kim,kim,začini i sosovi,g,kima,,
+f_kurkuma,kurkuma,začini i sosovi,g,kurkume,,
+f_zacinska_mesavina,začinska mešavina,začini i sosovi,g,vegeta|začin c|univerzalni začin,,celery
+f_senf,senf,začini i sosovi,g,slačica|senfa|dižon senf,,mustard
+f_kecap,kečap,začini i sosovi,g,kečapa,,
+f_majonez,majonez,začini i sosovi,g,majoneza,,eggs|mustard
+f_sirce,sirće,začini i sosovi,ml,sirćeta|alkoholno sirće|jabukovo sirće,,
+f_balzamiko,balzamiko sirće,začini i sosovi,ml,aceto balsamico|balzamiko,,sulphites
+f_soja_sos,soja sos,začini i sosovi,ml,sojin sos|soja sosa,,soy|gluten
+f_ulje,ulje,začini i sosovi,ml,suncokretovo ulje|jestivo ulje|ulja,,
+f_maslinovo_ulje,maslinovo ulje,začini i sosovi,ml,maslinovog ulja|ekstra devičansko maslinovo ulje,,
+f_ljuti_sos,ljuti sos,začini i sosovi,ml,tabasko|čili sos,,
+f_paradajz_pire,paradajz pire,konzerve i tegle,g,pasirani paradajz|pire od paradajza,,
+f_pelat,pelat,konzerve i tegle,g,pelati|seckani paradajz|paradajz iz konzerve,,
+f_koncentrat_paradajza,koncentrat paradajza,konzerve i tegle,g,paradajz koncentrat,,
+f_masline,masline,konzerve i tegle,g,maslina|crne masline|zelene masline,,
+f_kiseli_krastavci,kiseli krastavci,konzerve i tegle,g,kornišoni|kiselih krastavaca,,
+f_ajvar,ajvar,konzerve i tegle,g,ajvara,,
+f_dzem,džem,konzerve i tegle,g,pekmez|džema|marmelada,,
+f_kapri,kapri,konzerve i tegle,g,kapara|kapar,,
+f_kokosovo_mleko,kokosovo mleko,konzerve i tegle,ml,kokosovog mleka,,
+f_smrznuto_povrce,smrznuto povrće,zamrznuto,g,zamrznuto povrće|mešano povrće,,
+f_sladoled,sladoled,zamrznuto,g,sladoleda,,milk
+f_voda,voda,pića,ml,vode|topla voda|hladna voda,,
+f_mineralna_voda,mineralna voda,pića,ml,kisela voda|gazirana voda,,
+f_belo_vino,belo vino,pića,ml,belog vina,,sulphites
+f_crno_vino,crno vino,pića,ml,crnog vina|crveno vino,,sulphites
+f_pivo,pivo,pića,ml,piva,,gluten
+f_sok_od_limuna,sok od limuna,pića,ml,limunov sok|limunovog soka,,
+f_sok_od_pomorandze,sok od pomorandže,pića,ml,sok od narandže|narandžin sok,,
+f_kafa,kafa,pića,g,kafe|mlevena kafa,,
+f_caj,čaj,pića,g,čaja,,
+f_zelatin,želatin,ostalo,g,želatina|zelatin,,
+f_supa_kocka,kocka za supu,ostalo,kom,jušna kocka|bujon kocka|supa kocka,,celery
+f_tofu,tofu,ostalo,g,tofua,,soy
