@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../domain/food.dart';
 import '../../domain/ids.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
@@ -57,6 +58,9 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
   bool _saving = false;
   String? _titleError;
   String? _ingredientsError;
+
+  /// AI predlozi koje je osoba odbacila (id ili naziv sastojka); samo prikaz.
+  final _dismissed = <String>{};
 
   @override
   void initState() {
@@ -198,6 +202,37 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
     });
   }
 
+  /// Predlog nove namirnice samo za uvezen recept (AI, fotografija, link) i
+  /// samo za sastojak koji ni katalog ne prepoznaje.
+  bool _suggests(Ingredient i, FoodCatalog? catalog) {
+    final source = widget.draft?.source ?? _original?.source;
+    if (source == null || source == RecipeSource.manual) return false;
+    if (catalog == null || _dismissed.contains(i.id ?? i.name)) return false;
+    return catalog.match(i.name) == null && suggestFood(i) != null;
+  }
+
+  Future<void> _confirmSuggestion(int index) async {
+    final i = _ingredients[index];
+    final id = await createFood(
+      context,
+      text: i.name,
+      category: i.category,
+      unit: i.unit,
+    );
+    if (id == null || !mounted) return;
+    final category = ref.read(foodCatalogProvider).value?.byId(id)?.category;
+    setState(() {
+      _ingredients = [..._ingredients]
+        ..[index] = Ingredient.fromJson({
+          ...i.toJson(),
+          'foodId': id,
+          if (category != null && ingredientCategories.contains(category))
+            'category': category,
+        });
+      _dirty = true;
+    });
+  }
+
   Future<void> _save() async {
     final title = _title.text.trim();
     setState(() {
@@ -311,6 +346,7 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final catalog = ref.watch(foodCatalogProvider).value;
     final editing = widget.id != null;
     final theme = Theme.of(context);
     return PopScope(
@@ -433,7 +469,7 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
                             ),
                           const SizedBox(height: 20),
                           Text('Sastojci', style: theme.textTheme.titleMedium),
-                          for (final (n, i) in _ingredients.indexed)
+                          for (final (n, i) in _ingredients.indexed) ...[
                             ListTile(
                               contentPadding: EdgeInsets.zero,
                               title: Text(ingredientLine(i)),
@@ -449,6 +485,15 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
                                 onPressed: () => _removeIngredient(n),
                               ),
                             ),
+                            if (_suggests(i, catalog))
+                              _FoodSuggestion(
+                                name: i.name,
+                                onConfirm: () => _confirmSuggestion(n),
+                                onDismiss: () => setState(
+                                  () => _dismissed.add(i.id ?? i.name),
+                                ),
+                              ),
+                          ],
                           if (_ingredientsError case final error?)
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
@@ -543,6 +588,45 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
       ),
     );
   }
+}
+
+/// AI (ili uvoz) je doneo sastojak koji katalog ne zna. Ništa se ne upisuje
+/// dok osoba ne potvrdi formu nove namirnice.
+class _FoodSuggestion extends StatelessWidget {
+  const _FoodSuggestion({
+    required this.name,
+    required this.onConfirm,
+    required this.onDismiss,
+  });
+
+  final String name;
+  final VoidCallback onConfirm;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) => Card.outlined(
+    margin: const EdgeInsets.only(bottom: 8),
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 8, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('AI predlaže novu namirnicu: „$name“.'),
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            children: [
+              TextButton(onPressed: onDismiss, child: const Text('Odbaci')),
+              FilledButton.tonal(
+                onPressed: onConfirm,
+                child: const Text('Potvrdi'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _IngredientDialog extends ConsumerStatefulWidget {

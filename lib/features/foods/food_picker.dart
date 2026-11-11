@@ -16,15 +16,42 @@ Future<String?> pickFood(
   required String text,
   String category = 'ostalo',
   String? unit,
-}) {
-  final picker = FoodPickerSheet(text: text, category: category, unit: unit);
+}) => _showAdaptive(
+  context,
+  FoodPickerSheet(text: text, category: category, unit: unit),
+);
+
+/// Odmah otvara popunjenu formu nove namirnice (npr. za AI predlog). Vraća id
+/// nove sopstvene namirnice ili null kad osoba odustane.
+Future<String?> createFood(
+  BuildContext context, {
+  required String text,
+  String category = 'ostalo',
+  String? unit,
+}) => _showAdaptive(
+  context,
+  Builder(
+    builder: (context) => NewFoodForm(
+      text: text,
+      initial: _draftFor(text, category, unit),
+      onSaved: (id) => Navigator.of(context).pop(id),
+      onCancel: () => Navigator.of(context).pop(),
+    ),
+  ),
+);
+
+FoodDraft _draftFor(String text, String category, String? unit) =>
+    suggestFood(Ingredient(name: text, unit: unit, category: category)) ??
+    FoodDraft(name: '', category: category, baseUnit: null);
+
+Future<String?> _showAdaptive(BuildContext context, Widget child) {
   if (MediaQuery.sizeOf(context).width >= foodPickerWideWidth) {
     return showDialog<String>(
       context: context,
       builder: (context) => Dialog(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480, maxHeight: 640),
-          child: picker,
+          child: child,
         ),
       ),
     );
@@ -36,7 +63,7 @@ Future<String?> pickFood(
     showDragHandle: true,
     useSafeArea: true,
     builder: (context) =>
-        FractionallySizedBox(heightFactor: 0.85, child: picker),
+        FractionallySizedBox(heightFactor: 0.85, child: child),
   );
 }
 
@@ -66,15 +93,7 @@ class _FoodPickerSheetState extends ConsumerState<FoodPickerSheet> {
     if (_creating) {
       return NewFoodForm(
         text: widget.text,
-        initial:
-            suggestFood(
-              Ingredient(
-                name: widget.text,
-                unit: widget.unit,
-                category: widget.category,
-              ),
-            ) ??
-            FoodDraft(name: '', category: widget.category, baseUnit: null),
+        initial: _draftFor(widget.text, widget.category, widget.unit),
         onSaved: (id) => Navigator.of(context).pop(id),
         onCancel: () => setState(() => _creating = false),
       );

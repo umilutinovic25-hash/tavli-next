@@ -240,6 +240,95 @@ void main() {
     expect(saved['quantity'], 2);
   });
 
+  group('AI predlog nove namirnice (SC-005)', () {
+    Recipe aiRecipe(RecipeSource source) => Recipe(
+      id: 'a',
+      title: 'Voćna salata',
+      servings: 2,
+      ingredients: const [
+        Ingredient(
+          id: 'i1',
+          name: 'zmajevo voće',
+          quantity: 200,
+          unit: 'g',
+          category: 'voće i povrće',
+        ),
+        Ingredient(id: 'i2', name: 'jaja', quantity: 2, unit: 'kom'),
+      ],
+      source: source,
+      createdAt: DateTime(2026, 11),
+    );
+
+    Future<TestApp> open(WidgetTester tester, RecipeSource source) async {
+      final app = await pumpTavli(
+        tester,
+        location: '/recipes/a',
+        recipes: [aiRecipe(source)],
+        setup: seedEggs,
+      );
+      await tester.tap(find.byTooltip('Izmeni'));
+      await tester.pumpAndSettle();
+      return app;
+    }
+
+    Future<Map<String, Object?>> savedIngredient(
+      TestApp app,
+      String name,
+    ) async {
+      final row = await app.db.select(app.db.recipes).getSingle();
+      return (jsonDecode(row.ingredientsJson) as List)
+          .cast<Map<String, Object?>>()
+          .firstWhere((i) => i['name'] == name);
+    }
+
+    testTavli('Odbaci: katalog isti, sastojak ostaje nepotvrđen', (
+      tester,
+    ) async {
+      final app = await open(tester, RecipeSource.ai);
+      // Sastojak koji katalog prepoznaje nema predlog.
+      expect(
+        find.text('AI predlaže novu namirnicu: „zmajevo voće“.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('„jaja“'), findsNothing);
+      await tapButton(tester, 'Odbaci');
+      expect(find.textContaining('AI predlaže'), findsNothing);
+      await tapButton(tester, 'Sačuvaj');
+      expect(await app.db.select(app.db.foods).get(), hasLength(1));
+      expect((await savedIngredient(app, 'zmajevo voće'))['foodId'], isNull);
+      expect((await savedIngredient(app, 'jaja'))['foodId'], 'f_jaje');
+    });
+
+    testTavli('Potvrdi: jedna sopstvena namirnica aktivnog domaćinstva', (
+      tester,
+    ) async {
+      final app = await open(tester, RecipeSource.photo);
+      await tapButton(tester, 'Potvrdi');
+      final name = find.widgetWithText(TextField, 'Naziv namirnice');
+      expect(tester.widget<TextField>(name).controller!.text, 'zmajevo voće');
+      await tapButton(tester, 'Sačuvaj kao moju namirnicu');
+      expect(find.textContaining('AI predlaže'), findsNothing);
+      await tapButton(tester, 'Sačuvaj');
+
+      final account = await app.db.select(app.db.accounts).getSingle();
+      final own = await (app.db.select(
+        app.db.foods,
+      )..where((f) => f.householdId.isNotNull())).get();
+      expect(own, hasLength(1));
+      expect(own.single.householdId, account.householdId);
+      expect(own.single.baseUnit, 'g');
+      expect(
+        (await savedIngredient(app, 'zmajevo voće'))['foodId'],
+        own.single.id,
+      );
+    });
+
+    testTavli('ručni recept nema predlog', (tester) async {
+      await open(tester, RecipeSource.manual);
+      expect(find.textContaining('AI predlaže'), findsNothing);
+    });
+  });
+
   testTavli('izlazak sa nesačuvanim izmenama pita za potvrdu', (tester) async {
     await pumpTavli(
       tester,
