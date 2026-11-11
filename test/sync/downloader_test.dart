@@ -208,6 +208,10 @@ void main() {
 
     expect(backend.server.calls, [
       'fetch:profiles',
+      'fetch:foods',
+      'fetch:food_aliases',
+      'fetch:food_conversions',
+      'fetch:food_allergens',
       'fetch:recipes',
       'fetch:recipe_versions',
       'fetch:day_time_budgets',
@@ -277,8 +281,9 @@ void main() {
     for (var i = 0; i < 7; i++) {
       serverRecipe('r$i');
     }
-    // profil + prva strana recepata uspeju, druga strana pukne
-    backend.server.fetchesBeforeFailure = 2;
+    // profil, katalog (4 prazne tabele) i prva strana recepata uspeju,
+    // druga strana pukne
+    backend.server.fetchesBeforeFailure = 6;
     await expectLater(
       downloader(pageSize: 3).run(),
       throwsA(isA<TransientSyncError>()),

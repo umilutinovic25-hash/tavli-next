@@ -393,6 +393,93 @@ void main() {
     );
   });
 
+  test('katalog namirnica: zajednički red ostaje bez domaćinstva', () async {
+    await roundTrip(
+      const FoodEntity(),
+      FoodsCompanion.insert(
+        id: 'f_jaje',
+        name: 'jaje',
+        category: 'mlečni proizvodi i jaja',
+        baseUnit: 'kom',
+      ),
+      'f_jaje',
+      (r) {
+        expect(r['household_id'], isNull);
+        expect(r['base_unit'], 'kom');
+      },
+    );
+    await roundTrip(
+      const FoodAliasEntity(),
+      FoodAliasesCompanion.insert(
+        id: 'a1',
+        foodId: 'own-1',
+        alias: 'pitaja',
+        householdId: const Value('h1'),
+      ),
+      'a1',
+      (r) => expect(r, {
+        'id': 'a1',
+        'food_id': 'own-1',
+        'household_id': 'h1',
+        'alias': 'pitaja',
+      }),
+    );
+    await roundTrip(
+      const FoodConversionEntity(),
+      FoodConversionsCompanion.insert(
+        id: 'c1',
+        foodId: 'f_beli_luk',
+        unit: 'čen',
+        factorMicros: 5000000,
+      ),
+      'c1',
+      (r) => expect(r['factor_micros'], 5000000),
+    );
+    await roundTrip(
+      const FoodAllergenEntity(),
+      FoodAllergensCompanion.insert(
+        id: 'g1',
+        foodId: 'f_jaje',
+        allergenCode: 'eggs',
+      ),
+      'g1',
+      (r) => expect(r['allergen_code'], 'eggs'),
+    );
+  });
+
+  test('food_id na zalihi i stavci nabavke', () async {
+    await roundTrip(
+      const PantryItemEntity(),
+      PantryItemsCompanion.insert(
+        id: 'o2',
+        name: 'Jajce',
+        category: 'ostalo',
+        addedAt: t,
+        householdId: const Value('h1'),
+        foodId: const Value('f_jaje'),
+      ),
+      'o2',
+      (r) => expect(r['food_id'], 'f_jaje'),
+    );
+    await db
+        .into(db.shoppingLists)
+        .insert(
+          ShoppingListsCompanion.insert(id: 'l9', name: 'L', createdAt: t),
+        );
+    await roundTrip(
+      const ShoppingItemEntity(),
+      ShoppingItemsCompanion.insert(
+        id: 's9',
+        listId: 'l9',
+        name: 'jaja',
+        category: 'ostalo',
+        foodId: const Value('f_jaje'),
+      ),
+      's9',
+      (r) => expect(r['food_id'], 'f_jaje'),
+    );
+  });
+
   test('registar: svi roditelji uvek pre deteta', () {
     final names = [for (final e in syncEntities) e.name];
     for (final e in syncEntities) {
@@ -405,13 +492,17 @@ void main() {
         );
       }
     }
-    expect(names, hasLength(18));
+    expect(names, hasLength(22));
     expect(const SupplyAllocationEntity().parents, [
       'shopping_contribution',
       'pantry_item',
       'shopping_item',
     ]);
-    expect(const PantryItemEntity().parents, ['shopping_item']);
+    expect(const PantryItemEntity().parents, ['shopping_item', 'food']);
+    expect(const ShoppingItemEntity().parents, ['shopping_list', 'food']);
+    for (final child in ['food_alias', 'food_conversion', 'food_allergen']) {
+      expect(entityByName(child)!.parents, ['food'], reason: child);
+    }
     expect(entityByName('recipe'), isA<RecipeEntity>());
     expect(entityByName('nema'), isNull);
   });
