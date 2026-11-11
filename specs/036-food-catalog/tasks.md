@@ -69,6 +69,8 @@
 - [ ] T017 [US1] `lib/data/pantry_repository.dart`, test u `test/data/pantry_repository_test.dart`: `receivePurchases` prenosi `food_id` sa kupljene stavke na zalihu.
 - [ ] T018 [US1] Tok SC-001 kroz repozitorijume `test/data/food_catalog_flow_test.dart`: recepti A, B i zaliha „jajce 2 kom“ sa `f_jaje` → plan potvrđen → jedna otvorena stavka „jaje“, 1,5 kom; kontrola bez `foodId` → stavke „jaja“ 1,5 kom i „jaje“ 2 kom, zaliha ne pokriva ništa.
 
+- [ ] T019 [US1] Isti identitet van plana (analiza C1): `ingredientIdentity(String name, String? foodId)` u `lib/domain/shopping_sync.dart` (`food:<id>` kad postoji, inače `ingredientKey(name)`), korišćen u `lib/domain/use_first.dart` (Potroši prvo), `lib/features/recipes/ingredient_review_sheet.dart` (provera Ostave u receptu) i `ShoppingSyncPlan`/„Dodaj u kupovinu“ u `lib/data/shopping_repository.dart`. Poređenje po namirnici samo kad **obe** strane imaju `foodId`; inače tekst kao danas. Testovi u `test/domain/shopping_sync_test.dart`, `test/domain/use_first_test.dart`, `test/data/shopping_repository_test.dart`: zaliha „jajce“ (`f_jaje`) pokriva „jaja“ (`f_jaje`) u Potroši prvo i u proveri Ostave; bez `foodId` ponašanje isto kao pre (postojeći testovi nepromenjeni i zeleni).
+
 **Checkpoint**: SC-001 zelen; T003 i dalje zelen.
 
 ---
@@ -77,44 +79,44 @@
 
 **Nezavisan test**: „Jajce“ → `f_jaje` automatski; „zmajevo voće“ → nepotvrđeno → nova namirnica.
 
-- [ ] T019 [US2] Automatska popuna `foodId` (samo kad je null, nikad ne prepisuje izbor) u `lib/data/recipe_repository.dart`, `pantry_repository.dart`, `shopping_repository.dart` (ručne stavke); testovi u odgovarajućim `test/data/*_test.dart`: „Jajce “ → `f_jaje`, tekst „Jajce“ ostaje; ručno izabran drugi `foodId` se ne menja; nepoznat tekst → null, čuvanje uspeva.
-- [ ] T020 [P] [US2] `lib/features/foods/`: `FoodChip` („Nepotvrđeno“ / naziv namirnice), `FoodPickerSheet` („Izaberi namirnicu“, „Pretraži namirnice“, „Nova namirnica“), `NewFoodForm` („Naziv namirnice“, „Kategorija“, „Osnovna jedinica“, „Sačuvaj kao moju namirnicu“, greška „Ova namirnica već postoji u katalogu.“); widget testovi u `test/features/foods/`: pretraga po aliasu nalazi namirnicu; „Nova namirnica“ iz nepotvrđenog reda nudi upisani tekst kao naziv i čuva ga kao alias (US2 AC4); zauzet alias → poruka, bez upisa; sheet na uskoj, dijalog na širokoj širini.
-- [ ] T021 [US2] Forma recepta `lib/features/recipes/recipe_form_screen.dart` (dijalog sastojka) koristi `FoodChip`/`FoodPickerSheet`; widget test u `test/features/recipes/`: nepotvrđen sastojak prikazuje „Nepotvrđeno“, izbor upisuje `foodId`, tekst nepromenjen, kategorija sastojka se popunjava kategorijom namirnice (osoba je može promeniti); promena namirnice i čuvanje pravi novu verziju recepta (postojeći `_addVersion`), snimak već potvrđenog plana nepromenjen.
-- [ ] T022 [P] [US2] Forme Ostave (`lib/features/pantry/pantry_form_screen.dart`) i stavke nabavke (`lib/features/shopping/`) koriste iste widgete; widget testovi za izbor i za „Nepotvrđeno“.
+- [ ] T020 [US2] Automatska popuna `foodId` (samo kad je null, nikad ne prepisuje izbor) u `lib/data/recipe_repository.dart`, `pantry_repository.dart`, `shopping_repository.dart` (ručne stavke); testovi u odgovarajućim `test/data/*_test.dart`: „Jajce “ → `f_jaje`, tekst „Jajce“ ostaje; ručno izabran drugi `foodId` se ne menja; nepoznat tekst → null, čuvanje uspeva.
+- [ ] T021 [P] [US2] `lib/features/foods/`: `FoodChip` („Nepotvrđeno“ / naziv namirnice), `FoodPickerSheet` („Izaberi namirnicu“, „Pretraži namirnice“, „Nova namirnica“), `NewFoodForm` („Naziv namirnice“, „Kategorija“, „Osnovna jedinica“, „Sačuvaj kao moju namirnicu“, greška „Ova namirnica već postoji u katalogu.“); widget testovi u `test/features/foods/`: pretraga po aliasu nalazi namirnicu; „Nova namirnica“ iz nepotvrđenog reda nudi upisani tekst kao naziv i čuva ga kao alias (US2 AC4); zauzet alias → poruka, bez upisa; sheet na uskoj, dijalog na širokoj širini.
+- [ ] T022 [US2] Forma recepta `lib/features/recipes/recipe_form_screen.dart` (dijalog sastojka) koristi `FoodChip`/`FoodPickerSheet`; widget test u `test/features/recipes/`: nepotvrđen sastojak prikazuje „Nepotvrđeno“, izbor upisuje `foodId`, tekst nepromenjen, kategorija sastojka se popunjava kategorijom namirnice (osoba je može promeniti); promena namirnice i čuvanje pravi novu verziju recepta (postojeći `_addVersion`), snimak već potvrđenog plana nepromenjen.
+- [ ] T023 [P] [US2] Forme Ostave (`lib/features/pantry/pantry_form_screen.dart`) i stavke nabavke (`lib/features/shopping/`) koriste iste widgete; widget testovi za izbor i za „Nepotvrđeno“.
 
 ---
 
 ## Phase 5: User Story 3 — Postojeći podaci i stari snimci (P1)
 
-**Nezavisan test**: T003 + T025.
+**Nezavisan test**: T003 + T026.
 
-- [ ] T023 [US3] Generator `scripts/catalog_seed.dart` (koristi parser iz T005; izlaz SQL po ugovoru, `on conflict (id) do nothing`, upozorenje za alias koji zaklanja postojeći) + test `test/scripts/catalog_seed_test.dart` (mali CSV → očekivan SQL).
-- [ ] T024 [US3] `supabase/catalog/foods.csv` (~150–250 namirnica: rečnik 018, jedinice/sastojci iz `lib/ai/prompts.dart`, ručni spisak; dvosmisleni aliasi izostavljeni) i generisana `supabase/migrations/20261112120200_food_catalog_seed.sql`. pgTAP: `f_jaje` postoji sa aliasima „jaja“, „jajce“; `f_beli_luk` ima „češnjak“ i konverziju čen = 5 000 000; broj zajedničkih namirnica u opsegu 150–250. **CSV pregleda tim pre spajanja** (napomena u PR-u).
-- [ ] T025 [US3] Jednokratno mapiranje `supabase/migrations/20261112120300_food_mapping.sql` (`recipes.ingredients` jsonb, `pantry_items`, `shopping_items`, samo tačan zajednički alias); pgTAP (SC-003): recept sa „Jaja“ i „zmajevo voće“ → prvi dobija `foodId: f_jaje`, drugi bez ključa; `name`/`quantity`/`unit` svih redova nepromenjeni; `recipe_versions` i `shopping_sources` nepromenjeni (hash pre/posle); `updated_by` zadržan.
+- [ ] T024 [US3] Generator `scripts/catalog_seed.dart` (koristi parser iz T005; izlaz SQL po ugovoru, `on conflict (id) do nothing`, upozorenje za alias koji zaklanja postojeći) + test `test/scripts/catalog_seed_test.dart` (mali CSV → očekivan SQL).
+- [ ] T025 [US3] `supabase/catalog/foods.csv` (~150–250 namirnica: rečnik 018, jedinice/sastojci iz `lib/ai/prompts.dart`, ručni spisak; dvosmisleni aliasi izostavljeni) i generisana `supabase/migrations/20261112120200_food_catalog_seed.sql`. pgTAP: `f_jaje` postoji sa aliasima „jaja“, „jajce“; `f_beli_luk` ima „češnjak“ i konverziju čen = 5 000 000; broj zajedničkih namirnica u opsegu 150–250. **CSV pregleda tim pre spajanja** (napomena u PR-u).
+- [ ] T026 [US3] Jednokratno mapiranje `supabase/migrations/20261112120300_food_mapping.sql` (`recipes.ingredients` jsonb, `pantry_items`, `shopping_items`, samo tačan zajednički alias); pgTAP (SC-003): recept sa „Jaja“ i „zmajevo voće“ → prvi dobija `foodId: f_jaje`, drugi bez ključa; `name`/`quantity`/`unit` svih redova nepromenjeni; `recipe_versions` i `shopping_sources` nepromenjeni (hash pre/posle); `updated_by` zadržan.
 
 ---
 
 ## Phase 6: User Story 4 — AI ne piše u katalog (P2)
 
-- [ ] T026 [US4] `suggestFood(Ingredient)` u `lib/domain/food.dart`, testovi u `test/domain/food_catalog_test.dart`: „mango 200 g“ kategorija „voće i povrće“ → nacrt sa `g`; jedinica „kašika“ → nacrt bez osnovne jedinice (osoba bira); prazan naziv → nema predloga; nikad ne vraća nacrt sa `household_id null`.
-- [ ] T027 [US4] U formi recepta za izvor ai/photo/url: „AI predlaže novu namirnicu: „…“.“, „Potvrdi“ (otvara popunjen `NewFoodForm`) / „Odbaci“; widget test (SC-005): lažni AI recept sa nepoznatim sastojkom → „Odbaci“ → broj redova `foods` isti, recept se čuva sa nepotvrđenim sastojkom; „Potvrdi“ → jedan sopstveni red sa `householdId` aktivnog domaćinstva.
+- [ ] T027 [US4] `suggestFood(Ingredient)` u `lib/domain/food.dart`, testovi u `test/domain/food_catalog_test.dart`: „mango 200 g“ kategorija „voće i povrće“ → nacrt sa `g`; jedinica „kašika“ → nacrt bez osnovne jedinice (osoba bira); prazan naziv → nema predloga; nikad ne vraća nacrt sa `household_id null`.
+- [ ] T028 [US4] U formi recepta za izvor ai/photo/url: „AI predlaže novu namirnicu: „…“.“, „Potvrdi“ (otvara popunjen `NewFoodForm`) / „Odbaci“; widget test (SC-005): lažni AI recept sa nepoznatim sastojkom → „Odbaci“ → broj redova `foods` isti, recept se čuva sa nepotvrđenim sastojkom; „Potvrdi“ → jedan sopstveni red sa `householdId` aktivnog domaćinstva.
 
 ---
 
 ## Phase 7: User Story 5 — Oznake alergena (P3)
 
-- [ ] T028 [P] [US5] `recipeAllergens(Recipe, FoodCatalog)` → `({Set<String> codes, bool complete})` u `lib/domain/food.dart`, testovi: jaje + pšenično brašno → {eggs, gluten}, complete; jedan nepotvrđen sastojak → complete false; sve potvrđeno bez oznaka → prazno, complete.
-- [ ] T029 [US5] `AllergenLine` u `lib/features/foods/` i detalj recepta; widget testovi: „Sadrži: jaja, gluten“; „Podaci o alergenima nisu potpuni.“ kad complete false; nigde teksta „bez alergena“ (pretraga stabla widgeta).
-- [ ] T030 [US5] Izbor oznaka iz `euAllergens` u `NewFoodForm` → `food_allergens` kroz `FoodRepository.createOwn`; test: izabrane oznake upisane, slobodan tekst nije moguć.
+- [ ] T029 [P] [US5] `recipeAllergens(Recipe, FoodCatalog)` → `({Set<String> codes, bool complete})` u `lib/domain/food.dart`, testovi: jaje + pšenično brašno → {eggs, gluten}, complete; jedan nepotvrđen sastojak → complete false; sve potvrđeno bez oznaka → prazno, complete.
+- [ ] T030 [US5] `AllergenLine` u `lib/features/foods/` i detalj recepta; widget testovi: „Sadrži: jaja, gluten“; „Podaci o alergenima nisu potpuni.“ kad complete false; nigde teksta „bez alergena“ (pretraga stabla widgeta).
+- [ ] T031 [US5] Izbor oznaka iz `euAllergens` u `NewFoodForm` → `food_allergens` kroz `FoodRepository.createOwn`; test: izabrane oznake upisane, slobodan tekst nije moguć.
 
 ---
 
 ## Phase 8: Polish
 
-- [ ] T031 [P] `docs/architecture.md`: kratak odeljak o katalogu (tabele, v2, referentni podaci); `lib/data/personal_export.dart` — proveri da li izvoz treba sopstvene namirnice; ako da, dodaj sa testom, ako ne, zapiši zašto u PR.
-- [ ] T032 `spec-converge` (kod vs spec) dok ne kaže „Converged“; ispravke kao zasebni commitovi.
-- [ ] T033 `flutter test` ceo, `supabase db reset && supabase test db`, `flutter build macos --debug`; quickstart ručno na uskoj i širokoj širini.
-- [ ] T034 PR opis: veza na spec, upozorenje o mešovitim verzijama klijenata (v2 snimak na starom klijentu), CSV na pregled timu, lista migracija.
+- [ ] T032 [P] `docs/architecture.md`: kratak odeljak o katalogu (tabele, v2, referentni podaci); `lib/data/personal_export.dart` — izvoz sadrži sopstvene namirnice domaćinstva (sa aliasima, konverzijama i alergenima), bez zajedničkog kataloga (odluka G1); test u `test/data/personal_export_test.dart`.
+- [ ] T033 `spec-converge` (kod vs spec) dok ne kaže „Converged“; ispravke kao zasebni commitovi.
+- [ ] T034 `flutter test` ceo, `supabase db reset && supabase test db`, `flutter build macos --debug`; quickstart ručno na uskoj i širokoj širini.
+- [ ] T035 PR opis: veza na spec, upozorenje o mešovitim verzijama klijenata (v2 snimak na starom klijentu), CSV na pregled timu, lista migracija.
 
 ---
 
@@ -123,22 +125,22 @@
 - T001 → T002 → T003 (pre svake izmene obračuna).
 - T004, T005, T006 paralelno posle T003.
 - T007 → T008 (server); T009 → T010 → T011; T012 posle T004 + T009.
-- US1: T013 (← T004, T006) → T014 → T015 → T016 (← T010, T012) → T017 → T018.
-- US2: T019 (← T012) → T020 ∥ → T021, T022.
-- US3: T023 (← T005) → T024 (← T007) → T025 (← T008, T024). T025 može pre US2.
-- US4: T026 (← T004) → T027 (← T020, T021).
-- US5: T028 (← T004) → T029; T030 (← T020, T012).
+- US1: T013 (← T004, T006) → T014 → T015 → T016 (← T010, T012) → T017 → T018 → T019.
+- US2: T020 (← T012) → T021 ∥ → T022, T023.
+- US3: T024 (← T005) → T025 (← T007) → T026 (← T008, T025). T026 može pre US2.
+- US4: T027 (← T004) → T028 (← T021, T022).
+- US5: T029 (← T004) → T030; T031 (← T021, T012).
 - Polish posle svih priča.
 
 ## Parallel Example
 
 ```text
 Posle T003:  T004 food.dart  ∥  T005 CSV parser  ∥  T006 Ingredient.foodId  ∥  T007 server migracija
-Posle T012:  T020 widgeti  ∥  T023 generator  ∥  T028 alergeni (domen)
+Posle T012:  T021 widgeti  ∥  T024 generator  ∥  T029 alergeni (domen)
 ```
 
 ## Implementation Strategy
 
-1. **MVP = Phase 1–3** (+ T023–T025 da katalog ima podatke): isti `food_id` se sabira kroz plan, Ostavu i nabavku; stari snimci isti.
+1. **MVP = Phase 1–3** (+ T024–T026 da katalog ima podatke): isti `food_id` se sabira kroz plan, Ostavu i nabavku; stari snimci isti.
 2. Zatim US2 (bez UI-ja korisnik ne može da potvrdi nepoznato), US4, US5.
 3. Ako diff (bez `.g.dart` i CSV-a) pređe ~1 500 linija: 036a = Phase 1–3 + US3, 036b = US2 + US4 + US5 (oba od najnovijeg `main`).

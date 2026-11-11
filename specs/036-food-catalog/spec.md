@@ -155,6 +155,8 @@ Namirnica u katalogu ima oznake alergena iz fiksnog skupa (EU 14). U detalju rec
 - **FR-015**: AI tok (`fromAiJson` i pregled recepta) primenjuje FR-008. AI predlog nove namirnice je samo predlog u memoriji; upis u `foods` ide isključivo posle potvrde osobe i uvek sa `household_id` aktivnog domaćinstva. Predlog koji ne prolazi proveru (naziv prazan, kategorija van liste, osnovna jedinica van {kom, g, ml}) odbacuje se pre baze.
 - **FR-016**: Prikaz alergena po FR-004 i US5; nijedan ekran ne tvrdi „bez alergena“. Postojeće slobodne alergije u preferencijama ostaju kako jesu; povezivanje je van 036 (Q4).
 - **FR-017**: Katalog (zajednički + sopstveni) dostupan je offline posle prvog preuzimanja: zajednički deo se preuzima ceo (< 1 MB) po `updated_at`, kao novi opseg samo za čitanje; sopstveni deo ide kao podaci domaćinstva kroz outbox (Q5).
+- **FR-018**: Potroši prvo (014), provera Ostave u receptu (030) i „Dodaj u kupovinu“ porede po namirnici kad obe strane imaju `foodId`, inače po tekstu kao danas.
+- **FR-019**: Lični izvoz podataka sadrži sopstvene namirnice domaćinstva (aliasi, konverzije, alergeni), bez zajedničkog kataloga.
 
 ### Key Entities
 
@@ -220,3 +222,5 @@ Namirnica u katalogu ima oznake alergena iz fiksnog skupa (EU 14). U detalju rec
 - Q4: Alergeni? → Fiksnih EU 14 sa srpskim nazivima; korisnik ne dodaje kodove, bira iz liste za sopstvenu namirnicu; nikad „bez alergena“; povezivanje sa slobodnim alergijama iz preferencija van 036.
 - Q5: Sync kataloga? → Ceo zajednički katalog na uređaju (< 1 MB), osvežavanje po `updated_at` posle prijave i pri svakom sync-u, kao opseg samo za čitanje; sopstvene namirnice kao podaci domaćinstva kroz outbox.
 - Alias: sopstveni ne sme da zakloni zajednički („Ova namirnica već postoji u katalogu.“).
+- Analiza C1: Potroši prvo, provera Ostave i „Dodaj u kupovinu“ ulaze u 036 (FR-018).
+- Analiza G1: lični izvoz sadrži sopstvene namirnice (FR-019).
