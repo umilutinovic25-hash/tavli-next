@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tavli/domain/food.dart';
+import 'package:tavli/domain/recipe.dart';
 
 const _shared = [
   Food(
@@ -112,6 +113,64 @@ void main() {
         expect(draft.validate, throwsFormatException);
       });
     }
+  });
+
+  group('suggestFood', () {
+    test('mango 200 g, voće i povrće → nacrt u g', () {
+      final d = suggestFood(
+        const Ingredient(
+          name: ' Mango ',
+          quantity: 200,
+          unit: 'g',
+          category: 'voće i povrće',
+        ),
+      )!;
+      expect(d.name, 'mango');
+      expect(d.category, 'voće i povrće');
+      expect(d.baseUnit, 'g');
+    });
+
+    test('kg → g, l → ml, komada → kom', () {
+      expect(
+        suggestFood(const Ingredient(name: 'a', unit: 'kg'))!.baseUnit,
+        'g',
+      );
+      expect(
+        suggestFood(const Ingredient(name: 'a', unit: 'l'))!.baseUnit,
+        'ml',
+      );
+      expect(
+        suggestFood(const Ingredient(name: 'a', unit: 'komada'))!.baseUnit,
+        'kom',
+      );
+    });
+
+    test('kašika → bez osnovne jedinice (osoba bira)', () {
+      final d = suggestFood(
+        const Ingredient(name: 'čia semenke', quantity: 1, unit: 'kašika'),
+      )!;
+      expect(d.baseUnit, isNull);
+      expect(d.validate, throwsFormatException);
+    });
+
+    test('nepoznata kategorija → ostalo', () {
+      expect(
+        suggestFood(const Ingredient(name: 'x', category: 'egzotika'))!
+            .category,
+        'ostalo',
+      );
+    });
+
+    test('prazan naziv → nema predloga', () {
+      expect(suggestFood(const Ingredient(name: '   ', unit: 'g')), isNull);
+    });
+
+    test('sastojak sa namirnicom → nema predloga', () {
+      expect(
+        suggestFood(const Ingredient(name: 'jaja', foodId: 'f_jaje')),
+        isNull,
+      );
+    });
   });
 
   test('euAllergens je tačno 14 EU kodova sa srpskim nazivima', () {

@@ -102,7 +102,8 @@
 
 ## Phase 6: User Story 4 — AI ne piše u katalog (P2)
 
-- [ ] T027 [US4] `suggestFood(Ingredient)` u `lib/domain/food.dart`, testovi u `test/domain/food_catalog_test.dart`: „mango 200 g“ kategorija „voće i povrće“ → nacrt sa `g`; jedinica „kašika“ → nacrt bez osnovne jedinice (osoba bira); prazan naziv → nema predloga; nikad ne vraća nacrt sa `household_id null`.
+- [x] T027 [US4] `suggestFood(Ingredient)` u `lib/domain/food.dart`, testovi u `test/domain/food_catalog_test.dart`: „mango 200 g“ kategorija „voće i povrće“ → nacrt sa `g`; jedinica „kašika“ → nacrt bez osnovne jedinice (osoba bira); prazan naziv → nema predloga; nikad ne vraća nacrt sa `household_id null`.
+  - Izvedeno: `FoodDraft` nema `householdId`; domaćinstvo uvek dodeljuje `FoodRepository.createOwn`, pa nacrt ne može postati zajednički. Sastojak koji već ima namirnicu ne dobija predlog.
 - [ ] T028 [US4] U formi recepta za izvor ai/photo/url: „AI predlaže novu namirnicu: „…“.“, „Potvrdi“ (otvara popunjen `NewFoodForm`) / „Odbaci“; widget test (SC-005): lažni AI recept sa nepoznatim sastojkom → „Odbaci“ → broj redova `foods` isti, recept se čuva sa nepotvrđenim sastojkom; „Potvrdi“ → jedan sopstveni red sa `householdId` aktivnog domaćinstva.
 
 ---

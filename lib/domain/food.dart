@@ -1,4 +1,5 @@
 import 'recipe.dart';
+import 'shopping_demand.dart';
 import 'shopping_sync.dart';
 
 /// Osnovna jedinica namirnice: u njoj se meri zaliha i potreba.
@@ -142,6 +143,25 @@ class FoodDraft {
     if (unit == null) throw const FormatException('Nepoznata osnovna jedinica');
     return ValidFoodDraft._(n, category, unit);
   }
+}
+
+/// Predlog nove namirnice za nepotvrđen sastojak (npr. iz AI recepta). Samo
+/// nacrt: upisuje ga osoba kroz formu, uvek kao sopstvenu namirnicu
+/// domaćinstva (`FoodRepository.createOwn`); AI ne piše u katalog. Osnovna
+/// jedinica se predlaže samo kad je jasna (g/kg, ml/l, kom), inače je bira
+/// osoba.
+FoodDraft? suggestFood(Ingredient ingredient) {
+  if (ingredient.foodId != null) return null;
+  final name = ingredientKey(ingredient.name);
+  if (name.isEmpty) return null;
+  final base = normalizeUnit(ingredient.unit, dictionaryVersion: 2).base;
+  return FoodDraft(
+    name: name,
+    category: ingredientCategories.contains(ingredient.category)
+        ? ingredient.category
+        : 'ostalo',
+    baseUnit: BaseUnit.values.asNameMap().containsKey(base) ? base : null,
+  );
 }
 
 class ValidFoodDraft {
