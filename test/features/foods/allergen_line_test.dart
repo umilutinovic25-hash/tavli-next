@@ -81,12 +81,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> unmount(WidgetTester tester) async {
-    await tester.pumpWidget(const SizedBox());
-    await tester.pump(const Duration(seconds: 1));
-  }
-
-  testWidgets('jaje + brašno → „Sadrži: jaja, gluten“', (tester) async {
+  testDbWidgets('jaje + brašno → „Sadrži: jaja, gluten“', (tester) async {
     await pump(
       tester,
       recipeWith(const [
@@ -97,10 +92,9 @@ void main() {
     expect(find.text('Sadrži: gluten, jaja'), findsOneWidget);
     expect(find.text('Podaci o alergenima nisu potpuni.'), findsNothing);
     expectNoAllergenFreeClaim(tester);
-    await unmount(tester);
   });
 
-  testWidgets('nepotvrđen sastojak → „nisu potpuni“ uz poznate oznake', (
+  testDbWidgets('nepotvrđen sastojak → „nisu potpuni“ uz poznate oznake', (
     tester,
   ) async {
     await pump(
@@ -113,10 +107,9 @@ void main() {
     expect(find.text('Sadrži: jaja'), findsOneWidget);
     expect(find.text('Podaci o alergenima nisu potpuni.'), findsOneWidget);
     expectNoAllergenFreeClaim(tester);
-    await unmount(tester);
   });
 
-  testWidgets('sve potvrđeno bez oznaka → nikakva tvrdnja', (tester) async {
+  testDbWidgets('sve potvrđeno bez oznaka → nikakva tvrdnja', (tester) async {
     await pump(
       tester,
       recipeWith(const [Ingredient(name: 'so', foodId: 'f_so')]),
@@ -124,7 +117,6 @@ void main() {
     expect(find.textContaining('Sadrži'), findsNothing);
     expect(find.textContaining('alergen'), findsNothing);
     expectNoAllergenFreeClaim(tester);
-    await unmount(tester);
   });
 
   testTavli('detalj recepta prikazuje oznake ispod sastojaka', (tester) async {

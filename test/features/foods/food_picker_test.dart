@@ -9,6 +9,8 @@ import 'package:tavli/features/foods/food_picker.dart';
 import 'package:tavli/providers.dart';
 import 'package:tavli/sync/synced_writer.dart';
 
+import '../../helpers/test_app.dart';
+
 const _scope = AccountScope(userId: 'u1', householdId: 'h1');
 
 void main() {
@@ -45,15 +47,6 @@ void main() {
   });
 
   tearDown(() => db.close());
-
-  /// Na kraju skida stablo, da drift tokovi i riverpod zatvore tajmere.
-  void testFoods(String description, Future<void> Function(WidgetTester) body) {
-    testWidgets(description, (tester) async {
-      await body(tester);
-      await tester.pumpWidget(const SizedBox());
-      await tester.pump(const Duration(seconds: 1));
-    });
-  }
 
   /// Dugme otvara izbor; vraćen id se prikazuje u tekstu `izbor: …`.
   Future<void> pump(
@@ -107,7 +100,7 @@ void main() {
 
   Future<int> foodCount() async => (await db.select(db.foods).get()).length;
 
-  testFoods('pretraga po aliasu nalazi namirnicu i vraća njen id', (
+  testDbWidgets('pretraga po aliasu nalazi namirnicu i vraća njen id', (
     tester,
   ) async {
     await pump(tester, text: 'Bijeli luk');
@@ -123,7 +116,7 @@ void main() {
     expect(find.text('izbor: f_beli_luk'), findsOneWidget);
   });
 
-  testFoods('„Nova namirnica“ nudi upisani tekst i čuva ga kao alias', (
+  testDbWidgets('„Nova namirnica“ nudi upisani tekst i čuva ga kao alias', (
     tester,
   ) async {
     await pump(
@@ -165,7 +158,9 @@ void main() {
     expect(find.text('izbor: ${own.id}'), findsOneWidget);
   });
 
-  testFoods('oznake alergena se biraju iz EU liste i upisuju', (tester) async {
+  testDbWidgets('oznake alergena se biraju iz EU liste i upisuju', (
+    tester,
+  ) async {
     await pump(tester, text: 'Sejtan', unit: 'g');
     await tester.tap(find.text('Nova namirnica'));
     await tester.pumpAndSettle();
@@ -194,7 +189,7 @@ void main() {
     expect(codes.toSet(), {'gluten', 'soy'});
   });
 
-  testFoods('zauzet alias → poruka, bez upisa', (tester) async {
+  testDbWidgets('zauzet alias → poruka, bez upisa', (tester) async {
     await pump(tester, text: 'Jajce', unit: 'kom');
     await tester.tap(find.text('Nova namirnica'));
     await tester.pumpAndSettle();
@@ -212,7 +207,7 @@ void main() {
     expect(find.text('Naziv namirnice'), findsOneWidget);
   });
 
-  testFoods('sheet na uskoj, dijalog na širokoj širini', (tester) async {
+  testDbWidgets('sheet na uskoj, dijalog na širokoj širini', (tester) async {
     await pump(tester, text: 'x');
     expect(find.byType(BottomSheet), findsOneWidget);
     expect(find.byType(Dialog), findsNothing);
@@ -242,12 +237,12 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testFoods('bez namirnice → „Nepotvrđeno“', (tester) async {
+    testDbWidgets('bez namirnice → „Nepotvrđeno“', (tester) async {
       await chip(tester, null);
       expect(find.text('Nepotvrđeno'), findsOneWidget);
     });
 
-    testFoods('sa namirnicom → njen naziv', (tester) async {
+    testDbWidgets('sa namirnicom → njen naziv', (tester) async {
       await chip(tester, 'f_jaje');
       expect(find.text('jaje'), findsOneWidget);
       expect(find.text('Nepotvrđeno'), findsNothing);
