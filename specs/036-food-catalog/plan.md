@@ -67,8 +67,9 @@ supabase/
 ├── catalog/foods.csv                    # pregledan izvor zajedničkog kataloga
 ├── migrations/
 │   ├── 20261112120000_food_catalog.sql        # tabele, RLS, grantovi, trigeri, allergens
-│   ├── 20261112120100_food_catalog_seed.sql   # generisano iz CSV-a
-│   └── 20261112120200_food_ids.sql            # food_id kolone + jednokratno mapiranje
+│   ├── 20261112120100_food_ids.sql            # food_id kolone + trigger domaćinstva
+│   ├── 20261112120200_food_catalog_seed.sql   # generisano iz CSV-a
+│   └── 20261112120300_food_mapping.sql        # jednokratno mapiranje postojećih podataka
 └── tests/15_food_catalog_test.sql (+ 01_catalog_test.sql prava)
 scripts/catalog_seed.dart                # CSV → SQL
 lib/domain/
@@ -93,7 +94,7 @@ test/ (ogledalo lib/)
 
 1. **Ustav 2.1.0** (zaseban commit).
 2. **Domen, TDD** — `food.dart`; `Ingredient.foodId` (stari JSON bajt-isti); v2 ključ + konverzija; snimak v2; `Supply` food identitet. Golden test starih snimaka (SC-002) pre bilo koje izmene obračuna. SC-001 kao domenski test.
-3. **Server** — migracija tabela + pgTAP (dva naloga: zajednički čitljiv, ne može se pisati; sopstveni nevidljiv drugom domaćinstvu; alias senka odbijena); generator + CSV + seed migracija; `food_ids` migracija sa mapiranjem + pgTAP (SC-003: tekst nepromenjen, mapirano samo tačno).
+3. **Server** — migracija tabela + pgTAP (dva naloga: zajednički čitljiv, ne može se pisati; sopstveni nevidljiv drugom domaćinstvu; alias senka odbijena); `food_ids` kolone; generator + CSV + seed migracija; migracija mapiranja + pgTAP (SC-003: tekst nepromenjen, mapirano samo tačno).
 4. **Drift + sync** — tabele, v17 migracija + test migracije; 4 entiteta; test da promena domaćinstva i `LegacyMover` ne diraju zajedničke redove.
 5. **Repozitorijumi** — `FoodRepository`; popuna `foodId` u receptu/Ostavi/nabavci (samo kad je null); prijem prenosi `food_id`; potvrda plana i samostalne nabavke na v2; naziv stavke iz namirnice. Test toka SC-001 kroz repozitorijume.
 6. **UI** — „Nepotvrđeno“ + izbor + „Nova namirnica“ u tri forme; AI predlog (R13); red alergena u detalju recepta. Widget testovi; provera uska/široka.
