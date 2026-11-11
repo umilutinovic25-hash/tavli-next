@@ -226,7 +226,11 @@ class _DetailState extends ConsumerState<_Detail> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  RecipeView(recipe, ingredientsNote: AllergenLine(recipe)),
+                  RecipeView(
+                    recipe,
+                    ingredientsNote: AllergenLine(recipe),
+                    markUnconfirmed: true,
+                  ),
                 ],
               ),
             ),

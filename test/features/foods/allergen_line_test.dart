@@ -142,5 +142,14 @@ void main() {
     expect(find.text('Sadrži: jaja'), findsOneWidget);
     expect(find.text('Podaci o alergenima nisu potpuni.'), findsOneWidget);
     expectNoAllergenFreeClaim(tester);
+    // Samo nepotvrđen sastojak (mleko) nosi oznaku (FR-014).
+    expect(find.byTooltip('Nepotvrđeno'), findsOneWidget);
+    expect(
+      find.ancestor(
+        of: find.byTooltip('Nepotvrđeno'),
+        matching: find.byType(Row),
+      ),
+      findsWidgets,
+    );
   });
 }
