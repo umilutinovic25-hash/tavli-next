@@ -172,6 +172,26 @@ class ValidFoodDraft {
   final BaseUnit baseUnit;
 }
 
+/// Oznake alergena recepta iz namirnica njegovih sastojaka. `complete` je
+/// false čim jedan sastojak nema potvrđenu namirnicu (ili je nema u
+/// katalogu): tada prazan skup ne znači „bez alergena“.
+({Set<String> codes, bool complete}) recipeAllergens(
+  Recipe recipe,
+  FoodCatalog catalog,
+) {
+  final codes = <String>{};
+  var complete = true;
+  for (final i in recipe.ingredients) {
+    final id = i.foodId;
+    if (id == null || catalog.byId(id) == null) {
+      complete = false;
+      continue;
+    }
+    codes.addAll(catalog.allergens(id));
+  }
+  return (codes: codes, complete: complete);
+}
+
 /// 14 alergena iz EU Uredbe 1169/2011, Prilog II: kod → naziv za prikaz.
 /// Isti kodovi su u serverskoj tabeli `allergens`.
 const euAllergens = <String, String>{

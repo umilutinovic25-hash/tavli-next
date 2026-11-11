@@ -173,6 +173,73 @@ void main() {
     });
   });
 
+  group('recipeAllergens', () {
+    final catalog = FoodCatalog(
+      foods: [
+        ..._shared,
+        const Food(
+          id: 'f_psenicno_brasno',
+          name: 'pšenično brašno',
+          category: 'žitarice i testenine',
+          baseUnit: BaseUnit.g,
+        ),
+      ],
+      allergens: const [
+        (foodId: 'f_jaje', code: 'eggs'),
+        (foodId: 'f_psenicno_brasno', code: 'gluten'),
+      ],
+    );
+    Recipe recipe(List<Ingredient> items) => Recipe(
+      id: 'r',
+      title: 'T',
+      servings: 2,
+      ingredients: items,
+      source: RecipeSource.manual,
+      createdAt: DateTime.utc(2026),
+    );
+
+    test('jaje + pšenično brašno → jaja, gluten; potpuno', () {
+      final r = recipeAllergens(
+        recipe(const [
+          Ingredient(name: 'jaja', foodId: 'f_jaje'),
+          Ingredient(name: 'brašno', foodId: 'f_psenicno_brasno'),
+        ]),
+        catalog,
+      );
+      expect(r.codes, {'eggs', 'gluten'});
+      expect(r.complete, isTrue);
+    });
+
+    test('jedan nepotvrđen sastojak → nije potpuno', () {
+      final r = recipeAllergens(
+        recipe(const [
+          Ingredient(name: 'jaja', foodId: 'f_jaje'),
+          Ingredient(name: 'tajni začin'),
+        ]),
+        catalog,
+      );
+      expect(r.codes, {'eggs'});
+      expect(r.complete, isFalse);
+    });
+
+    test('namirnica koje nema u katalogu → nije potpuno', () {
+      final r = recipeAllergens(
+        recipe(const [Ingredient(name: 'x', foodId: 'f_obrisano')]),
+        catalog,
+      );
+      expect(r.complete, isFalse);
+    });
+
+    test('sve potvrđeno bez oznaka → prazno, potpuno', () {
+      final r = recipeAllergens(
+        recipe(const [Ingredient(name: 'beli luk', foodId: 'f_beli_luk')]),
+        catalog,
+      );
+      expect(r.codes, isEmpty);
+      expect(r.complete, isTrue);
+    });
+  });
+
   test('euAllergens je tačno 14 EU kodova sa srpskim nazivima', () {
     expect(euAllergens.keys.toList(), [
       'gluten',
