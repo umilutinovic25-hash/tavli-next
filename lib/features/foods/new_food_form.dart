@@ -56,9 +56,15 @@ class _NewFoodFormState extends ConsumerState<NewFoodForm> {
         category: _category,
         baseUnit: _unit?.name,
       ).validate();
-      final id = await ref
-          .read(foodRepositoryProvider)
-          .createOwn(draft, aliases: [widget.text], allergens: {..._allergens});
+      // Tekst reda postaje alias samo ako ga katalog već ne zna (red koji je
+      // prepoznat a osoba ipak pravi novu namirnicu zadržava zajednički).
+      final repo = ref.read(foodRepositoryProvider);
+      final known = (await repo.catalog()).match(widget.text);
+      final id = await repo.createOwn(
+        draft,
+        aliases: [if (known == null) widget.text],
+        allergens: {..._allergens},
+      );
       if (mounted) widget.onSaved(id);
     } on FoodAliasTakenException {
       if (mounted) {

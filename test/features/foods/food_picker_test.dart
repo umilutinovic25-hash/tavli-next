@@ -189,6 +189,36 @@ void main() {
     expect(codes.toSet(), {'gluten', 'soy'});
   });
 
+  testDbWidgets('nova namirnica iz prepoznatog reda: tekst nije alias', (
+    tester,
+  ) async {
+    await pump(tester, text: 'Jajce', unit: 'kom');
+    await tester.tap(find.text('Nova namirnica'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Naziv namirnice'),
+      'prepeličje jaje',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    final save = find.widgetWithText(
+      FilledButton,
+      'Sačuvaj kao moju namirnicu',
+    );
+    await tester.ensureVisible(save);
+    await tester.pumpAndSettle();
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+    final own = await (db.select(
+      db.foods,
+    )..where((f) => f.householdId.equals('h1'))).getSingle();
+    final aliases = await (db.select(
+      db.foodAliases,
+    )..where((a) => a.foodId.equals(own.id))).map((a) => a.alias).get();
+    expect(aliases, ['prepeličje jaje']);
+    expect(find.text('izbor: ${own.id}'), findsOneWidget);
+  });
+
   testDbWidgets('zauzet alias → poruka, bez upisa', (tester) async {
     await pump(tester, text: 'Jajce', unit: 'kom');
     await tester.tap(find.text('Nova namirnica'));
