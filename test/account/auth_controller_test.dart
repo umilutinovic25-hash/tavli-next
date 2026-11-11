@@ -196,4 +196,22 @@ void main() {
       expect(state(), isA<SignedOut>());
     });
   });
+
+  test(
+    'Keychain ne odgovara pri obnovi: ostaje prijavljen, bez greške',
+    () async {
+      final s = backend.auth.sessionFor('ana@mail.com');
+      secrets.values[SessionStore.key] = s.json;
+      await cacheAccount(s, name: 'Ana');
+      await ctrl().start();
+      await pumpEventQueue();
+      secrets.failing = true;
+
+      await ctrl().restoreSession();
+
+      expect(state(), isA<SignedIn>());
+      secrets.failing = false;
+      expect(secrets.values[SessionStore.key], isNotNull);
+    },
+  );
 }
