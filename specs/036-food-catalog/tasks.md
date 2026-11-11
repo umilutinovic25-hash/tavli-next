@@ -36,7 +36,7 @@
   - `conversion('f_beli_luk', 'čen')` → 5 000 000; nepoznata jedinica → null.
   - `FoodDraft.validate`: prazan naziv / kategorija van `ingredientCategories` / jedinica van {kom, g, ml} → `FormatException`; naziv se normalizuje (trim, mala slova).
   - `euAllergens.keys` = tačno 14 kodova iz research R11.
-- [ ] T005 [P] Parser CSV-a `lib/domain/food_catalog_csv.dart` + `test/domain/food_catalog_csv_test.dart` (ugovor `contracts/catalog-csv.md`): ispravan red → `Food` + aliasi (naziv uključen) + konverzije + alergeni; dupli id, dupli alias (i između redova), nepoznata kategorija/jedinica/alergen, konverzija za `g`/`kg`/`l`/`kom` → greška sa brojem reda; polje pod navodnicima sa zarezom radi.
+- [x] T005 [P] Parser CSV-a `lib/domain/food_catalog_csv.dart` + `test/domain/food_catalog_csv_test.dart` (ugovor `contracts/catalog-csv.md`): ispravan red → `Food` + aliasi (naziv uključen) + konverzije + alergeni; dupli id, dupli alias (i između redova), nepoznata kategorija/jedinica/alergen, konverzija za `g`/`kg`/`l`/`kom` → greška sa brojem reda; polje pod navodnicima sa zarezom radi.
 - [ ] T006 [P] `Ingredient.foodId` u `lib/domain/recipe.dart`, testovi u `test/domain/recipe_test.dart`: `fromJson` čita `foodId` (prazan → null); `toJson` bez `foodId` je bajt-isti kao danas; `withFood('f_jaje')` čuva `name`, `id`, količinu.
 
 ### Server
