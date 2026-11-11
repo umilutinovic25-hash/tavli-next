@@ -33,6 +33,7 @@ class _NewFoodFormState extends ConsumerState<NewFoodForm> {
       ? widget.initial.category
       : 'ostalo';
   late var _unit = BaseUnit.values.asNameMap()[widget.initial.baseUnit];
+  final _allergens = <String>{};
   String? _error;
   var _saving = false;
 
@@ -57,7 +58,7 @@ class _NewFoodFormState extends ConsumerState<NewFoodForm> {
       ).validate();
       final id = await ref
           .read(foodRepositoryProvider)
-          .createOwn(draft, aliases: [widget.text]);
+          .createOwn(draft, aliases: [widget.text], allergens: {..._allergens});
       if (mounted) widget.onSaved(id);
     } on FoodAliasTakenException {
       if (mounted) {
@@ -111,6 +112,27 @@ class _NewFoodFormState extends ConsumerState<NewFoodForm> {
             selected: {?_unit},
             onSelectionChanged: (s) =>
                 setState(() => _unit = s.isEmpty ? null : s.first),
+          ),
+          const SizedBox(height: 16),
+          Text('Alergeni', style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 8),
+          // Samo fiksna EU lista; slobodan unos nije moguć.
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              for (final MapEntry(:key, :value) in euAllergens.entries)
+                FilterChip(
+                  label: Text(value),
+                  selected: _allergens.contains(key),
+                  onSelected: _saving
+                      ? null
+                      : (on) => setState(
+                          () =>
+                              on ? _allergens.add(key) : _allergens.remove(key),
+                        ),
+                ),
+            ],
           ),
           if (_error case final error?) ...[
             const SizedBox(height: 12),

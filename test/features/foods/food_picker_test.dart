@@ -147,6 +147,8 @@ void main() {
     expect(tester.widget<FilledButton>(save).onPressed, isNull);
     await tester.tap(find.text('g'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(save);
+    await tester.pumpAndSettle();
     await tester.tap(save);
     await tester.pumpAndSettle();
 
@@ -163,13 +165,46 @@ void main() {
     expect(find.text('izbor: ${own.id}'), findsOneWidget);
   });
 
+  testFoods('oznake alergena se biraju iz EU liste i upisuju', (tester) async {
+    await pump(tester, text: 'Sejtan', unit: 'g');
+    await tester.tap(find.text('Nova namirnica'));
+    await tester.pumpAndSettle();
+    expect(find.text('Alergeni'), findsOneWidget);
+    // Svih 14 oznaka kao izbor, bez polja za slobodan unos.
+    expect(find.byType(FilterChip), findsNWidgets(14));
+    expect(find.byType(TextField), findsOneWidget);
+    for (final name in ['gluten', 'soja']) {
+      await tester.ensureVisible(find.widgetWithText(FilterChip, name));
+      await tester.tap(find.widgetWithText(FilterChip, name));
+      await tester.pumpAndSettle();
+    }
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, 'Sačuvaj kao moju namirnicu'),
+    );
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'Sačuvaj kao moju namirnicu'),
+    );
+    await tester.pumpAndSettle();
+    final own = await (db.select(
+      db.foods,
+    )..where((f) => f.householdId.equals('h1'))).getSingle();
+    final codes = await (db.select(
+      db.foodAllergens,
+    )..where((a) => a.foodId.equals(own.id))).map((a) => a.allergenCode).get();
+    expect(codes.toSet(), {'gluten', 'soy'});
+  });
+
   testFoods('zauzet alias → poruka, bez upisa', (tester) async {
     await pump(tester, text: 'Jajce', unit: 'kom');
     await tester.tap(find.text('Nova namirnica'));
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.widgetWithText(FilledButton, 'Sačuvaj kao moju namirnicu'),
+    final save = find.widgetWithText(
+      FilledButton,
+      'Sačuvaj kao moju namirnicu',
     );
+    await tester.ensureVisible(save);
+    await tester.pumpAndSettle();
+    await tester.tap(save);
     await tester.pumpAndSettle();
     expect(find.text('Ova namirnica već postoji u katalogu.'), findsOneWidget);
     expect(await foodCount(), 2);
