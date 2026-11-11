@@ -13,6 +13,7 @@ import '../domain/shopping_sync.dart';
 import '../domain/supply_allocation.dart';
 import '../sync/synced_writer.dart';
 import 'database.dart';
+import 'food_repository.dart';
 
 /// Zbir jedne namirnice u celom planu (mesec): samo za čitanje. Radnje idu
 /// na nedeljne stavke iz [itemIds]; mesečna lista se ne čuva.
@@ -429,7 +430,8 @@ class ShoppingRepository {
               ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
               ..limit(1))
             .getSingleOrNull();
-    final json = jsonEncode(snapshot.withCurrentDictionary().toJson());
+    final catalog = await loadFoodCatalog(_db, _scope.householdId);
+    final json = jsonEncode(snapshot.withCurrentDictionary(catalog).toJson());
     String id;
     if (current != null && !repeat) {
       id = current.id;
@@ -958,7 +960,12 @@ class ShoppingRepository {
     for (final i in items) {
       final unit = normalizeUnit(i.unit);
       final group = i.quantity == null ? unknownGroup : unit.group;
-      final identity = identities[i.id] ?? (ingredientKey(i.name), group);
+      final identity =
+          identities[i.id] ??
+          (
+            i.foodId == null ? ingredientKey(i.name) : 'food:${i.foodId}',
+            group,
+          );
       groups.putIfAbsent(identity, () => []).add(i);
     }
     int micros(ShoppingItemRow i) => i.quantity == null
@@ -1058,9 +1065,40 @@ class ShoppingRepository {
         ),
         ingredients: snapshot.ingredients,
         dictionaryVersion: snapshot.dictionaryVersion,
+        conversions: snapshot.conversions,
       ),
     );
   }
+
+  /// Grupa jedinice zalihe za identitet namirnice: v1 pravila jedinica (u
+  /// 036 zaliha ne koristi konverzije namirnice).
+  static String _foodGroup(String? unit) =>
+      normalizeUnit(unit, dictionaryVersion: 1).group;
+
+  /// Ključ stavke u istom obliku kao [ingredient] (tekst, v1 ili namirnica).
+  static String _itemKey(ShoppingItemRow i, String ingredient) {
+    if (ingredient.startsWith('food:')) {
+      return i.foodId == null ? ingredientKey(i.name) : 'food:${i.foodId}';
+    }
+    return dictionaryIngredientKey(
+      i.name,
+      ingredient.startsWith('v1:') ? 1 : 0,
+    );
+  }
+
+  /// Da li je zapis (naziv + namirnica) isti sastojak kao [key] doprinosa.
+  static bool _sameIngredient(String name, String? foodId, String key) =>
+      ingredientKey(name) == key ||
+      dictionaryIngredientKey(name, 1) == key ||
+      (foodId != null && 'food:$foodId' == key);
+
+  static bool _covers(Supply s, String ingredient, String group) =>
+      (s.ingredient == ingredient && s.unitGroup == group) ||
+      (s.dictionaryIngredient == ingredient &&
+          s.dictionaryUnitGroup == group) ||
+      (s.foodIngredient != null &&
+          s.foodIngredient == ingredient &&
+          s.foodUnitGroup == group);
 
   /// Celo domaćinstvo: doprinosi otvorenih izvora prate odobrene recepte,
   /// potvrđena zaliha se raspoređuje hronološki, a otvorene stavke
@@ -1069,6 +1107,7 @@ class ShoppingRepository {
   Future<void> _reconcile() async {
     final hid = _scope.householdId;
     final now = _clock().toUtc();
+    final catalog = await loadFoodCatalog(_db, hid);
     final sources = await (_db.select(
       _db.shoppingSources,
     )..where((t) => t.householdId.equals(hid))).get();
@@ -1161,6 +1200,8 @@ class ShoppingRepository {
             p.unit,
             dictionaryVersion: 1,
           ).group,
+          foodIngredient: p.foodId == null ? null : 'food:${p.foodId}',
+          foodUnitGroup: p.foodId == null ? null : _foodGroup(p.unit),
           micros: !known || expired ? 0 : toMicros(p.quantity!) * unit.factor,
           samePhysicalAs: p.sourceShoppingItemId,
         ),
@@ -1186,6 +1227,8 @@ class ShoppingRepository {
             i.unit,
             dictionaryVersion: 1,
           ).group,
+          foodIngredient: i.foodId == null ? null : 'food:${i.foodId}',
+          foodUnitGroup: i.foodId == null ? null : _foodGroup(i.unit),
           micros: toMicros(i.quantity!) * unit.factor,
         ),
       );
@@ -1248,7 +1291,11 @@ class ShoppingRepository {
         if (receipt != null &&
             (receipt.quantity == 0 ||
                 (receipt.expiresAt?.isBefore(now) ?? false) ||
-                ingredientKey(receipt.name) != c.ingredientKey)) {
+                !_sameIngredient(
+                  receipt.name,
+                  receipt.foodId,
+                  c.ingredientKey,
+                ))) {
           await (_db.delete(
             _db.supplyAllocations,
           )..where((t) => t.id.equals(a.id))).go();
@@ -1259,9 +1306,8 @@ class ShoppingRepository {
         continue;
       }
       final matches =
-          supply?.ingredient == c.ingredientKey &&
-          supply?.unitGroup == c.unitGroup;
-      final cap = matches ? (supply?.micros ?? 0) : 0;
+          supply != null && _covers(supply, c.ingredientKey, c.unitGroup);
+      final cap = matches ? (supply.micros ?? 0) : 0;
       final room = cap - (used[a.supplyId] ?? 0);
       final need = (c.micros ?? 0) - (perContribution[c.id] ?? 0);
       final keep = [a.micros ?? 0, room, need].reduce((x, y) => x < y ? x : y);
@@ -1313,6 +1359,8 @@ class ShoppingRepository {
           unitGroup: s.unitGroup,
           dictionaryIngredient: s.dictionaryIngredient,
           dictionaryUnitGroup: s.dictionaryUnitGroup,
+          foodIngredient: s.foodIngredient,
+          foodUnitGroup: s.foodUnitGroup,
           micros: (s.micros ?? 0) - (used[s.canonicalId] ?? 0),
         ),
     ]);
@@ -1402,11 +1450,7 @@ class ShoppingRepository {
               if (items[id] case final i?
                   when !i.isBought &&
                       i.listId == listId &&
-                      dictionaryIngredientKey(
-                            i.name,
-                            ingredient.startsWith('v1:') ? 1 : 0,
-                          ) ==
-                          ingredient &&
+                      _itemKey(i, ingredient) == ingredient &&
                       (i.quantity == null
                               ? unknownGroup
                               : normalizeUnit(
@@ -1438,8 +1482,14 @@ class ShoppingRepository {
       }.toList();
       // Ime i kategorija od najranijeg obroka grupe, da se ne menjaju kad
       // se raspodela pomeri.
+      final foodId = ingredient.startsWith('food:')
+          ? ingredient.substring('food:'.length)
+          : null;
       final row = ShoppingItemsCompanion(
-        name: Value(cs.first.name),
+        name: Value(
+          (foodId == null ? null : catalog.byId(foodId)?.name) ?? cs.first.name,
+        ),
+        foodId: Value(foodId),
         quantity: Value(amount?.quantity),
         unit: Value(group == unknownGroup ? null : amount?.unit),
         category: Value(cs.first.category),
@@ -1464,6 +1514,7 @@ class ShoppingRepository {
             current.quantity != row.quantity.value ||
             current.unit != row.unit.value ||
             current.category != row.category.value ||
+            current.foodId != row.foodId.value ||
             current.fromRecipeIdsJson != row.fromRecipeIdsJson.value) {
           await (_db.update(
             _db.shoppingItems,

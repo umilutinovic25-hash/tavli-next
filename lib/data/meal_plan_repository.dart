@@ -13,6 +13,7 @@ import '../domain/shopping_source.dart';
 import '../sync/synced_writer.dart';
 import 'database.dart';
 import 'day_rule_repository.dart';
+import 'food_repository.dart';
 import 'shopping_repository.dart';
 
 /// Nacrt nije potpun, a nepotpuno čuvanje nije izričito izabrano (ili
@@ -359,10 +360,11 @@ class MealPlanRepository {
         created[key] = await _insertRecipe(draft.newRecipes[key]!);
       }
       final today = CivilDate.today(_clock);
+      final catalog = await loadFoodCatalog(_db, _scope.householdId);
       for (final slot in ready) {
         final proposal = draft.proposals[slot]!;
         final snapshot = jsonEncode(
-          draft.snapshotFor(slot)!.withCurrentDictionary().toJson(),
+          draft.snapshotFor(slot)!.withCurrentDictionary(catalog).toJson(),
         );
         final recipeId = proposal.isNew
             ? created[proposal.draftRecipeKey]

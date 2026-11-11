@@ -17,6 +17,54 @@ class FoodAliasTakenException implements Exception {
   String toString() => 'FoodAliasTakenException($alias)';
 }
 
+/// Katalog vidljiv domaćinstvu [householdId]: zajednički deo + njegove
+/// sopstvene namirnice (iz drift keša, radi bez mreže).
+Future<FoodCatalog> loadFoodCatalog(AppDatabase db, String householdId) async {
+  Expression<bool> visible(GeneratedColumn<String> h) =>
+      h.isNull() | h.equals(householdId);
+
+  final foods = await (db.select(
+    db.foods,
+  )..where((t) => visible(t.householdId))).get();
+  final aliases = await (db.select(
+    db.foodAliases,
+  )..where((t) => visible(t.householdId))).get();
+  final conversions = await (db.select(
+    db.foodConversions,
+  )..where((t) => visible(t.householdId))).get();
+  final allergens = await (db.select(
+    db.foodAllergens,
+  )..where((t) => visible(t.householdId))).get();
+  return FoodCatalog(
+    foods: [
+      for (final f in foods)
+        if (BaseUnit.values.asNameMap()[f.baseUnit] case final unit?)
+          Food(
+            id: f.id,
+            householdId: f.householdId,
+            name: f.name,
+            category: f.category,
+            baseUnit: unit,
+          ),
+    ],
+    aliases: [
+      for (final a in aliases)
+        FoodAlias(foodId: a.foodId, householdId: a.householdId, alias: a.alias),
+    ],
+    conversions: [
+      for (final c in conversions)
+        FoodConversion(
+          foodId: c.foodId,
+          unit: c.unit,
+          factorMicros: c.factorMicros,
+        ),
+    ],
+    allergens: [
+      for (final a in allergens) (foodId: a.foodId, code: a.allergenCode),
+    ],
+  );
+}
+
 /// Katalog namirnica na uređaju (036): zajednički deo stiže preuzimanjem i
 /// samo se čita; sopstvene namirnice domaćinstva idu kroz outbox.
 class FoodRepository {
@@ -32,55 +80,7 @@ class FoodRepository {
   final SyncedWriter _writer;
   final String Function() _newId;
 
-  Expression<bool> _visible(GeneratedColumn<String> householdId) =>
-      householdId.isNull() | householdId.equals(_scope.householdId);
-
-  Future<FoodCatalog> catalog() async {
-    final foods = await (_db.select(
-      _db.foods,
-    )..where((t) => _visible(t.householdId))).get();
-    final aliases = await (_db.select(
-      _db.foodAliases,
-    )..where((t) => _visible(t.householdId))).get();
-    final conversions = await (_db.select(
-      _db.foodConversions,
-    )..where((t) => _visible(t.householdId))).get();
-    final allergens = await (_db.select(
-      _db.foodAllergens,
-    )..where((t) => _visible(t.householdId))).get();
-    return FoodCatalog(
-      foods: [
-        for (final f in foods)
-          if (BaseUnit.values.asNameMap()[f.baseUnit] case final unit?)
-            Food(
-              id: f.id,
-              householdId: f.householdId,
-              name: f.name,
-              category: f.category,
-              baseUnit: unit,
-            ),
-      ],
-      aliases: [
-        for (final a in aliases)
-          FoodAlias(
-            foodId: a.foodId,
-            householdId: a.householdId,
-            alias: a.alias,
-          ),
-      ],
-      conversions: [
-        for (final c in conversions)
-          FoodConversion(
-            foodId: c.foodId,
-            unit: c.unit,
-            factorMicros: c.factorMicros,
-          ),
-      ],
-      allergens: [
-        for (final a in allergens) (foodId: a.foodId, code: a.allergenCode),
-      ],
-    );
-  }
+  Future<FoodCatalog> catalog() => loadFoodCatalog(_db, _scope.householdId);
 
   /// Novi katalog posle svake izmene bilo koje od četiri tabele.
   Stream<FoodCatalog> watchCatalog() => _db

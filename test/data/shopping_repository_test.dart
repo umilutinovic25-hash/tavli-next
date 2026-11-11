@@ -1168,4 +1168,173 @@ void main() {
       expect(await db.select(db.syncOutbox).get(), isEmpty);
     });
   });
+
+  group('036: nabavka po namirnici', () {
+    final now = DateTime.utc(2026, 11);
+
+    setUp(() async {
+      await db
+          .into(db.foods)
+          .insert(
+            FoodsCompanion.insert(
+              id: 'f_jaje',
+              name: 'jaje',
+              category: 'mlečni proizvodi i jaja',
+              baseUnit: 'kom',
+            ),
+          );
+      for (final a in ['jaje', 'jaja', 'jajce']) {
+        await db
+            .into(db.foodAliases)
+            .insert(
+              FoodAliasesCompanion.insert(
+                id: 'f_jaje:$a',
+                foodId: 'f_jaje',
+                alias: a,
+              ),
+            );
+      }
+    });
+
+    RecipeSnapshot dish(String title, int base, List<Ingredient> items) =>
+        RecipeSnapshot(title: title, baseServings: base, ingredients: items);
+
+    Future<void> jajce({String? foodId = 'f_jaje'}) => db
+        .into(db.pantryItems)
+        .insert(
+          PantryItemsCompanion.insert(
+            id: 'ostava-jajce',
+            name: 'jajce',
+            quantity: const Value(2),
+            unit: const Value('kom'),
+            category: 'ostalo',
+            addedAt: now,
+            confirmedAt: Value(now),
+            householdId: const Value('home-one'),
+            foodId: Value(foodId),
+          ),
+        );
+
+    test('potvrda pripreme: snimak v2 i doprinos po namirnici', () async {
+      await repo.addRecipePreparation(
+        snapshot: dish('Omlet', 2, const [
+          Ingredient(name: 'Jaja', quantity: 2, unit: 'kom'),
+        ]),
+        servings: 2,
+        originKey: 'omlet',
+      );
+      final source = (await db.select(db.shoppingSources).get()).single;
+      final json =
+          jsonDecode(source.recipeSnapshotJson!) as Map<String, dynamic>;
+      expect(json['dictionaryVersion'], 2);
+      final ingredient =
+          (json['ingredients'] as List).single as Map<String, dynamic>;
+      expect(ingredient['foodId'], 'f_jaje');
+      expect(ingredient['name'], 'Jaja');
+      final c = (await db.select(db.shoppingContributions).get()).single;
+      expect(c.ingredientKey, 'food:f_jaje');
+    });
+
+    test('SC-001: jedna stavka „jaje“ 1,5 kom posle zalihe „jajce“', () async {
+      await jajce();
+      await repo.addRecipePreparation(
+        snapshot: dish('A', 4, const [
+          Ingredient(name: 'jaja', quantity: 3, unit: 'kom'),
+        ]),
+        servings: 2,
+        originKey: 'a',
+      );
+      await repo.addRecipePreparation(
+        snapshot: dish('B', 2, const [
+          Ingredient(name: 'jaje', quantity: 2, unit: 'kom'),
+        ]),
+        servings: 2,
+        originKey: 'b',
+      );
+      final list = await repo.recipeList();
+      final open = [
+        for (final i in await repo.listItems(list))
+          if (!i.isBought) i,
+      ];
+      expect(open, hasLength(1));
+      expect(
+        (open.single.name, open.single.quantity, open.single.unit),
+        ('jaje', 1.5, 'kom'),
+      );
+      expect(open.single.foodId, 'f_jaje');
+      final allocated = await db.select(db.supplyAllocations).get();
+      expect(allocated.fold<int>(0, (s, a) => s + a.micros!), 2000000);
+    });
+
+    test('kontrola bez kataloga: dve stavke, zaliha ne pokriva', () async {
+      await db.delete(db.foodAliases).go();
+      await db.delete(db.foods).go();
+      await jajce(foodId: null);
+      await repo.addRecipePreparation(
+        snapshot: dish('A', 4, const [
+          Ingredient(name: 'jaja', quantity: 3, unit: 'kom'),
+        ]),
+        servings: 2,
+        originKey: 'a',
+      );
+      await repo.addRecipePreparation(
+        snapshot: dish('B', 2, const [
+          Ingredient(name: 'jaje', quantity: 2, unit: 'kom'),
+        ]),
+        servings: 2,
+        originKey: 'b',
+      );
+      final list = await repo.recipeList();
+      expect(
+        [
+          for (final i in await repo.listItems(list))
+            if (!i.isBought) '${i.name} ${i.quantity} ${i.foodId}',
+        ],
+        ['jaja 1.5 null', 'jaje 2.0 null'],
+      );
+    });
+
+    test('namirnica koje nema na uređaju: naziv iz teksta', () async {
+      await repo.addRecipePreparation(
+        snapshot: dish('C', 2, const [
+          Ingredient(
+            name: 'Zmajevo voće',
+            quantity: 1,
+            unit: 'kom',
+            foodId: 'own-nema',
+          ),
+        ]),
+        servings: 2,
+        originKey: 'c',
+      );
+      final list = await repo.recipeList();
+      final item = (await repo.listItems(list)).single;
+      expect((item.name, item.foodId), ('Zmajevo voće', 'own-nema'));
+    });
+
+    test('totalsOf grupiše po namirnici', () {
+      ShoppingItemRow row(String id, String name, String? foodId) =>
+          ShoppingItemRow(
+            id: id,
+            listId: 'l',
+            name: name,
+            quantity: 1,
+            unit: 'kom',
+            category: 'ostalo',
+            isBought: false,
+            isManual: false,
+            fromRecipeIdsJson: '[]',
+            foodId: foodId,
+          );
+      final totals = ShoppingRepository.totalsOf([
+        row('1', 'jaja', 'f_jaje'),
+        row('2', 'jajce', 'f_jaje'),
+        row('3', 'jaja', null),
+      ]);
+      expect(
+        [for (final t in totals) '${t.ingredient} ${t.openMicros}'],
+        ['food:f_jaje 2000000', 'jaja 1000000'],
+      );
+    });
+  });
 }

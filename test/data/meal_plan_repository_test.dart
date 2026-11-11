@@ -115,6 +115,39 @@ void main() {
       r.entity,
   ];
 
+  test('036: obrok plana dobija namirnicu po tačnom aliasu', () async {
+    await db
+        .into(db.foods)
+        .insert(
+          FoodsCompanion.insert(
+            id: 'f_krompir',
+            name: 'krompir',
+            category: 'voće i povrće',
+            baseUnit: 'g',
+          ),
+        );
+    await db
+        .into(db.foodAliases)
+        .insert(
+          FoodAliasesCompanion.insert(
+            id: 'f_krompir:krompir',
+            foodId: 'f_krompir',
+            alias: 'krompir',
+          ),
+        );
+    final id = await repo.approve(draft());
+    final meals = await repo.watchMeals(id).first;
+    expect(
+      meals.every((m) => m.snapshot!.ingredients.single.foodId == 'f_krompir'),
+      isTrue,
+    );
+    final keys = {
+      for (final c in await db.select(db.shoppingContributions).get())
+        c.ingredientKey,
+    };
+    expect(keys, {'food:f_krompir'});
+  });
+
   test('odobren nacrt čuva plan, obroke sa snimkom i porcijama, '
       'nabavku i outbox redom roditelj pa dete', () async {
     final id = await repo.approve(draft());
