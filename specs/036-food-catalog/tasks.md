@@ -12,8 +12,8 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Polazna tačka: grana `036-food-catalog` na `origin/main` (`git log --oneline -3` pokazuje `dddbc8f` ispod docs commitova 036); `flutter pub get`; `flutter analyze` čist; `supabase start && supabase db reset && supabase test db` zeleno. Bez commita.
-- [ ] T002 Izmena ustava 2.0.1 → 2.1.0 u `.specify/memory/constitution.md` (research R9): u principu II, „Server rules“, dodaj izuzetak za referentne podatke bez ličnih podataka (čitljivi svakom `authenticated`, nijedna klijentska uloga ih ne menja, menjaju se samo migracijama); ažuriraj Sync Impact Report. Zaseban commit `docs(constitution): 2.1.0 referentni podaci`.
+- [x] T001 Polazna tačka: grana `036-food-catalog` na `origin/main` (`git log --oneline -3` pokazuje `dddbc8f` ispod docs commitova 036); `flutter pub get`; `flutter analyze` čist; `supabase start && supabase db reset && supabase test db` zeleno. Bez commita.
+- [x] T002 Izmena ustava 2.0.1 → 2.1.0 u `.specify/memory/constitution.md` (research R9): u principu II, „Server rules“, dodaj izuzetak za referentne podatke bez ličnih podataka (čitljivi svakom `authenticated`, nijedna klijentska uloga ih ne menja, menjaju se samo migracijama); ažuriraj Sync Impact Report. Zaseban commit `docs(constitution): 2.1.0 referentni podaci`.
 
 ---
 
@@ -21,7 +21,7 @@
 
 ### Zaštita postojećeg ponašanja (prvo)
 
-- [ ] T003 Golden test starih snimaka `test/domain/legacy_snapshot_golden_test.dart` (SC-002). Prolazi i **pre** bilo koje izmene; čuva se do kraja.
+- [x] T003 Golden test starih snimaka `test/domain/legacy_snapshot_golden_test.dart` (SC-002). Prolazi i **pre** bilo koje izmene; čuva se do kraja.
   - v0 snimak „jaja 3 kom“ + „jaje 2 kom“ (baza 4, porcije 2) → dva `DemandLine`: `jaja` 1 500 000, `jaje` 1 000 000.
   - v0 „češnjak 10 g“ + „beli luk 5 g“ → dva identiteta, 10 000 000 i 5 000 000.
   - v1 isto → jedan `v1:beli luk` 15 000 000.
