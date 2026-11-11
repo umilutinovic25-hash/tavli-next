@@ -31,7 +31,7 @@
 
 ### Domen (test-first)
 
-- [ ] T004 [P] `lib/domain/food.dart` + `test/domain/food_catalog_test.dart`: `BaseUnit`, `Food`, `FoodConversion`, `FoodCatalog`, `FoodDraft`, `euAllergens` (data-model).
+- [x] T004 [P] `lib/domain/food.dart` + `test/domain/food_catalog_test.dart`: `BaseUnit`, `Food`, `FoodConversion`, `FoodCatalog`, `FoodDraft`, `euAllergens` (data-model).
   - `match(' Jajce ')` → `f_jaje`; `match('jaj')` → null (nema približnog); zajednički alias ima prednost nad sopstvenim istog teksta.
   - `conversion('f_beli_luk', 'čen')` → 5 000 000; nepoznata jedinica → null.
   - `FoodDraft.validate`: prazan naziv / kategorija van `ingredientCategories` / jedinica van {kom, g, ml} → `FormatException`; naziv se normalizuje (trim, mala slova).
