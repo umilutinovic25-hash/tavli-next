@@ -180,7 +180,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 16);
+    expect(db.schemaVersion, 17);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -715,7 +715,7 @@ void main() {
         (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
           'user_version',
         ),
-        16,
+        17,
       );
     },
   );
@@ -762,7 +762,7 @@ void main() {
       (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
         'user_version',
       ),
-      16,
+      after.schemaVersion,
     );
   });
 
@@ -777,5 +777,69 @@ void main() {
     final again = AppDatabase(NativeDatabase(file));
     addTearDown(again.close);
     expect(await again.select(again.householdMemberships).get(), isEmpty);
+  });
+
+  test('migracija 16 → 17 dodaje katalog namirnica; redovi ostaju', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v17-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      'INSERT INTO pantry_items (id, name, quantity, unit, category, added_at, '
+      "household_id) VALUES ('p1', 'jaja', 2, 'kom', 'ostalo', 1, 'h1')",
+    );
+    await before.customStatement(
+      "INSERT INTO shopping_lists (id, name, created_at, household_id) VALUES ('l1', 'Lista', 1, 'h1')",
+    );
+    await before.customStatement(
+      'INSERT INTO shopping_items (id, list_id, name, category, household_id) '
+      "VALUES ('s1', 'l1', 'jaje', 'ostalo', 'h1')",
+    );
+    for (final t in [
+      'foods',
+      'food_aliases',
+      'food_conversions',
+      'food_allergens',
+    ]) {
+      await before.customStatement('DROP TABLE $t');
+    }
+    await before.customStatement(
+      'ALTER TABLE pantry_items DROP COLUMN food_id',
+    );
+    await before.customStatement(
+      'ALTER TABLE shopping_items DROP COLUMN food_id',
+    );
+    await before.customStatement('PRAGMA user_version = 16');
+    await before.close();
+
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final pantry = (await after.select(after.pantryItems).get()).single;
+    expect((pantry.name, pantry.quantity, pantry.foodId), ('jaja', 2.0, null));
+    final item = (await after.select(after.shoppingItems).get()).single;
+    expect((item.name, item.foodId), ('jaje', null));
+    expect(await after.select(after.foods).get(), isEmpty);
+    expect(await after.select(after.foodAliases).get(), isEmpty);
+    expect(await after.select(after.foodConversions).get(), isEmpty);
+    expect(await after.select(after.foodAllergens).get(), isEmpty);
+    expect(
+      (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
+        'user_version',
+      ),
+      17,
+    );
+  });
+
+  test('ponovljena v17 migracija ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v17b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 16');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.foods).get(), isEmpty);
   });
 }

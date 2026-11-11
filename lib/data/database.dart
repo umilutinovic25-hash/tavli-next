@@ -99,6 +99,9 @@ class PantryItems extends Table {
   /// Prijem kupljene stavke: ista zaliha kao ta kupovina, ne nova (v5).
   TextColumn get sourceShoppingItemId => text().nullable()();
 
+  /// Namirnica iz kataloga (036); null = nepotvrđeno, `name` je prikaz.
+  TextColumn get foodId => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -149,6 +152,9 @@ class ShoppingItems extends Table {
   TextColumn get brand => text().nullable()();
   TextColumn get note => text().nullable()();
   TextColumn get photoPath => text().nullable()();
+
+  /// Namirnica iz kataloga (036); null = nepotvrđeno, `name` je prikaz.
+  TextColumn get foodId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -538,6 +544,59 @@ class SyncCursors extends Table {
   Set<Column> get primaryKey => {accountId, entity};
 }
 
+/// Namirnica iz kataloga (036). `householdId` null = zajednički katalog
+/// (samo za čitanje, stiže sa servera); inače sopstvena namirnica.
+@DataClassName('FoodRow')
+class Foods extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+  TextColumn get name => text()();
+  TextColumn get category => text()();
+
+  /// `BaseUnit.name`: kom, g ili ml.
+  TextColumn get baseUnit => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Normalizovan tekst → namirnica.
+@DataClassName('FoodAliasRow')
+class FoodAliases extends Table {
+  TextColumn get id => text()();
+  TextColumn get foodId => text()();
+  TextColumn get householdId => text().nullable()();
+  TextColumn get alias => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Jedna `unit` = `factorMicros` milionitih delova osnovne jedinice.
+@DataClassName('FoodConversionRow')
+class FoodConversions extends Table {
+  TextColumn get id => text()();
+  TextColumn get foodId => text()();
+  TextColumn get householdId => text().nullable()();
+  TextColumn get unit => text()();
+  IntColumn get factorMicros => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Oznaka alergena namirnice; kod iz `euAllergens`.
+@DataClassName('FoodAllergenRow')
+class FoodAllergens extends Table {
+  TextColumn get id => text()();
+  TextColumn get foodId => text()();
+  TextColumn get householdId => text().nullable()();
+  TextColumn get allergenCode => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     Recipes,
@@ -565,6 +624,10 @@ class SyncCursors extends Table {
     HouseholdMemberCache,
     SyncOutbox,
     SyncCursors,
+    Foods,
+    FoodAliases,
+    FoodConversions,
+    FoodAllergens,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -572,7 +635,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -713,6 +776,39 @@ class AppDatabase extends _$AppDatabase {
         }
         if (!names.contains('household_member_cache')) {
           await m.createTable(householdMemberCache);
+        }
+      }
+      if (from < 17) {
+        for (final (
+              TableInfo<Table, Object?> table,
+              GeneratedColumn<Object> column,
+            )
+            in [
+              (pantryItems, pantryItems.foodId),
+              (shoppingItems, shoppingItems.foodId),
+            ]) {
+          final columns = await customSelect(
+            'PRAGMA table_info(${table.actualTableName})',
+          ).get();
+          if (!columns.any((c) => c.read<String>('name') == 'food_id')) {
+            await m.addColumn(table, column);
+          }
+        }
+        final existing = await customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table' "
+          "AND name IN ('foods', 'food_aliases', 'food_conversions', "
+          "'food_allergens')",
+        ).get();
+        final names = {for (final r in existing) r.read<String>('name')};
+        for (final table in <TableInfo<Table, Object?>>[
+          foods,
+          foodAliases,
+          foodConversions,
+          foodAllergens,
+        ]) {
+          if (!names.contains(table.actualTableName)) {
+            await m.createTable(table);
+          }
         }
       }
     },
