@@ -196,6 +196,19 @@ void main() {
     expect(checkbox.onChanged, isNull);
   });
 
+  testTavli('nekupljena stavka bez namirnice nosi „Nepotvrđeno“', (
+    tester,
+  ) async {
+    await pumpShopping(tester);
+    expect(
+      find.descendant(
+        of: tileOf('krompir'),
+        matching: find.byTooltip('Nepotvrđeno'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testTavli('ručna stavka bira namirnicu u detaljima; izvedena nema izbor', (
     tester,
   ) async {

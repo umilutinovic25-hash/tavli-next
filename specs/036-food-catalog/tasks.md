@@ -155,3 +155,9 @@ Posle T012:  T021 widgeti  ∥  T024 generator  ∥  T029 alergeni (domen)
 1. **MVP = Phase 1–3** (+ T024–T026 da katalog ima podatke): isti `food_id` se sabira kroz plan, Ostavu i nabavku; stari snimci isti.
 2. Zatim US2 (bez UI-ja korisnik ne može da potvrdi nepoznato), US4, US5.
 3. Ako diff (bez `.g.dart` i CSV-a) pređe ~1 500 linija: 036a = Phase 1–3 + US3, 036b = US2 + US4 + US5 (oba od najnovijeg `main`).
+
+## Convergence 1 (2026-11-11)
+
+- [x] T036 Prikazati „Nepotvrđeno“ u redovima liste Ostave (`pantry_item_tile.dart`) i nabavke (`ShoppingItemTile`, i za izvedene nekupljene stavke) kad `foodId` nema, uz widget testove, per FR-014 i US1/AC3 (partial)
+  - Ruling: u redovima liste oznaka je ikonica sa opisom „Nepotvrđeno“ (`UnconfirmedMark`, tooltip + semantika), ne dodatni red teksta: dodatni red je pomerao stavke van ekrana na 320 px uz tekst 2×. Pun tekst i izbor su u formi (`FoodChip`).
+- [ ] T037 Prikazati „Nepotvrđeno“ uz nepotvrđen sastojak u detalju recepta (`RecipeView` preko opcije, samo u detalju, ne u AI pregledima), uz widget test, per FR-014 (partial)

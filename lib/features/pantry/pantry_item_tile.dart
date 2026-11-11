@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/database.dart';
+import '../foods/unconfirmed_mark.dart';
 
 enum PantryCheck {
   have('Imam'),
@@ -80,7 +81,21 @@ class PantryItemTile extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         minTileHeight: 80,
-        title: Text(item.name, style: Theme.of(context).textTheme.titleMedium),
+        title: Row(
+          children: [
+            Flexible(
+              child: Text(
+                item.name,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            // Bez namirnice se zaliha poredi samo po tekstu (FR-014).
+            if (item.foodId == null) ...[
+              const SizedBox(width: 6),
+              const UnconfirmedMark(),
+            ],
+          ],
+        ),
         subtitle: Text(
           details.join('\n'),
           style: TextStyle(

@@ -228,6 +228,35 @@ void main() {
     expect(await app.db.select(app.db.pantryItems).get(), isEmpty);
   });
 
+  testTavli('red Ostave bez namirnice nosi „Nepotvrđeno“', (tester) async {
+    await pumpTavli(
+      tester,
+      location: '/pantry',
+      setup: (db) async {
+        await seedEggs(db);
+        final (pantry, _) = await repositories(db);
+        await pantry.create(name: 'Jaja', quantity: 6, unit: 'kom');
+        await pantry.create(name: 'Zmajevo voće', quantity: 1, unit: 'kom');
+      },
+    );
+    Finder tile(String name) =>
+        find.ancestor(of: find.text(name), matching: find.byType(ListTile));
+    expect(
+      find.descendant(
+        of: tile('Zmajevo voće'),
+        matching: find.byTooltip('Nepotvrđeno'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: tile('Jaja'),
+        matching: find.byTooltip('Nepotvrđeno'),
+      ),
+      findsNothing,
+    );
+  });
+
   testTavli('namirnica u formi Ostave: Nepotvrđeno, izbor, izmena je čuva', (
     tester,
   ) async {
