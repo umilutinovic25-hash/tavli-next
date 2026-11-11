@@ -236,4 +236,31 @@ void main() {
       'shopping_item:rucno:upsert',
     ]);
   });
+
+  test('zajednički katalog namirnica se ne prebacuje u nalog', () async {
+    await db
+        .into(db.foods)
+        .insert(
+          FoodsCompanion.insert(
+            id: 'f_jaje',
+            name: 'jaje',
+            category: 'mlečni proizvodi i jaja',
+            baseUnit: 'kom',
+          ),
+        );
+    await db
+        .into(db.foodAliases)
+        .insert(
+          FoodAliasesCompanion.insert(
+            id: 'a1',
+            foodId: 'f_jaje',
+            alias: 'jaja',
+          ),
+        );
+    expect(await mover.needsMove(), isFalse);
+    expect(await mover.moveIfNeeded(a), 0);
+    expect((await db.select(db.foods).get()).single.householdId, isNull);
+    expect((await db.select(db.foodAliases).get()).single.householdId, isNull);
+    expect(await db.select(db.syncOutbox).get(), isEmpty);
+  });
 }

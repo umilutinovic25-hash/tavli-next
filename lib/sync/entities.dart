@@ -20,6 +20,11 @@ abstract class SyncEntity<T extends Table, R> {
   /// Kolona sa id-jem na serveru (`user_id` za profil ukusa).
   String get remoteId => 'id';
 
+  /// Ima li tabela i zajedničke redove (scope kolona null znači „za sve“, ne
+  /// „od pre naloga“): katalog namirnica (036). Takvi redovi se ne prebacuju
+  /// u nalog i ne šalju.
+  bool get hasSharedRows => false;
+
   /// Roditelj (zbog redosleda i brisanja), npr. recipe za recipe_version.
   String? get parent => null;
 
@@ -894,6 +899,8 @@ const profileEntity = 'profile';
 class FoodEntity extends SyncEntity<$FoodsTable, FoodRow> {
   const FoodEntity();
   @override
+  bool get hasSharedRows => true;
+  @override
   String get name => 'food';
   @override
   String get remoteTable => 'foods';
@@ -927,6 +934,8 @@ class FoodEntity extends SyncEntity<$FoodsTable, FoodRow> {
 
 class FoodAliasEntity extends SyncEntity<$FoodAliasesTable, FoodAliasRow> {
   const FoodAliasEntity();
+  @override
+  bool get hasSharedRows => true;
   @override
   String get name => 'food_alias';
   @override
@@ -963,6 +972,8 @@ class FoodAliasEntity extends SyncEntity<$FoodAliasesTable, FoodAliasRow> {
 class FoodConversionEntity
     extends SyncEntity<$FoodConversionsTable, FoodConversionRow> {
   const FoodConversionEntity();
+  @override
+  bool get hasSharedRows => true;
   @override
   String get name => 'food_conversion';
   @override
@@ -1001,6 +1012,8 @@ class FoodConversionEntity
 class FoodAllergenEntity
     extends SyncEntity<$FoodAllergensTable, FoodAllergenRow> {
   const FoodAllergenEntity();
+  @override
+  bool get hasSharedRows => true;
   @override
   String get name => 'food_allergen';
   @override

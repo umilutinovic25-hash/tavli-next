@@ -36,7 +36,7 @@ class LegacyMover {
   Future<bool> needsMove() async {
     if (await _done()) return false;
     for (final e in syncEntities) {
-      if (e is TasteProfileEntity) continue;
+      if (e is TasteProfileEntity || e.hasSharedRows) continue;
       final col = e.scope == EntityScope.household ? 'household_id' : 'user_id';
       final row = await _db
           .customSelect(
@@ -57,7 +57,7 @@ class LegacyMover {
     final photos = <String>{};
 
     for (final e in syncEntities) {
-      if (e is TasteProfileEntity) continue;
+      if (e is TasteProfileEntity || e.hasSharedRows) continue;
       final household = e.scope == EntityScope.household;
       final col = household ? 'household_id' : 'user_id';
       final value = household ? scope.householdId : scope.userId;
