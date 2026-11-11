@@ -141,6 +141,22 @@ void main() {
     expect(row.confirmedAt!.isAtSameMomentAs(now), isTrue);
   });
 
+  test('036: prijem kupovine prenosi namirnicu u Ostavu', () async {
+    final list = await shop.recipeList();
+    final purchase = await shop.addManual(
+      list,
+      'Jaja',
+      quantity: 10,
+      unit: 'kom',
+    );
+    await (db.update(db.shoppingItems)..where((t) => t.id.equals(purchase)))
+        .write(const ShoppingItemsCompanion(foodId: Value('f_jaje')));
+    await shop.setBought([purchase], bought: true);
+    await pantry.receivePurchases([purchase]);
+    final row = (await db.select(db.pantryItems).get()).single;
+    expect((row.name, row.foodId), ('Jaja', 'f_jaje'));
+  });
+
   test('provera ne menja tuđu turu i rollback vraća količinu', () async {
     final id = await pantry.create(name: 'So', quantity: 10, unit: 'g');
     await db

@@ -211,6 +211,7 @@ class PantryRepository {
                   confirmedAt: Value(now),
                   sourceShoppingItemId: Value(itemId),
                   householdId: Value(_scope.householdId),
+                  foodId: Value(item.foodId),
                 ),
               );
           await _writer.upsert(_pantryItem, id);
