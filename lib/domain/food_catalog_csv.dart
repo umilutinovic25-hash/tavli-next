@@ -150,3 +150,47 @@ List<String> _fields(String line) {
   out.add(buf.toString());
   return out;
 }
+
+/// SQL migracija zajedničkog kataloga iz [entries]: idempotentan insert
+/// (`on conflict (id) do nothing`), pa postojeći id nikad ne menja seed;
+/// ispravka zajedničke namirnice je posebna, ručno pisana migracija.
+String catalogSeedSql(List<CatalogEntry> entries) {
+  String q(String v) => "'${v.replaceAll("'", "''")}'";
+  final out = StringBuffer()
+    ..writeln(
+      '-- Generisano iz supabase/catalog/foods.csv '
+      '(dart run scripts/catalog_seed.dart). Ne menjati ručno.',
+    )
+    ..writeln('-- 036: zajednički katalog namirnica (household_id null).');
+  void insert(String table, String columns, List<String> rows) {
+    if (rows.isEmpty) return;
+    out
+      ..writeln()
+      ..writeln('insert into public.$table ($columns) values')
+      ..writeln(rows.map((r) => '  $r').join(',\n'))
+      ..writeln('on conflict (id) do nothing;');
+  }
+
+  insert('foods', 'id, name, category, base_unit', [
+    for (final e in entries)
+      '(${q(e.food.id)}, ${q(e.food.name)}, ${q(e.food.category)}, '
+          '${q(e.food.baseUnit.name)})',
+  ]);
+  insert('food_aliases', 'id, food_id, alias', [
+    for (final e in entries)
+      for (final a in e.aliases)
+        '(${q('${e.food.id}:$a')}, ${q(e.food.id)}, ${q(a)})',
+  ]);
+  insert('food_conversions', 'id, food_id, unit, factor_micros', [
+    for (final e in entries)
+      for (final c in e.conversions)
+        '(${q('${e.food.id}:${c.unit}')}, ${q(e.food.id)}, ${q(c.unit)}, '
+            '${c.factorMicros})',
+  ]);
+  insert('food_allergens', 'id, food_id, allergen_code', [
+    for (final e in entries)
+      for (final a in e.allergens)
+        '(${q('${e.food.id}:$a')}, ${q(e.food.id)}, ${q(a)})',
+  ]);
+  return out.toString();
+}

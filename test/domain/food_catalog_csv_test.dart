@@ -133,4 +133,49 @@ void main() {
       );
     });
   });
+
+  test(
+    'SQL seed: idempotentan insert, navodnici, aliasi, konverzije, alergeni',
+    () {
+      final sql = catalogSeedSql(
+        parseCatalogCsv(
+          _csv([
+            'f_jaje,jaje,mlečni proizvodi i jaja,kom,jaja,,eggs',
+            "f_cokolada,čokolada,ostalo,g,o'sullivan,kocka=5000000,milk|soy",
+          ]),
+        ),
+      );
+      expect(sql, contains('-- Generisano iz supabase/catalog/foods.csv'));
+      expect(
+        sql,
+        contains(
+          'insert into public.foods (id, name, category, base_unit) values\n'
+          "  ('f_jaje', 'jaje', 'mlečni proizvodi i jaja', 'kom'),\n"
+          "  ('f_cokolada', 'čokolada', 'ostalo', 'g')\n"
+          'on conflict (id) do nothing;',
+        ),
+      );
+      expect(
+        sql,
+        contains("('f_cokolada:o''sullivan', 'f_cokolada', 'o''sullivan')"),
+      );
+      expect(sql, contains("('f_jaje:jaje', 'f_jaje', 'jaje')"));
+      expect(
+        sql,
+        contains("('f_cokolada:kocka', 'f_cokolada', 'kocka', 5000000)"),
+      );
+      expect(sql, contains("('f_cokolada:soy', 'f_cokolada', 'soy')"));
+      expect(
+        'on conflict (id) do nothing;'.allMatches(sql).length,
+        4,
+        reason: 'četiri tabele',
+      );
+    },
+  );
+
+  test('SQL seed bez konverzija i alergena preskače te tabele', () {
+    final sql = catalogSeedSql(parseCatalogCsv(_csv(['f_so,so,ostalo,g,,,'])));
+    expect(sql, isNot(contains('food_conversions')));
+    expect(sql, isNot(contains('food_allergens')));
+  });
 }
