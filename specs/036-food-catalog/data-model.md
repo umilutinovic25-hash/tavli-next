@@ -91,8 +91,9 @@ String dictionaryIngredientKey(String name, int version, {String? foodId});
 // DemandSource: + FoodConversion? po sastojku dolazi iz snimka (R2)
 
 // shopping_source.dart — RecipeSnapshot
-// dictionaryVersion: 2; ingredient JSON u snimku: + foodId, + conversion {unit, factorMicros, baseUnit}
-RecipeSnapshot withCurrentDictionary(FoodCatalog catalog);  // zamrzava konverzije
+// dictionaryVersion: 2; sastojak u snimku: + foodId (nedostajući se popunjava tačnim aliasom)
+// snimak: + conversions {"<foodId>|<jedinica>": {factorMicros, baseUnit}} (samo kad nije prazno)
+RecipeSnapshot withCurrentDictionary([FoodCatalog? catalog]);  // zamrzava konverzije
 
 // supply_allocation.dart — Supply
 final String? foodIngredient;   // 'food:<id>'
@@ -106,7 +107,7 @@ if foodId == null:            key = v1 tekst, jedinica = v1 pravila
 else:
   key = 'food:<foodId>'
   u = normalizeUnit(unit, v1)
-  if snapshot.conversion za (foodId, unit) postoji:
+  if snapshot.conversions[conversionKey(foodId, unit)] postoji:
       group = grupa osnovne jedinice (mass/volume/count:kom)
       micros = round(toMicros(q) * factorMicros / 1e6)
   else: group = u.group, micros = toMicros(q) * u.factor

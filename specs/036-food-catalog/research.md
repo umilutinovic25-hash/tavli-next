@@ -12,7 +12,7 @@ Odluke za plan. Svaka: odluka → razlog → odbačene alternative.
 
 ## R2. Snimak v2 zamrzava i konverziju
 
-**Odluka**: pri potvrdi (`withCurrentDictionary`) sastojak sa `foodId` i jedinicom koju pokriva konverzija namirnice dobija u snimku zamrznut `conversion: {unit, factorMicros, baseUnit}`. Ponovni obračun v2 snimka koristi zamrznutu konverziju, nikad trenutni katalog.
+**Odluka**: pri potvrdi (`withCurrentDictionary`) sastojak sa `foodId` i jedinicom koju pokriva konverzija namirnice zamrzava se u snimku kao `conversions["<foodId>|<jedinica>"] = {factorMicros, baseUnit}` (nivo snimka, ne polje sastojka). Ponovni obračun v2 snimka koristi zamrznutu konverziju, nikad trenutni katalog.
 
 **Razlog**: zajednički katalog se ispravlja migracijama (npr. čen 5 g → 4 g). Odobren snimak ne sme da promeni količinu kad se katalog promeni — isto pravilo kao zamrznut rečnik.
 

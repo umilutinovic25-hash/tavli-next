@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'food.dart';
 import 'plan_calendar.dart';
 import 'recipe.dart';
 import 'shopping_demand.dart';
@@ -28,6 +29,7 @@ class RecipeSnapshot {
     this.stepUses = const [],
     this.activeMinutes,
     this.totalMinutes,
+    this.conversions = const {},
   });
 
   factory RecipeSnapshot.fromRecipe(Recipe r) => RecipeSnapshot(
@@ -71,10 +73,15 @@ class RecipeSnapshot {
       dictionaryVersion: json['dictionaryVersion'] as int? ?? 0,
       activeMinutes: json['activeMinutes'] as int?,
       totalMinutes: json['totalMinutes'] as int?,
+      conversions: _readConversions(json['conversions']),
     );
   }
 
   final int dictionaryVersion;
+
+  /// Konverzije namirnica zamrznute pri potvrdi (v2, 036), po
+  /// `conversionKey`; kasnija ispravka kataloga ih ne menja.
+  final Map<String, FrozenConversion> conversions;
   final String title;
   final int baseServings;
   final List<Ingredient> ingredients;
@@ -102,21 +109,45 @@ class RecipeSnapshot {
         stepUses: stepUses,
         activeMinutes: activeMinutes,
         totalMinutes: totalMinutes,
+        conversions: conversions,
       );
 
   /// Version is frozen at approval; legacy snapshots are not rewritten.
-  RecipeSnapshot withCurrentDictionary() => RecipeSnapshot(
-    title: title,
-    baseServings: baseServings,
-    ingredients: ingredients,
-    steps: steps,
-    prepMinutes: prepMinutes,
-    imagePath: imagePath,
-    dictionaryVersion: 1,
-    stepUses: stepUses,
-    activeMinutes: activeMinutes,
-    totalMinutes: totalMinutes,
-  );
+  /// V2 (036): a missing food id is filled by an exact alias from [catalog]
+  /// (a person's choice is kept) and the food conversions in use are frozen.
+  RecipeSnapshot withCurrentDictionary([FoodCatalog? catalog]) {
+    final confirmed = [
+      for (final i in ingredients)
+        i.foodId != null || catalog == null
+            ? i
+            : i.withFood(catalog.match(i.name)),
+    ];
+    final frozen = <String, FrozenConversion>{};
+    for (final i in confirmed) {
+      final foodId = i.foodId, unit = i.unit;
+      if (catalog == null || foodId == null || unit == null) continue;
+      final food = catalog.byId(foodId);
+      final c = catalog.conversion(foodId, unit);
+      if (food == null || c == null) continue;
+      frozen[conversionKey(foodId, unit)] = (
+        factorMicros: c.factorMicros,
+        baseUnit: food.baseUnit.name,
+      );
+    }
+    return RecipeSnapshot(
+      title: title,
+      baseServings: baseServings,
+      ingredients: confirmed,
+      steps: steps,
+      prepMinutes: prepMinutes,
+      imagePath: imagePath,
+      dictionaryVersion: 2,
+      stepUses: stepUses,
+      activeMinutes: activeMinutes,
+      totalMinutes: totalMinutes,
+      conversions: frozen,
+    );
+  }
 
   /// Isti ključevi kao recept u bazi (`Recipe.toAiJson`) i kao zapis koji
   /// migracija v5 pravi od postojećih obroka.
@@ -131,6 +162,27 @@ class RecipeSnapshot {
     'stepLinks': ?writeStepLinks(steps, stepUses),
     'activeMinutes': ?activeMinutes,
     'totalMinutes': ?totalMinutes,
+    if (conversions.isNotEmpty)
+      'conversions': {
+        for (final MapEntry(:key, :value) in conversions.entries)
+          key: {'factorMicros': value.factorMicros, 'baseUnit': value.baseUnit},
+      },
+  };
+}
+
+Map<String, FrozenConversion> _readConversions(Object? json) {
+  if (json == null) return const {};
+  if (json is! Map<String, dynamic>) {
+    throw const FormatException('Pokvarene konverzije obroka');
+  }
+  return {
+    for (final MapEntry(:key, :value) in json.entries)
+      if (value
+          case {'factorMicros': final int factor, 'baseUnit': final String base}
+          when factor > 0)
+        key: (factorMicros: factor, baseUnit: base)
+      else
+        key: throw const FormatException('Pokvarena konverzija obroka'),
   };
 }
 

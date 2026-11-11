@@ -724,7 +724,7 @@ void main() {
         expect(
           (jsonDecode(source.recipeSnapshotJson!)
               as Map<String, dynamic>)['dictionaryVersion'],
-          1,
+          2,
         );
         final current = lines.where((c) => c.sourceId == source.id).toList();
         expect(current, hasLength(2));
