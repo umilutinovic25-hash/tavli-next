@@ -96,6 +96,29 @@ select throws_ok($$select count(*) from public.foods$$, '42501', null, 'anon nem
 select throws_ok($$select count(*) from public.allergens$$, '42501', null, 'anon nema pristup alergenima');
 select tests.clear_auth();
 
+-- food_id na Ostavi i nabavci: zajednička ili namirnica istog domaćinstva.
+insert into public.foods (id, household_id, name, category, base_unit)
+  values ('own-b2', :'hb', 'tuđe voće', 'ostalo', 'g');
+select tests.authenticate_as(:'ua');
+select lives_ok(format($$insert into public.pantry_items (id, household_id, name, category, added_at, food_id) values ('pa1', %L, 'Jajce', 'ostalo', now(), 'f_t_jaje')$$, :'ha'),
+  'zaliha sa zajedničkom namirnicom');
+select lives_ok(format($$insert into public.pantry_items (id, household_id, name, category, added_at, food_id) values ('pa2', %L, 'pitaja', 'ostalo', now(), 'own-a')$$, :'ha'),
+  'zaliha sa sopstvenom namirnicom');
+select lives_ok(format($$insert into public.pantry_items (id, household_id, name, category, added_at) values ('pa3', %L, 'so', 'ostalo', now())$$, :'ha'),
+  'zaliha bez namirnice');
+select throws_ok(format($$insert into public.pantry_items (id, household_id, name, category, added_at, food_id) values ('pa4', %L, 'x', 'ostalo', now(), 'own-b2')$$, :'ha'),
+  '42501', null, 'zaliha ne pokazuje na tuđu namirnicu');
+select throws_ok($$update public.pantry_items set food_id = 'own-b2' where id = 'pa3'$$,
+  '42501', null, 'izmena zalihe ne pokazuje na tuđu namirnicu');
+select lives_ok(format($$insert into public.shopping_lists (id, household_id, name) values ('la', %L, 'Lista')$$, :'ha'), 'lista');
+select lives_ok(format($$insert into public.shopping_items (id, household_id, list_id, name, category, food_id) values ('sa1', %L, 'la', 'jaja', 'ostalo', 'f_t_jaje')$$, :'ha'),
+  'stavka sa zajedničkom namirnicom');
+select throws_ok(format($$insert into public.shopping_items (id, household_id, list_id, name, category, food_id) values ('sa2', %L, 'la', 'x', 'ostalo', 'own-b2')$$, :'ha'),
+  '42501', null, 'stavka ne pokazuje na tuđu namirnicu');
+select throws_ok(format($$insert into public.shopping_items (id, household_id, list_id, name, category, food_id) values ('sa3', %L, 'la', 'x', 'ostalo', 'nema')$$, :'ha'),
+  '23503', null, 'nepostojeća namirnica');
+select tests.clear_auth();
+
 -- Brisanje naloga briše sopstvene namirnice, zajedničke ostaju.
 set local role service_role;
 select public.delete_account_data(:'ua');

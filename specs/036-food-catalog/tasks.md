@@ -45,7 +45,7 @@
   - Dva naloga A, B (različita domaćinstva): oba čitaju zajednički red; nijedan ne može `insert`/`update` sa `household_id null` (42501 / 0 redova); A pravi sopstvenu namirnicu, B je ne vidi; A ne može da promeni `base_unit` (nema prava na kolonu); `delete` na `foods` nema prava.
   - Alias „jaja“ postoji zajednički → A-ov insert istog aliasa odbijen; alias sa velikim slovom ili duplim razmakom odbijen checkom.
   - `food_allergens` sa kodom van `allergens` → FK greška; `anon` nema prava ni na jednoj novoj tabeli.
-- [ ] T008 Migracija `supabase/migrations/20261112120100_food_ids.sql`: `food_id` na `pantry_items` i `shopping_items` + trigger (zajednička ili ista domaćinstva). pgTAP u `15_food_catalog_test.sql`: A ne može da postavi `food_id` na B-ovu sopstvenu namirnicu; zajednička i sopstvena A → OK.
+- [x] T008 Migracija `supabase/migrations/20261112120100_food_ids.sql`: `food_id` na `pantry_items` i `shopping_items` + trigger (zajednička ili ista domaćinstva). pgTAP u `15_food_catalog_test.sql`: A ne može da postavi `food_id` na B-ovu sopstvenu namirnicu; zajednička i sopstvena A → OK.
 
 ### Drift + sync
 
