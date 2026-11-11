@@ -11,6 +11,7 @@ import 'package:tavli/domain/shopping_source.dart';
 import 'package:tavli/features/recipes/recipe_providers.dart';
 import 'package:tavli/sync/synced_writer.dart';
 
+import '../../helpers/food_seed.dart';
 import '../../helpers/test_app.dart';
 
 /// Sreda u prvoj nedelji plana 2–15. novembra.
@@ -193,6 +194,70 @@ void main() {
       find.descendant(of: tileOf('krompir'), matching: find.byType(Checkbox)),
     );
     expect(checkbox.onChanged, isNull);
+  });
+
+  testTavli('ručna stavka bira namirnicu u detaljima; izvedena nema izbor', (
+    tester,
+  ) async {
+    final app = await pumpShopping(
+      tester,
+      setup: (db) async {
+        await seedPlan(db, twoWeeks);
+        await seedEggs(db);
+      },
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Dodaj stavku'),
+      'Domaća jajca',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Domaća jajca'),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tapIn(
+      tester,
+      find.descendant(
+        of: tileOf('Domaća jajca'),
+        matching: find.byTooltip('Detalji stavke'),
+      ),
+    );
+    final dialog = find.byType(AlertDialog);
+    await tapIn(
+      tester,
+      find.descendant(of: dialog, matching: find.text('Nepotvrđeno')),
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Pretraži namirnice'),
+      'jaj',
+    );
+    await tester.pumpAndSettle();
+    await tapIn(tester, find.widgetWithText(ListTile, 'jaje'));
+    expect(find.descendant(of: dialog, matching: find.text('jaje')), findsOne);
+    await tapIn(
+      tester,
+      find.descendant(of: dialog, matching: button('Sačuvaj')),
+    );
+    final item = (await app.db.select(app.db.shoppingItems).get()).firstWhere(
+      (i) => i.name == 'Domaća jajca',
+    );
+    expect(item.foodId, 'f_jaje');
+
+    await tapIn(
+      tester,
+      find.descendant(
+        of: tileOf('krompir'),
+        matching: find.byTooltip('Detalji stavke'),
+      ),
+    );
+    expect(find.byType(ActionChip), findsNothing);
   });
 
   testTavli('ručna stavka: brzo dodavanje i brisanje', (tester) async {

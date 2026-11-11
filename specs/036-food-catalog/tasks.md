@@ -86,7 +86,8 @@
   - Izvedeno: `pickFood(context, text:, category:, unit:)` u `food_picker.dart` vraća id namirnice; `FoodCatalog.search` (domen) pretražuje nazive i aliase; `foodRepositoryProvider` i `foodCatalogProvider` u `lib/providers.dart`. Nova namirnica čuva i upisani tekst i naziv kao aliase.
 - [x] T022 [US2] Forma recepta `lib/features/recipes/recipe_form_screen.dart` (dijalog sastojka) koristi `FoodChip`/`FoodPickerSheet`; widget test u `test/features/recipes/`: nepotvrđen sastojak prikazuje „Nepotvrđeno“, izbor upisuje `foodId`, tekst nepromenjen, kategorija sastojka se popunjava kategorijom namirnice (osoba je može promeniti); promena namirnice i čuvanje pravi novu verziju recepta (postojeći `_addVersion`), snimak već potvrđenog plana nepromenjen.
   - Izvedeno: dijalog sastojka je ranije gubio `foodId` pri izmeni (gradio sastojak bez njega); sada ga čuva (test „izmena sastojka bez izbora čuva postojeću namirnicu“). Red u listi sastojaka nepotvrđenog sastojka nosi „· Nepotvrđeno“.
-- [ ] T023 [P] [US2] Forme Ostave (`lib/features/pantry/pantry_form_screen.dart`) i stavke nabavke (`lib/features/shopping/`) koriste iste widgete; widget testovi za izbor i za „Nepotvrđeno“.
+- [x] T023 [P] [US2] Forme Ostave (`lib/features/pantry/pantry_form_screen.dart`) i stavke nabavke (`lib/features/shopping/`) koriste iste widgete; widget testovi za izbor i za „Nepotvrđeno“.
+  - Izvedeno: nabavka nema formu stavke, pa izbor ide u „Detalji stavke“ i samo za ručnu, nekupljenu stavku (`ShoppingRepository.setManualFood`); izvedena stavka prati recept. Forma Ostave prosleđuje izabrani `foodId` i pri izmeni, pa izmena količine ne briše izbor. Oznaka „Nepotvrđeno“ u samim redovima liste Ostave i nabavke (FR-014) još nije dodata — za `spec-converge` (T033).
 
 ---
 

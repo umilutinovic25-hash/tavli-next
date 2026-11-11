@@ -687,6 +687,25 @@ class ShoppingRepository {
     );
   });
 
+  /// Potvrđuje namirnicu ručne, nekupljene stavke (036); izvedene stavke
+  /// prate recept. false kad stavke nema ili se ne sme menjati;
+  /// [ArgumentError] za namirnicu koje nema u katalogu domaćinstva.
+  Future<bool> setManualFood(String id, String foodId) =>
+      _db.transaction(() async {
+        final item = await _item(id);
+        if (item == null || !item.isManual || item.isBought) return false;
+        final catalog = await loadFoodCatalog(_db, _scope.householdId);
+        if (catalog.byId(foodId) == null) {
+          throw ArgumentError.value(foodId, 'foodId', 'Nepoznata namirnica');
+        }
+        await (_db.update(_db.shoppingItems)..where(
+              (t) => t.id.equals(id) & t.householdId.equals(_scope.householdId),
+            ))
+            .write(ShoppingItemsCompanion(foodId: Value(foodId)));
+        await _writer.upsert(_shoppingItem, id);
+        return true;
+      });
+
   /// Menja samo opis proizvoda, bez uticaja na obračun nabavke.
   Future<bool> updateDetails(
     String id, {

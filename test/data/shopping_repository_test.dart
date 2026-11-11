@@ -1373,4 +1373,18 @@ void main() {
     final rows = {for (final r in await repo.listItems(list)) r.id: r.foodId};
     expect(rows, {id: 'f_jaje', other: 'own-x'});
   });
+
+  test('036: namirnica se menja samo ručnoj, nekupljenoj stavci', () async {
+    await seedEggs(db);
+    final list = await repo.recipeList();
+    final id = await repo.addManual(list, 'domaća jajca');
+    await db.delete(db.syncOutbox).go();
+    expect(await repo.setManualFood(id, 'f_jaje'), isTrue);
+    expect((await repo.listItems(list)).single.foodId, 'f_jaje');
+    expect(await db.select(db.syncOutbox).get(), hasLength(1));
+    expect(() => repo.setManualFood(id, 'nepostoji'), throwsArgumentError);
+    await repo.setBought([id], bought: true);
+    expect(await repo.setManualFood(id, 'f_jaje'), isFalse);
+    expect(await repo.setManualFood('nema', 'f_jaje'), isFalse);
+  });
 }
