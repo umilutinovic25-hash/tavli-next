@@ -240,6 +240,51 @@ void main() {
     expect(saved['quantity'], 2);
   });
 
+  testTavli('promena naziva sastojka ne nosi staru namirnicu', (tester) async {
+    final app = await pumpTavli(
+      tester,
+      location: '/recipes/a',
+      setup: seedEggs,
+      recipes: [
+        Recipe(
+          id: 'a',
+          title: 'Omlet',
+          servings: 2,
+          ingredients: const [
+            Ingredient(id: 'i1', name: 'moja jaja', foodId: 'f_jaje'),
+          ],
+          source: RecipeSource.manual,
+          createdAt: DateTime(2026, 11),
+        ),
+      ],
+    );
+    await tester.tap(find.byTooltip('Izmeni'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('moja jaja'));
+    await tester.pumpAndSettle();
+    final dialog = find.byType(AlertDialog);
+    await tester.enterText(
+      find.descendant(
+        of: dialog,
+        matching: find.widgetWithText(TextField, 'Naziv'),
+      ),
+      'crni luk',
+    );
+    await tester.pump();
+    expect(
+      find.descendant(of: dialog, matching: find.text('Nepotvrđeno')),
+      findsOneWidget,
+    );
+    await tester.tap(find.descendant(of: dialog, matching: button('Sačuvaj')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sačuvaj'));
+    await tester.pumpAndSettle();
+    final row = await app.db.select(app.db.recipes).getSingle();
+    final saved = (jsonDecode(row.ingredientsJson) as List).single as Map;
+    expect(saved['name'], 'crni luk');
+    expect(saved['foodId'], isNull);
+  });
+
   for (final size in [phone, const Size(1200, 900)]) {
     testTavli('„Jajce“ odmah pokazuje namirnicu jaje (${size.width} px)', (
       tester,

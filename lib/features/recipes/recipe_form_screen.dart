@@ -9,6 +9,7 @@ import '../../domain/ids.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
 import '../../domain/recipe_version.dart';
+import '../../domain/shopping_sync.dart' show ingredientKey;
 import '../../domain/step_links.dart';
 import '../../domain/time_budget.dart';
 import '../../providers.dart';
@@ -653,6 +654,9 @@ class _IngredientDialogState extends ConsumerState<_IngredientDialog> {
   late final _note = TextEditingController(text: widget.initial?.note);
   late String _category = widget.initial?.category ?? 'ostalo';
   late String? _foodId = widget.initial?.foodId;
+
+  /// Naziv za koji važi [_foodId]; drugi naziv je druga stvar.
+  late String _foodFor = widget.initial?.name ?? '';
   String? _quantityError;
 
   @override
@@ -696,7 +700,9 @@ class _IngredientDialogState extends ConsumerState<_IngredientDialog> {
 
   /// Izbor osobe, inače tačan alias iz kataloga (isto pravilo kao pri
   /// čuvanju u repozitorijumu), pa se namirnica vidi odmah dok se kuca.
-  String? _food(FoodCatalog? catalog) => _foodId ?? catalog?.match(_name.text);
+  String? _food(FoodCatalog? catalog) =>
+      (ingredientKey(_name.text) == ingredientKey(_foodFor) ? _foodId : null) ??
+      catalog?.match(_name.text);
 
   /// Izbor namirnice upisuje samo `foodId`; tekst ostaje kako je upisan, a
   /// kategorija se preuzima iz namirnice (osoba je može promeniti).
@@ -712,6 +718,7 @@ class _IngredientDialogState extends ConsumerState<_IngredientDialog> {
     final category = catalog?.byId(id)?.category;
     setState(() {
       _foodId = id;
+      _foodFor = _name.text;
       if (category != null && ingredientCategories.contains(category)) {
         _category = category;
       }

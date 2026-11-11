@@ -257,6 +257,30 @@ void main() {
     );
   });
 
+  testTavli('preimenovana zaliha ne nosi staru namirnicu', (tester) async {
+    final app = await pumpTavli(
+      tester,
+      location: '/pantry',
+      setup: (db) async {
+        await seedEggs(db);
+        final (pantry, _) = await repositories(db);
+        await pantry.create(name: 'Jaja', quantity: 6, unit: 'kom');
+      },
+    );
+    expect(
+      (await app.db.select(app.db.pantryItems).get()).single.foodId,
+      'f_jaje',
+    );
+    await tester.tap(find.widgetWithText(ListTile, 'Jaja'));
+    await tester.pumpAndSettle();
+    await enter(tester, 'name', 'Jogurt');
+    await tester.pump();
+    expect(find.text('Nepotvrđeno'), findsOneWidget);
+    await tapButton(tester, 'Sačuvaj');
+    final row = (await app.db.select(app.db.pantryItems).get()).single;
+    expect([row.name, row.foodId], ['Jogurt', null]);
+  });
+
   testTavli('forma Ostave: poznat alias odmah pokazuje namirnicu', (
     tester,
   ) async {
