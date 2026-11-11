@@ -679,7 +679,7 @@ class _IngredientDialogState extends ConsumerState<_IngredientDialog> {
       'unit': _unit.text,
       'category': _category,
       'note': _note.text,
-      'foodId': _foodId,
+      'foodId': _food(ref.read(foodCatalogProvider).value),
     });
     final q = ingredient.quantity;
     if (widget.validateQuantity &&
@@ -693,6 +693,10 @@ class _IngredientDialogState extends ConsumerState<_IngredientDialog> {
     }
     Navigator.of(context).pop(ingredient);
   }
+
+  /// Izbor osobe, inače tačan alias iz kataloga (isto pravilo kao pri
+  /// čuvanju u repozitorijumu), pa se namirnica vidi odmah dok se kuca.
+  String? _food(FoodCatalog? catalog) => _foodId ?? catalog?.match(_name.text);
 
   /// Izbor namirnice upisuje samo `foodId`; tekst ostaje kako je upisan, a
   /// kategorija se preuzima iz namirnice (osoba je može promeniti).
@@ -730,7 +734,7 @@ class _IngredientDialogState extends ConsumerState<_IngredientDialog> {
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: FoodChip(
-                foodId: _foodId,
+                foodId: _food(ref.watch(foodCatalogProvider).value),
                 onPressed: _name.text.trim().isEmpty ? null : _pickFood,
               ),
             ),

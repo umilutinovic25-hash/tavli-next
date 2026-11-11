@@ -257,6 +257,16 @@ void main() {
     );
   });
 
+  testTavli('forma Ostave: poznat alias odmah pokazuje namirnicu', (
+    tester,
+  ) async {
+    await pumpTavli(tester, location: '/pantry/new', setup: seedEggs);
+    await enter(tester, 'name', 'Jajce');
+    await tester.pump();
+    expect(find.text('jaje'), findsOneWidget);
+    expect(find.text('Nepotvrđeno'), findsNothing);
+  });
+
   testTavli('namirnica u formi Ostave: Nepotvrđeno, izbor, izmena je čuva', (
     tester,
   ) async {

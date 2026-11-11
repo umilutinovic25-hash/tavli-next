@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../data/database.dart';
 import '../../data/pantry_repository.dart';
 import '../../domain/recipe.dart';
+import '../../providers.dart';
 import '../foods/food_chip.dart';
 import '../foods/food_picker.dart';
 import '../shopping/shopping_providers.dart';
@@ -183,8 +184,12 @@ class _PantryFormScreenState extends ConsumerState<PantryFormScreen> {
                 const SizedBox(height: 12),
                 Align(
                   alignment: AlignmentDirectional.centerStart,
+                  // Izbor osobe, inače tačan alias (repozitorijum ga isto
+                  // upisuje pri čuvanju), da se namirnica vidi odmah.
                   child: FoodChip(
-                    foodId: _foodId,
+                    foodId:
+                        _foodId ??
+                        ref.watch(foodCatalogProvider).value?.match(_name.text),
                     onPressed: _saving || _name.text.trim().isEmpty
                         ? null
                         : _pickFood,

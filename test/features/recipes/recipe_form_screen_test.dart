@@ -240,6 +240,42 @@ void main() {
     expect(saved['quantity'], 2);
   });
 
+  for (final size in [phone, const Size(1200, 900)]) {
+    testTavli('„Jajce“ odmah pokazuje namirnicu jaje (${size.width} px)', (
+      tester,
+    ) async {
+      await pumpTavli(
+        tester,
+        size: size,
+        location: '/recipes/new/manual',
+        setup: seedEggs,
+      );
+      await tapButton(tester, 'Dodaj sastojak');
+      final dialog = find.byType(AlertDialog);
+      await tester.enterText(
+        find.descendant(
+          of: dialog,
+          matching: find.widgetWithText(TextField, 'Naziv'),
+        ),
+        'Jajce ',
+      );
+      await tester.pump();
+      expect(
+        find.descendant(of: dialog, matching: find.text('jaje')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: dialog, matching: find.text('Nepotvrđeno')),
+        findsNothing,
+      );
+      await tester.tap(
+        find.descendant(of: dialog, matching: button('Sačuvaj')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Nepotvrđeno'), findsNothing);
+    });
+  }
+
   group('AI predlog nove namirnice (SC-005)', () {
     Recipe aiRecipe(RecipeSource source) => Recipe(
       id: 'a',
