@@ -22,10 +22,12 @@ import 'ai/meal_plan_ai.dart';
 import 'ai/recipe_ai.dart';
 import 'data/database.dart';
 import 'data/drift_model_status_store.dart';
+import 'data/food_repository.dart';
 import 'data/household_invite_repository.dart';
 import 'data/household_membership_repository.dart';
 import 'data/preferences_repository.dart';
 import 'data/shopping_repository.dart';
+import 'domain/food.dart';
 import 'domain/household.dart';
 import 'domain/user_preferences.dart';
 import 'features/recipes/recipe_providers.dart';
@@ -279,6 +281,19 @@ final shoppingRepositoryProvider = Provider<ShoppingRepository>(
     writer: ref.watch(syncedWriterProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+/// Katalog namirnica (036): zajednički + sopstvene namirnice domaćinstva.
+final foodRepositoryProvider = Provider<FoodRepository>(
+  (ref) => FoodRepository(
+    ref.watch(databaseProvider),
+    scope: ref.watch(accountScopeProvider) ?? noAccountScope,
+    writer: ref.watch(syncedWriterProvider),
+  ),
+);
+
+final foodCatalogProvider = StreamProvider.autoDispose<FoodCatalog>(
+  (ref) => ref.watch(foodRepositoryProvider).watchCatalog(),
 );
 
 /// Preferencije ishrane prijavljenog domaćinstva.

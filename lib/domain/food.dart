@@ -102,6 +102,20 @@ class FoodCatalog {
     return _shared[key] ?? _own[key];
   }
 
+  /// Namirnice čiji naziv ili alias sadrži [query] (posle normalizacije),
+  /// svaka jednom, po nazivu; prazan upit vraća sve.
+  List<Food> search(String query) {
+    final q = ingredientKey(query);
+    final ids = <String>{
+      for (final f in _foods.values)
+        if (f.name.contains(q)) f.id,
+      for (final e in [..._shared.entries, ..._own.entries])
+        if (e.key.contains(q)) e.value,
+    };
+    return [for (final id in ids) ?_foods[id]]
+      ..sort((a, b) => a.name.compareTo(b.name));
+  }
+
   FoodConversion? conversion(String foodId, String unit) =>
       _conversions[(foodId, ingredientKey(unit))];
 

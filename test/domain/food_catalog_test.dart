@@ -75,6 +75,24 @@ void main() {
     expect(c.allergens('f_beli_luk'), isEmpty);
   });
 
+  group('search', () {
+    test('po aliasu, bez razlike u velikim slovima i razmacima', () {
+      expect(_catalog().search(' ČEŠNJ').map((f) => f.id), ['f_beli_luk']);
+    });
+
+    test('svaka namirnica jednom, sortirano po nazivu', () {
+      expect(_catalog().search('jaj').map((f) => f.id), ['own-1', 'f_jaje']);
+    });
+
+    test('prazan upit → sve namirnice po nazivu', () {
+      expect(_catalog().search('  ').map((f) => f.id), [
+        'f_beli_luk',
+        'own-1',
+        'f_jaje',
+      ]);
+    });
+  });
+
   group('FoodDraft.validate', () {
     test('normalizuje naziv', () {
       final d = const FoodDraft(
