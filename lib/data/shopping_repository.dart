@@ -1523,7 +1523,10 @@ class ShoppingRepository {
         name: Value(
           (foodId == null ? null : catalog.byId(foodId)?.name) ?? cs.first.name,
         ),
-        foodId: Value(foodId),
+        // Tekstualni ključ (v0/v1, ili sastojak bez namirnice) ne zna
+        // namirnicu; tada ostaje ona sa stavke (serversko mapiranje po
+        // tačnom aliasu), umesto da je usklađivanje obriše.
+        foodId: Value(foodId ?? current?.foodId),
         quantity: Value(amount?.quantity),
         unit: Value(group == unknownGroup ? null : amount?.unit),
         category: Value(cs.first.category),

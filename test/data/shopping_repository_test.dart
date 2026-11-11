@@ -1374,6 +1374,31 @@ void main() {
     expect(rows, {id: 'f_jaje', other: 'own-x'});
   });
 
+  test('036: usklađivanje ne briše namirnicu koju je postavilo mapiranje '
+      'na stavci sa tekstualnim ključem', () async {
+    await repo.addRecipePreparation(
+      snapshot: const RecipeSnapshot(
+        title: 'Pire',
+        baseServings: 2,
+        ingredients: [Ingredient(name: 'krompir', quantity: 1, unit: 'kg')],
+      ),
+      servings: 2,
+      originKey: 'pire',
+    );
+    final item = (await db.select(db.shoppingItems).get()).single;
+    expect(item.foodId, isNull);
+    // Kao posle serverskog mapiranja (map_food_ids) i preuzimanja.
+    await (db.update(db.shoppingItems)..where((t) => t.id.equals(item.id)))
+        .write(const ShoppingItemsCompanion(foodId: Value('f_krompir')));
+    await db.delete(db.syncOutbox).go();
+    await repo.reconcileInventory();
+    expect(
+      (await db.select(db.shoppingItems).get()).single.foodId,
+      'f_krompir',
+    );
+    expect(await db.select(db.syncOutbox).get(), isEmpty);
+  });
+
   test('036: namirnica se menja samo ručnoj, nekupljenoj stavci', () async {
     await seedEggs(db);
     final list = await repo.recipeList();
