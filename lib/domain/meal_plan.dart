@@ -6,6 +6,7 @@ import 'day_rules.dart';
 import 'plan_calendar.dart';
 import 'shopping_demand.dart' show maxServings, minServings;
 import 'shopping_source.dart';
+import 'time_budget.dart';
 
 /// Vrste obroka, redom kojim idu u danu. `name` je vrednost u bazi.
 enum MealType {
@@ -88,6 +89,7 @@ class PlanRequest {
     this.wishes,
     this.pantryNames = const [],
     this.rules = const [],
+    this.budgets = const [],
     Set<MealSlot>? only,
   }) : mealTypes = Set.unmodifiable(mealTypes),
        only = only == null ? null : Set.unmodifiable(only) {
@@ -119,6 +121,10 @@ class PlanRequest {
 
   /// Nazivi potvrđene zalihe; koriste se samo kad je [usePantry].
   final List<String> pantryNames;
+
+  /// Vreme po danu u nedelji; generator ga šalje AI-ju i ponovo traži
+  /// recept iz biblioteke koji ne staje u vreme svog dana.
+  final List<DayBudget> budgets;
 
   /// Pravila po danima domaćinstva (AI ih dobija; čuvanje ih proverava).
   final List<DayRule> rules;

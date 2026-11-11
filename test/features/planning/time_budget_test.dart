@@ -15,6 +15,7 @@ import 'package:tavli/sync/synced_writer.dart';
 
 import '../../helpers/test_app.dart';
 import 'plan_calendar_test.dart' show show, tapText, today, week;
+import 'plan_generation_test.dart' show fullWeek;
 
 Future<AccountScope> scopeOf(AppDatabase db) async {
   final a = await db.select(db.accounts).getSingle();
@@ -201,5 +202,29 @@ void main() {
 
   test('sreda u testovima je 3. dan', () {
     expect(CivilDate(2026, 11, 4).weekday, 3);
+  });
+
+  testTavli('predlog plana: AI dobija vreme po danu', (tester) async {
+    final app = await pumpTavli(
+      tester,
+      location: '/plan',
+      ai: fullWeek,
+      setup: (db) async {
+        final a = await db.select(db.accounts).getSingle();
+        await TimeBudgetRepository(
+          db,
+          scope: AccountScope(userId: a.userId, householdId: a.householdId),
+          writer: SyncedWriter(db, accountId: a.userId),
+        ).save(wednesday20);
+      },
+      overrides: [clockProvider.overrideWithValue(() => today)],
+    );
+    await tapButton(tester, 'Napravi plan');
+    await tapButton(tester, 'Predloži plan');
+
+    expect(
+      app.adapter.requests.first.data.toString(),
+      contains(': at most 20 min of active work'),
+    );
   });
 }
