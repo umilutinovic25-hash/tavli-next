@@ -12,6 +12,8 @@ import 'package:tavli/domain/shopping_demand.dart';
 import 'package:tavli/domain/shopping_source.dart';
 import 'package:tavli/sync/synced_writer.dart';
 
+import '../helpers/food_seed.dart';
+
 void main() {
   const home = AccountScope(userId: 'one', householdId: 'home-one');
   final now = DateTime.utc(2026, 11, 2, 9);
@@ -548,5 +550,23 @@ void main() {
     expect(await other.receivePurchases([id]), 0);
     expect(await other.watchReceivedItemIds().first, isEmpty);
     expect(await db.select(db.pantryItems).get(), isEmpty);
+  });
+
+  test('036: zaliha dobija namirnicu po aliasu, izbor osobe ostaje', () async {
+    await seedEggs(db);
+    final a = await pantry.create(name: 'Jajce', quantity: 2, unit: 'kom');
+    final b = await pantry.create(name: 'jaja', foodId: 'own-izbor');
+    final c = await pantry.create(name: 'zmajevo voće');
+    Future<String?> food(String id) async => (await (db.select(
+      db.pantryItems,
+    )..where((t) => t.id.equals(id))).getSingle()).foodId;
+    expect(
+      [await food(a), await food(b), await food(c)],
+      ['f_jaje', 'own-izbor', null],
+    );
+    await pantry.update(c, name: 'jaje');
+    expect(await food(c), 'f_jaje');
+    await pantry.update(a, name: 'Jajce', foodId: 'own-izbor');
+    expect(await food(a), 'own-izbor');
   });
 }

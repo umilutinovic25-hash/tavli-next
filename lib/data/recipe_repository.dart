@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../account/auth_controller.dart';
+import '../domain/food.dart';
 import '../domain/ids.dart';
 import '../domain/recipe.dart';
 import '../domain/recipe_version.dart';
@@ -10,6 +11,7 @@ import '../domain/saved_recipe_search.dart';
 import '../domain/step_links.dart';
 import '../sync/synced_writer.dart';
 import 'database.dart';
+import 'food_repository.dart';
 import 'recipe_photo_store.dart';
 
 /// Recepti i njihove prethodne verzije u lokalnoj bazi (kešu naloga).
@@ -114,7 +116,7 @@ class RecipeRepository {
       _one(id).getSingleOrNull().then(_fromRowOrNull);
 
   Future<void> create(Recipe recipe) => _db.transaction(() async {
-    await _db.into(_db.recipes).insert(_toCompanion(recipe));
+    await _db.into(_db.recipes).insert(_toCompanion(await _withFoods(recipe)));
     await _writer.upsert(_recipe, recipe.id);
     if (recipe.imagePath case final p?) await _writer.photoUpload(p);
   });
@@ -316,12 +318,21 @@ class RecipeRepository {
     }
   }
 
+  /// 036: nepotvrđeni sastojci dobijaju namirnicu po tačnom aliasu.
+  Future<Recipe> _withFoods(Recipe r) async => r.copyWith(
+    ingredients: matchFoods(
+      r.ingredients,
+      await loadFoodCatalog(_db, _scope.householdId),
+    ),
+  );
+
   Future<void> _replace(Recipe recipe) async {
+    final next = await _withFoods(recipe);
     await (_db.update(_db.recipes)..where(
           (t) =>
               t.id.equals(recipe.id) & t.householdId.equals(_scope.householdId),
         ))
-        .write(_toCompanion(recipe));
+        .write(_toCompanion(next));
     await _writer.upsert(_recipe, recipe.id);
   }
 

@@ -620,6 +620,7 @@ class ShoppingRepository {
     double? quantity,
     String? unit,
     String category = 'ostalo',
+    String? foodId,
   }) => _db.transaction(() async {
     final trimmed = name.trim();
     if (trimmed.isEmpty) throw ArgumentError.value(name, 'name', 'Prazno ime');
@@ -636,6 +637,13 @@ class ShoppingRepository {
             category: category,
             isManual: const Value(true),
             householdId: Value(_scope.householdId),
+            foodId: Value(
+              foodId ??
+                  (await loadFoodCatalog(
+                    _db,
+                    _scope.householdId,
+                  )).match(trimmed),
+            ),
           ),
         );
     await _writer.upsert(_shoppingItem, id);

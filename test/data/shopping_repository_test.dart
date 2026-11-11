@@ -16,6 +16,7 @@ import 'package:tavli/sync/uploader.dart';
 
 import '../helpers/fake_backend.dart';
 import '../helpers/fake_photo_store.dart';
+import '../helpers/food_seed.dart';
 
 const krompir = Ingredient(name: 'Krompir', quantity: 1, unit: 'kg');
 const meso = Ingredient(name: 'Mleveno meso', quantity: 500, unit: 'g');
@@ -1362,5 +1363,14 @@ void main() {
         ['food:f_jaje 2000000', 'jaja 1000000'],
       );
     });
+  });
+
+  test('036: ručna stavka dobija namirnicu po aliasu', () async {
+    await seedEggs(db);
+    final list = await repo.recipeList();
+    final id = await repo.addManual(list, 'Jaja', quantity: 10, unit: 'kom');
+    final other = await repo.addManual(list, 'kokos', foodId: 'own-x');
+    final rows = {for (final r in await repo.listItems(list)) r.id: r.foodId};
+    expect(rows, {id: 'f_jaje', other: 'own-x'});
   });
 }

@@ -107,6 +107,13 @@ class FoodCatalog {
   Set<String> allergens(String foodId) => _allergens[foodId] ?? const {};
 }
 
+/// Sastojci sa popunjenom namirnicom po tačnom aliasu; izbor osobe
+/// (postojeći `foodId`) se nikad ne menja, tekst ostaje isti.
+List<Ingredient> matchFoods(List<Ingredient> items, FoodCatalog catalog) => [
+  for (final i in items)
+    i.foodId != null ? i : i.withFood(catalog.match(i.name)),
+];
+
 /// Nacrt sopstvene namirnice pre upisa (osoba ili AI predlog). [validate]
 /// baca [FormatException] na pokvaren nacrt, pa ništa ne ide u bazu.
 class FoodDraft {

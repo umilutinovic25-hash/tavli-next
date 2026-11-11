@@ -5,6 +5,7 @@ import '../domain/ids.dart';
 import '../domain/use_first.dart';
 import '../sync/synced_writer.dart';
 import 'database.dart';
+import 'food_repository.dart';
 import 'shopping_repository.dart';
 
 class PantryItemMissing implements Exception {
@@ -50,10 +51,12 @@ class PantryRepository {
     String? unit,
     String category = 'ostalo',
     DateTime? expiresAt,
+    String? foodId,
   }) {
     _validate(name, quantity);
     return _db.transaction(() async {
       final id = newId();
+      final food = foodId ?? await _match(name);
       final now = _clock().toUtc();
       await _db
           .into(_db.pantryItems)
@@ -68,6 +71,7 @@ class PantryRepository {
               householdId: Value(_scope.householdId),
               expiresAt: Value(expiresAt?.toUtc()),
               confirmedAt: Value(quantity == null ? null : now),
+              foodId: Value(food),
             ),
           );
       await _writer.upsert(_pantryItem, id);
@@ -83,10 +87,12 @@ class PantryRepository {
     String? unit,
     String category = 'ostalo',
     DateTime? expiresAt,
+    String? foodId,
   }) {
     _validate(name, quantity);
     return _db.transaction(() async {
       await _existing(id);
+      final food = foodId ?? await _match(name);
       await (_db.update(_db.pantryItems)..where(
             (t) => t.id.equals(id) & t.householdId.equals(_scope.householdId),
           ))
@@ -98,6 +104,7 @@ class PantryRepository {
               category: Value(category),
               expiresAt: Value(expiresAt?.toUtc()),
               confirmedAt: Value(quantity == null ? null : _clock().toUtc()),
+              foodId: Value(food),
             ),
           );
       await _writer.upsert(_pantryItem, id);
@@ -155,6 +162,10 @@ class PantryRepository {
     }
     await _shopping.reconcileInventory();
   });
+
+  /// 036: namirnica po tačnom aliasu (null = nepotvrđeno).
+  Future<String?> _match(String name) async =>
+      (await loadFoodCatalog(_db, _scope.householdId)).match(name);
 
   Future<PantryItemRow> _existing(String id) async {
     final row =
