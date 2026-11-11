@@ -41,7 +41,7 @@
 
 ### Server
 
-- [ ] T007 Migracija `supabase/migrations/20261112120000_food_catalog.sql`: `allergens` (14 redova), `foods`, `food_aliases`, `food_conversions`, `food_allergens` po data-model (checkovi, indeksi za sync, `touch_updated_at`, `record_deletion`/`skip_if_deleted` gde ima brisanja, trigger senke aliasa, trigger istog `household_id` kao namirnica), RLS i grantovi iz tabele prava. pgTAP `supabase/tests/15_food_catalog_test.sql` (pisan prvi) + dopuna `supabase/tests/01_catalog_test.sql`.
+- [x] T007 Migracija `supabase/migrations/20261112120000_food_catalog.sql`: `allergens` (14 redova), `foods`, `food_aliases`, `food_conversions`, `food_allergens` po data-model (checkovi, indeksi za sync, `touch_updated_at`, `record_deletion`/`skip_if_deleted` gde ima brisanja, trigger senke aliasa, trigger istog `household_id` kao namirnica), RLS i grantovi iz tabele prava. pgTAP `supabase/tests/15_food_catalog_test.sql` (pisan prvi) + dopuna `supabase/tests/01_catalog_test.sql`.
   - Dva naloga A, B (različita domaćinstva): oba čitaju zajednički red; nijedan ne može `insert`/`update` sa `household_id null` (42501 / 0 redova); A pravi sopstvenu namirnicu, B je ne vidi; A ne može da promeni `base_unit` (nema prava na kolonu); `delete` na `foods` nema prava.
   - Alias „jaja“ postoji zajednički → A-ov insert istog aliasa odbijen; alias sa velikim slovom ili duplim razmakom odbijen checkom.
   - `food_allergens` sa kodom van `allergens` → FK greška; `anon` nema prava ni na jednoj novoj tabeli.

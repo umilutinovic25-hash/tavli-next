@@ -45,13 +45,13 @@ Jedinstveno: `(food_id, unit)`. Seed u 036 ne puni gustinu (Q1).
 ### Prava (`authenticated`)
 | tabela | select | insert | update | delete |
 |---|---|---|---|---|
-| foods | zajednički ili član | član, `household_id not null` | član; samo `name`, `category` | — |
-| food_aliases | isto | član, not null | — | — |
-| food_conversions | isto | član, not null | — | — |
-| food_allergens | isto | član, not null | — | član, not null |
+| foods | zajednički ili član | član, `household_id not null` | član (okidač: `base_unit` i `household_id` stalni) | — |
+| food_aliases | isto | član, not null | član (okidač: `food_id`, `household_id` stalni) | — |
+| food_conversions | isto | član, not null | član (isti okidač) | — |
+| food_allergens | isto | član, not null | član (isti okidač) | član, not null |
 | allergens | svi | — | — | — |
 
-`anon`: ništa. Zajednički redovi: samo migracije.
+`update` postoji jer uploader šalje upsert (`on conflict do update`), a Postgres za to traži pravo `update`. `anon`: ništa. Zajednički redovi: samo migracije. Okidač `food_child_check` (security definer) traži da dete ima isto domaćinstvo kao namirnica; `food_alias_not_shared` odbija sopstveni alias koji postoji u zajedničkom katalogu (23505).
 
 ## Izmene postojećih tabela
 

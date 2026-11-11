@@ -28,10 +28,16 @@ select is(
           and has_table_privilege('authenticated', c.oid, p)
         order by 1),
   array[
+    'allergens:select',
     'cook_soon_items:delete', 'cook_soon_items:insert', 'cook_soon_items:select', 'cook_soon_items:update',
     'day_rules:delete', 'day_rules:insert', 'day_rules:select', 'day_rules:update',
     'day_time_budgets:delete', 'day_time_budgets:insert', 'day_time_budgets:select', 'day_time_budgets:update',
-    'deletions:select', 'household_invites:select', 'household_members:select', 'household_preferences:delete', 'household_preferences:insert', 'household_preferences:select', 'household_preferences:update', 'households:select',
+    'deletions:select',
+    'food_aliases:insert', 'food_aliases:select', 'food_aliases:update',
+    'food_allergens:delete', 'food_allergens:insert', 'food_allergens:select', 'food_allergens:update',
+    'food_conversions:insert', 'food_conversions:select', 'food_conversions:update',
+    'foods:insert', 'foods:select', 'foods:update',
+    'household_invites:select', 'household_members:select', 'household_preferences:delete', 'household_preferences:insert', 'household_preferences:select', 'household_preferences:update', 'households:select',
     'meal_plan_entries:delete', 'meal_plan_entries:insert', 'meal_plan_entries:select', 'meal_plan_entries:update',
     'meal_plans:delete', 'meal_plans:insert', 'meal_plans:select', 'meal_plans:update',
     'pantry_items:delete', 'pantry_items:insert', 'pantry_items:select', 'pantry_items:update',
@@ -73,7 +79,7 @@ select is(
         where n.nspname in ('public', 'private')
           and has_function_privilege('authenticated', p.oid, 'execute')
         order by 1),
-  array['private.is_household_owner', 'private.is_member', 'private.is_text_list', 'public.create_household_invite', 'public.household_member_list', 'public.leave_household', 'public.redeem_household_invite', 'public.remove_household_member', 'public.transfer_household_ownership'],
+  array['private.is_household_owner', 'private.is_member', 'private.is_text_list', 'private.normalized', 'public.create_household_invite', 'public.household_member_list', 'public.leave_household', 'public.redeem_household_invite', 'public.remove_household_member', 'public.transfer_household_ownership'],
   'authenticated izvršava samo dogovorene funkcije'
 );
 
