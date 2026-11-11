@@ -15,7 +15,7 @@ void main() {
     final plan = planRecipeShopping(
       missing: const [krompir, luk],
       have: const [meso],
-      inList: {ingredientKey('krompir')},
+      listed: const [(name: 'krompir', foodId: null, bought: false)],
     );
     expect(plan.toAdd.map((i) => i.name), ['Crni luk']);
     expect(plan.toRemove, isEmpty);
@@ -25,7 +25,10 @@ void main() {
     final plan = planRecipeShopping(
       missing: const [krompir],
       have: const [meso, luk],
-      inList: {ingredientKey('krompir'), ingredientKey('crni luk')},
+      listed: const [
+        (name: 'krompir', foodId: null, bought: false),
+        (name: 'crni luk', foodId: null, bought: false),
+      ],
     );
     expect(plan.toAdd, isEmpty);
     expect(plan.toRemove, [ingredientKey('crni luk')]);
@@ -35,8 +38,7 @@ void main() {
     final plan = planRecipeShopping(
       missing: const [],
       have: const [luk],
-      inList: {ingredientKey('crni luk')},
-      bought: {ingredientKey('crni luk')},
+      listed: const [(name: 'crni luk', foodId: null, bought: true)],
     );
     expect(plan.toRemove, isEmpty);
   });
@@ -48,8 +50,29 @@ void main() {
         Ingredient(name: 'crni luk'),
       ],
       have: const [],
-      inList: const {},
+      listed: const [],
     );
     expect(plan.toAdd, hasLength(1));
+  });
+
+  test('036: isti sastojak po namirnici samo kad obe strane imaju id', () {
+    expect(sameIngredient('jaja', 'f_jaje', 'Jajce', 'f_jaje'), isTrue);
+    expect(sameIngredient('jaja', 'f_jaje', 'jaja', 'own-1'), isFalse);
+    expect(sameIngredient('jaja', 'f_jaje', ' Jaja', null), isTrue);
+    expect(sameIngredient('jaja', null, 'jajce', 'f_jaje'), isFalse);
+    expect(sameIngredient('jaja', null, 'JAJA', null), isTrue);
+  });
+
+  test('036: stavka „jajce“ (f_jaje) je već u kupovini za „jaja“', () {
+    final plan = planRecipeShopping(
+      missing: const [
+        Ingredient(name: 'jaja', foodId: 'f_jaje'),
+        Ingredient(name: 'jaje', foodId: 'f_jaje'),
+      ],
+      have: const [Ingredient(name: 'jaja', foodId: 'f_jaje')],
+      listed: const [(name: 'jajce', foodId: 'f_jaje', bought: false)],
+    );
+    expect(plan.toAdd, isEmpty);
+    expect(plan.toRemove, ['jajce']);
   });
 }

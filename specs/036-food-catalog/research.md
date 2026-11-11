@@ -34,6 +34,12 @@ Odluke za plan. Svaka: odluka → razlog → odbačene alternative.
 
 **Odluka**: `Supply` dobija `foodIngredient` i `foodUnitGroup` (iz `food_id` zalihe i trenutne konverzije namirnice — zaliha je živo stanje, ne snimak). `allocateSupply` prihvata poklapanje po legacy, v1 ili food identitetu; kapacitet je i dalje po `canonicalId`, pa se jedna fizička količina troši najviše jednom.
 
+## R5a. Pravilo para (dopuna posle T019)
+
+**Odluka**: dva zapisa su isti sastojak po namirnici samo kad oba imaju `foodId`; inače po tekstu (`sameIngredient`, `supplyCovers`). Važi u planu, nabavci, Potroši prvo i proveri „imam“.
+
+**Razlog**: recept dobija `foodId` automatski, a red Ostave koji nije mapiran (lokalna izmena na čekanju, tekst bez aliasa) bi inače izgubio pokriće koje danas ima.
+
 ## R6. Prepoznavanje: tačan alias, pri upisu
 
 **Odluka**: čista funkcija `matchFood(text, aliases)` (normalizacija = `ingredientKey`). Repozitorijumi (recept, Ostava, nabavka) pri upisu popunjavaju `foodId` samo kad je `null`; nikad ne prepisuju izbor osobe. Redosled: zajednički alias, pa sopstveni (sopstveni ne sme da zakloni zajednički — R8).

@@ -262,6 +262,7 @@ class PantryRepository {
           reservedWhole:
               (previous?.reservedWhole ?? false) ||
               (reserved?.coversWholeUnknown ?? false),
+          foodId: row.foodId,
         );
       }
       return stocks.values.toList();

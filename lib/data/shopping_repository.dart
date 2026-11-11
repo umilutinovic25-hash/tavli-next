@@ -140,11 +140,10 @@ class ShoppingRepository {
     return planRecipeShopping(
       missing: missing,
       have: have,
-      inList: {for (final row in rows) ingredientKey(row.name)},
-      bought: {
+      listed: [
         for (final row in rows)
-          if (row.isBought) ingredientKey(row.name),
-      },
+          (name: row.name, foodId: row.foodId, bought: row.isBought),
+      ],
     );
   }
 
@@ -156,12 +155,21 @@ class ShoppingRepository {
   }) => _db.transaction(() async {
     final p = await plan(recipeId, missing: missing, have: have);
     final listId = await _ensureList();
-    final open = {
+    final open = [
       for (final row in await _items())
-        if (!row.isBought) ingredientKey(row.name): row,
-    };
+        if (!row.isBought) row,
+    ];
     for (final ingredient in p.toAdd) {
-      final existing = open[ingredientKey(ingredient.name)];
+      final existing = open
+          .where(
+            (row) => sameIngredient(
+              row.name,
+              row.foodId,
+              ingredient.name,
+              ingredient.foodId,
+            ),
+          )
+          .firstOrNull;
       if (existing != null) {
         await (_db.update(
           _db.shoppingItems,
@@ -187,6 +195,7 @@ class ShoppingRepository {
                 category: ingredient.category,
                 fromRecipeIdsJson: Value(jsonEncode([recipeId])),
                 householdId: Value(_scope.householdId),
+                foodId: Value(ingredient.foodId),
               ),
             );
         await _writer.upsert('shopping_item', id);
@@ -202,7 +211,12 @@ class ShoppingRepository {
         for (final row in await _items()) {
           final recipes = _recipes(row);
           if (row.isBought ||
-              ingredientKey(row.name) != ingredientKey(ingredient.name) ||
+              !sameIngredient(
+                row.name,
+                row.foodId,
+                ingredient.name,
+                ingredient.foodId,
+              ) ||
               !recipes.contains(recipeId)) {
             continue;
           }
@@ -1092,14 +1106,6 @@ class ShoppingRepository {
       dictionaryIngredientKey(name, 1) == key ||
       (foodId != null && 'food:$foodId' == key);
 
-  static bool _covers(Supply s, String ingredient, String group) =>
-      (s.ingredient == ingredient && s.unitGroup == group) ||
-      (s.dictionaryIngredient == ingredient &&
-          s.dictionaryUnitGroup == group) ||
-      (s.foodIngredient != null &&
-          s.foodIngredient == ingredient &&
-          s.foodUnitGroup == group);
-
   /// Celo domaćinstvo: doprinosi otvorenih izvora prate odobrene recepte,
   /// potvrđena zaliha se raspoređuje hronološki, a otvorene stavke
   /// pokazuju samo ono što preostaje. Kupljene, ručne i stare stavke se ne
@@ -1306,7 +1312,8 @@ class ShoppingRepository {
         continue;
       }
       final matches =
-          supply != null && _covers(supply, c.ingredientKey, c.unitGroup);
+          supply != null &&
+          supplyCovers(supply, c.ingredientKey, c.unitGroup, c.name);
       final cap = matches ? (supply.micros ?? 0) : 0;
       final room = cap - (used[a.supplyId] ?? 0);
       final need = (c.micros ?? 0) - (perContribution[c.id] ?? 0);

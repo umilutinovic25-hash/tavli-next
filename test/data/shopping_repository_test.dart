@@ -1312,6 +1312,32 @@ void main() {
       expect((item.name, item.foodId), ('Zmajevo voće', 'own-nema'));
     });
 
+    test('C1: „Dodaj u kupovinu“ ne duplira istu namirnicu', () async {
+      final added = await repo.addMissing(
+        'omlet',
+        missing: const [Ingredient(name: 'Jajce', foodId: 'f_jaje')],
+        have: const [],
+      );
+      expect(added, hasLength(1));
+      final again = await repo.addMissing(
+        'kajgana',
+        missing: const [Ingredient(name: 'jaja', foodId: 'f_jaje')],
+        have: const [],
+      );
+      expect(again, hasLength(1));
+      final rows = await db.select(db.shoppingItems).get();
+      expect(rows, hasLength(1));
+      expect((rows.single.name, rows.single.foodId), ('Jajce', 'f_jaje'));
+      expect(jsonDecode(rows.single.fromRecipeIdsJson), ['omlet', 'kajgana']);
+      expect(
+        await repo.markHave(
+          'kajgana',
+          const Ingredient(name: 'jaje', foodId: 'f_jaje'),
+        ),
+        isTrue,
+      );
+    });
+
     test('totalsOf grupiše po namirnici', () {
       ShoppingItemRow row(String id, String name, String? foodId) =>
           ShoppingItemRow(

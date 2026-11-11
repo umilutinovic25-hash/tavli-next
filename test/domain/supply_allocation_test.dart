@@ -269,6 +269,38 @@ void main() {
       expect(result.remaining(food.key), 2000000);
     });
 
+    test('zaliha bez namirnice istog teksta pokriva (tekst kao danas)', () {
+      const plain = Supply(
+        id: 'ostava',
+        origin: SupplyOrigin.pantry,
+        ingredient: 'jaja',
+        unitGroup: 'count:kom',
+        dictionaryIngredient: 'v1:jaja',
+        dictionaryUnitGroup: 'count:kom',
+        micros: 2000000,
+      );
+      final food = eggs('F', 'jaja', 2);
+      final result = allocateSupply([DemandRequest(food, at(2))], [plain]);
+      expect(result.remaining(food.key), 0);
+    });
+
+    test('druga namirnica istog teksta ne pokriva', () {
+      const other = Supply(
+        id: 'ostava',
+        origin: SupplyOrigin.pantry,
+        ingredient: 'jaja',
+        unitGroup: 'count:kom',
+        dictionaryIngredient: 'v1:jaja',
+        dictionaryUnitGroup: 'count:kom',
+        foodIngredient: 'food:own-prepelicja',
+        foodUnitGroup: 'count:kom',
+        micros: 2000000,
+      );
+      final food = eggs('F', 'jaja', 2);
+      final result = allocateSupply([DemandRequest(food, at(2))], [other]);
+      expect(result.remaining(food.key), 2000000);
+    });
+
     test('druga grupa jedinica iste namirnice ne pokriva', () {
       const grams = Supply(
         id: 'ostava',

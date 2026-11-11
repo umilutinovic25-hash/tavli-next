@@ -22,6 +22,7 @@ PantryStock stock(
   int reserved = 0,
   bool whole = false,
   String? purchase,
+  String? foodId,
 }) => PantryStock(
   id: id,
   name: name,
@@ -32,6 +33,7 @@ PantryStock stock(
   reservedMicros: reserved,
   reservedWhole: whole,
   sourceShoppingItemId: purchase,
+  foodId: foodId,
 );
 
 void main() {
@@ -423,5 +425,51 @@ void main() {
     ).single;
     expect(result.dueScore, 7);
     expect(result.ready, isTrue);
+  });
+
+  group('036: namirnica u Potroši prvo', () {
+    test('jajce (f_jaje) pokriva jaja (f_jaje)', () {
+      final r = recipe('Omlet', const [
+        Ingredient(name: 'jaja', quantity: 2, unit: 'kom', foodId: 'f_jaje'),
+      ]);
+      final result = suggestRecipes(
+        [r],
+        [stock('o', 'jajce', 2, 'kom', foodId: 'f_jaje')],
+        now: now,
+      ).single;
+      expect(result.ready, isTrue);
+    });
+
+    test('bez namirnice na jednoj strani: tekst kao danas', () {
+      final r = recipe('Omlet', const [
+        Ingredient(name: 'jaja', quantity: 2, unit: 'kom', foodId: 'f_jaje'),
+      ]);
+      expect(
+        suggestRecipes(
+          [r],
+          [stock('o', 'jaja', 2, 'kom')],
+          now: now,
+        ).single.ready,
+        isTrue,
+      );
+      expect(
+        suggestRecipes([r], [stock('o', 'jajce', 2, 'kom')], now: now),
+        isEmpty,
+      );
+    });
+
+    test('različite namirnice istog naziva se ne mešaju', () {
+      final r = recipe('Omlet', const [
+        Ingredient(name: 'jaja', quantity: 2, unit: 'kom', foodId: 'f_jaje'),
+      ]);
+      expect(
+        suggestRecipes(
+          [r],
+          [stock('o', 'jaja', 2, 'kom', foodId: 'own-prepelicja')],
+          now: now,
+        ),
+        isEmpty,
+      );
+    });
   });
 }
