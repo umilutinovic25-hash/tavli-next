@@ -13,6 +13,8 @@ class Supply {
     this.samePhysicalAs,
     this.dictionaryIngredient,
     this.dictionaryUnitGroup,
+    this.foodIngredient,
+    this.foodUnitGroup,
   });
 
   final String id;
@@ -25,6 +27,11 @@ class Supply {
   /// V1 aliases point to the same physical capacity, never a second supply.
   final String? dictionaryIngredient;
   final String? dictionaryUnitGroup;
+
+  /// V2 (036): potvrđena namirnica (`food:<id>`) i grupa njene jedinice; ista
+  /// fizička količina kao ostali identiteti, nikad druga zaliha.
+  final String? foodIngredient;
+  final String? foodUnitGroup;
 
   /// Potvrđena količina u osnovnoj jedinici; `null` = nepotvrđeno, ne pokriva
   /// brojčanu potrebu.
@@ -127,7 +134,11 @@ AllocationResult allocateSupply(
       final dictionaryMatch =
           s.dictionaryIngredient == key.ingredient &&
           s.dictionaryUnitGroup == key.unitGroup;
-      if (!legacyMatch && !dictionaryMatch) {
+      final foodMatch =
+          s.foodIngredient != null &&
+          s.foodIngredient == key.ingredient &&
+          s.foodUnitGroup == key.unitGroup;
+      if (!legacyMatch && !dictionaryMatch && !foodMatch) {
         continue;
       }
       final take = need! < left[id]! ? need : left[id]!;
