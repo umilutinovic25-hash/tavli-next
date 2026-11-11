@@ -10,6 +10,9 @@ import '../../domain/recipe_format.dart';
 import '../../domain/recipe_version.dart';
 import '../../domain/step_links.dart';
 import '../../domain/time_budget.dart';
+import '../../providers.dart';
+import '../foods/food_chip.dart';
+import '../foods/food_picker.dart';
 import 'recipe_providers.dart';
 import 'recipe_view.dart' show StepUseLine;
 
@@ -434,7 +437,11 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
                             ListTile(
                               contentPadding: EdgeInsets.zero,
                               title: Text(ingredientLine(i)),
-                              subtitle: Text(i.category),
+                              subtitle: Text(
+                                i.foodId == null
+                                    ? '${i.category} · Nepotvrđeno'
+                                    : i.category,
+                              ),
                               onTap: () => _editIngredient(n),
                               trailing: IconButton(
                                 tooltip: 'Ukloni sastojak',
@@ -538,17 +545,17 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
   }
 }
 
-class _IngredientDialog extends StatefulWidget {
+class _IngredientDialog extends ConsumerStatefulWidget {
   const _IngredientDialog({this.initial, this.validateQuantity = false});
 
   final Ingredient? initial;
   final bool validateQuantity;
 
   @override
-  State<_IngredientDialog> createState() => _IngredientDialogState();
+  ConsumerState<_IngredientDialog> createState() => _IngredientDialogState();
 }
 
-class _IngredientDialogState extends State<_IngredientDialog> {
+class _IngredientDialogState extends ConsumerState<_IngredientDialog> {
   late final _name = TextEditingController(text: widget.initial?.name);
   late final _quantity = TextEditingController(
     text: widget.initial?.quantity == null
@@ -561,6 +568,7 @@ class _IngredientDialogState extends State<_IngredientDialog> {
   late final _unit = TextEditingController(text: widget.initial?.unit);
   late final _note = TextEditingController(text: widget.initial?.note);
   late String _category = widget.initial?.category ?? 'ostalo';
+  late String? _foodId = widget.initial?.foodId;
   String? _quantityError;
 
   @override
@@ -587,6 +595,7 @@ class _IngredientDialogState extends State<_IngredientDialog> {
       'unit': _unit.text,
       'category': _category,
       'note': _note.text,
+      'foodId': _foodId,
     });
     final q = ingredient.quantity;
     if (widget.validateQuantity &&
@@ -601,6 +610,26 @@ class _IngredientDialogState extends State<_IngredientDialog> {
     Navigator.of(context).pop(ingredient);
   }
 
+  /// Izbor namirnice upisuje samo `foodId`; tekst ostaje kako je upisan, a
+  /// kategorija se preuzima iz namirnice (osoba je može promeniti).
+  Future<void> _pickFood() async {
+    final id = await pickFood(
+      context,
+      text: _name.text,
+      category: _category,
+      unit: _unit.text,
+    );
+    if (id == null || !mounted) return;
+    final catalog = ref.read(foodCatalogProvider).value;
+    final category = catalog?.byId(id)?.category;
+    setState(() {
+      _foodId = id;
+      if (category != null && ingredientCategories.contains(category)) {
+        _category = category;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -613,6 +642,13 @@ class _IngredientDialogState extends State<_IngredientDialog> {
               controller: _name,
               autofocus: true,
               decoration: const InputDecoration(labelText: 'Naziv'),
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: FoodChip(
+                foodId: _foodId,
+                onPressed: _name.text.trim().isEmpty ? null : _pickFood,
+              ),
             ),
             Row(
               children: [
@@ -639,6 +675,8 @@ class _IngredientDialogState extends State<_IngredientDialog> {
               ],
             ),
             DropdownButtonFormField<String>(
+              // Novi izbor namirnice postavlja njenu kategoriju.
+              key: ValueKey(_foodId),
               initialValue: _category,
               isExpanded: true,
               decoration: const InputDecoration(labelText: 'Kategorija'),
