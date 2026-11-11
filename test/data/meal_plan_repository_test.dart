@@ -146,6 +146,16 @@ void main() {
         c.ingredientKey,
     };
     expect(keys, {'food:f_krompir'});
+    // Nov AI recept u biblioteci nosi istu namirnicu kao snimak obroka.
+    final saved = await (db.select(
+      db.recipes,
+    )..where((t) => t.id.isNotIn(['r1']))).get();
+    expect(saved, isNotEmpty);
+    for (final r in saved) {
+      final ingredients = (jsonDecode(r.ingredientsJson) as List)
+          .cast<Map<String, Object?>>();
+      expect(ingredients.map((i) => i['foodId']), everyElement('f_krompir'));
+    }
   });
 
   test('odobren nacrt čuva plan, obroke sa snimkom i porcijama, '

@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import '../account/auth_controller.dart';
 import '../domain/day_rules.dart';
+import '../domain/food.dart' show matchFoods;
 import '../domain/ids.dart';
 import '../domain/meal_plan.dart';
 import '../domain/plan_calendar.dart';
@@ -594,6 +595,12 @@ class MealPlanRepository {
   Future<String> _insertRecipe(RecipeSnapshot r) async {
     final id = newId();
     final now = _clock().toUtc();
+    // Ista popuna namirnica kao u RecipeRepository (tačan alias, bez
+    // prepisivanja izbora), da biblioteka i snimak obroka imaju isti foodId.
+    final ingredients = matchFoods(
+      r.ingredients,
+      await loadFoodCatalog(_db, _scope.householdId),
+    );
     await _db
         .into(_db.recipes)
         .insert(
@@ -604,7 +611,7 @@ class MealPlanRepository {
             prepMinutes: Value(r.prepMinutes),
             source: RecipeSource.ai.name,
             ingredientsJson: jsonEncode([
-              for (final i in r.ingredients) i.toJson(),
+              for (final i in ingredients) i.toJson(),
             ]),
             stepsJson: jsonEncode(r.steps),
             createdAt: now,
