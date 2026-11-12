@@ -43,7 +43,7 @@ HouseholdAllergies _hh({
   Set<String> codes = const {},
   List<String> custom = const [],
 }) => HouseholdAllergies.union([
-  MemberAllergies(
+  PersonAllergies(
     householdId: 'h1',
     userId: 'u1',
     codes: codes,
@@ -140,13 +140,13 @@ void main() {
   group('HouseholdAllergies', () {
     test('unija svih članova, EU po redosledu Uredbe, pa ostalo', () {
       final hh = HouseholdAllergies.union([
-        MemberAllergies(
+        PersonAllergies(
           householdId: 'h1',
           userId: 'u1',
           codes: {'nuts'},
           custom: ['jagode'],
         ),
-        MemberAllergies(
+        PersonAllergies(
           householdId: 'h1',
           userId: 'u2',
           codes: {'gluten', 'nuts'},
@@ -164,7 +164,7 @@ void main() {
   test('unija nema ograničenje od 30 (ono važi po osobi)', () {
     final hh = HouseholdAllergies.union([
       for (final u in ['u1', 'u2'])
-        MemberAllergies(
+        PersonAllergies(
           householdId: 'h1',
           userId: u,
           custom: [for (var i = 0; i < 20; i++) '$u-$i'],
@@ -173,10 +173,10 @@ void main() {
     expect(hh.custom, hasLength(40));
   });
 
-  group('MemberAllergies', () {
+  group('PersonAllergies', () {
     test('nepoznat kod se odbija', () {
       expect(
-        () => MemberAllergies(
+        () => PersonAllergies(
           householdId: 'h1',
           userId: 'u1',
           codes: {'kikiriki'},
@@ -187,7 +187,7 @@ void main() {
 
     test('najviše 30 stavki i 40 znakova; normalizacija', () {
       expect(
-        () => MemberAllergies(
+        () => PersonAllergies(
           householdId: 'h1',
           userId: 'u1',
           custom: [for (var i = 0; i < 31; i++) 's$i'],
@@ -195,7 +195,7 @@ void main() {
         throwsArgumentError,
       );
       expect(
-        () => MemberAllergies(
+        () => PersonAllergies(
           householdId: 'h1',
           userId: 'u1',
           custom: ['a' * 41],
@@ -203,7 +203,7 @@ void main() {
         throwsArgumentError,
       );
       expect(
-        MemberAllergies(
+        PersonAllergies(
           householdId: 'h1',
           userId: 'u1',
           custom: [' Kivi ', 'kivi'],
@@ -213,7 +213,7 @@ void main() {
     });
 
     test('id je domaćinstvo:osoba', () {
-      expect(MemberAllergies(householdId: 'h1', userId: 'u1').id, 'h1:u1');
+      expect(PersonAllergies(householdId: 'h1', userId: 'u1').id, 'h1:u1');
     });
   });
 

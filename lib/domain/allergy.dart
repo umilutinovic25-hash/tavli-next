@@ -27,8 +27,8 @@ const euAllergenPromptNames = <String, String>{
 
 /// Alergije jedne osobe u jednom domaćinstvu. Id je `domaćinstvo:osoba`,
 /// pa dva uređaja iste osobe pišu isti red.
-class MemberAllergies {
-  MemberAllergies({
+class PersonAllergies {
+  PersonAllergies({
     required this.householdId,
     required this.userId,
     Iterable<String> codes = const [],
@@ -63,7 +63,7 @@ String memberAllergyId(String householdId, String userId) =>
 class HouseholdAllergies {
   const HouseholdAllergies._(this.codes, this.custom);
 
-  factory HouseholdAllergies.union(Iterable<MemberAllergies> members) {
+  factory HouseholdAllergies.union(Iterable<PersonAllergies> members) {
     final codes = <String>{};
     // Stavke su već normalizovane po osobi; ograničenje od 30 važi po
     // osobi, ne za uniju.
