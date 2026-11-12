@@ -157,6 +157,17 @@ flowchart LR
   person's own ratings for that household's recipes, their taste profile and
   their own membership. It never includes other members (names, emails), other
   households, app settings, model status, the outbox or sync cursors.
+- **Allergies per person** (039): `member_allergies`, one row per person and
+  household (`id` = `household:user`), readable by every member and written
+  only by its person (RLS). Leaving or being removed deletes the row
+  (trigger on `household_members`). The union of all members applies to every
+  meal: `checkAllergens` (catalog codes + whole-word match for custom terms)
+  guards AI recipes. By name and chat edit: one retry with the hits, then
+  `AllergenViolation` (chat edit rejects only new allergens). Meal plan: library
+  recipes with an allergen are not offered; new summaries retry once, then the
+  slots stay empty. Photo and link imports are not rejected; preview, form and
+  detail show "Sadrži alergen člana" or "Nepotvrđeno, proveri alergene".
+  Personal export format 4 adds the person's own allergies.
 
 ## Local development backend
 

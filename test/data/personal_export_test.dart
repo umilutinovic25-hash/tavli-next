@@ -66,12 +66,20 @@ void main() {
       'shoppingSources',
       'shoppingContributions',
       'supplyAllocations',
+      'allergies',
     ]);
-    expect(personalExportFormatVersion, 3);
+    expect(personalExportFormatVersion, 4);
     expect(sections['membership'], isNull);
     expect(sections['tasteProfile'], isNull);
+    expect(sections['allergies'], isNull);
     for (final entry in sections.entries) {
-      if (entry.key == 'membership' || entry.key == 'tasteProfile') continue;
+      if (const {
+        'membership',
+        'tasteProfile',
+        'allergies',
+      }.contains(entry.key)) {
+        continue;
+      }
       expect(entry.value, isEmpty, reason: entry.key);
     }
   });
@@ -518,6 +526,38 @@ void main() {
       });
     },
   );
+
+  test('039: samo sopstvene alergije u aktivnom domaćinstvu', () async {
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    for (final (hh, user, codes) in [
+      ('h1', 'u1', '["peanuts"]'),
+      ('h1', 'u2', '["gluten"]'),
+      ('h2', 'u1', '["fish"]'),
+    ]) {
+      await db
+          .into(db.memberAllergies)
+          .insert(
+            MemberAllergiesCompanion.insert(
+              id: '$hh:$user',
+              householdId: Value(hh),
+              userId: user,
+              codesJson: Value(codes),
+              customJson: const Value('["jagode"]'),
+            ),
+          );
+    }
+
+    final export = await collectPersonalExport(db, _account, clock: () => _at);
+    final sections = export['sections']! as Map<String, Object?>;
+
+    expect(sections['allergies'], {
+      'codes': ['peanuts'],
+      'custom': ['jagode'],
+    });
+    expect(jsonEncode(export), isNot(contains('gluten')));
+    expect(jsonEncode(export), isNot(contains('fish')));
+  });
 
   test('writePersonalExportFile upisuje JSON sa datumom u imenu', () async {
     final dir = Directory.systemTemp.createTempSync('tavli_izvoz_test');

@@ -7,7 +7,7 @@ import '../domain/account.dart';
 import 'database.dart';
 
 /// Verzija formata izvoza. Povećava se kad se menja oblik JSON-a.
-const personalExportFormatVersion = 3;
+const personalExportFormatVersion = 4;
 
 /// Lični izvoz (pravo pristupa podacima). Čist builder: prima samo redove iz
 /// baze i podatke naloga, pa u izvoz ne može da uđe ništa drugo (AI ključevi,
@@ -16,6 +16,7 @@ const personalExportFormatVersion = 3;
 /// sopstvene namirnice domaćinstva; zajednički katalog nije lični podatak.
 /// Od verzije 3 (038) sadrži sve tabele aktivnog domaćinstva, sopstveno
 /// članstvo i profil ukusa; drugi članovi i druga domaćinstva ne ulaze.
+/// Od verzije 4 (039) sadrži i sopstvene alergije u aktivnom domaćinstvu.
 Map<String, Object?> buildPersonalExport({
   required DateTime exportedAt,
   required String email,
@@ -43,6 +44,7 @@ Map<String, Object?> buildPersonalExport({
   List<ShoppingSourceRow> shoppingSources = const [],
   List<ShoppingContributionRow> shoppingContributions = const [],
   List<SupplyAllocationRow> supplyAllocations = const [],
+  MemberAllergyRow? allergies,
 }) => {
   'formatVersion': personalExportFormatVersion,
   'exportedAt': _date(exportedAt),
@@ -79,6 +81,12 @@ Map<String, Object?> buildPersonalExport({
       for (final c in shoppingContributions) _contribution(c),
     ],
     'supplyAllocations': [for (final a in supplyAllocations) _allocation(a)],
+    'allergies': allergies == null
+        ? null
+        : {
+            'codes': _json(allergies.codesJson),
+            'custom': _json(allergies.customJson),
+          },
   },
 };
 
@@ -181,6 +189,12 @@ Future<Map<String, Object?>> collectPersonalExport(
       db.supplyAllocations,
       db.supplyAllocations.householdId,
     ),
+    // Samo moje alergije u aktivnom domaćinstvu; tuđe ne ulaze.
+    allergies:
+        await (db.select(db.memberAllergies)..where(
+              (t) => t.householdId.equals(hh) & t.userId.equals(account.userId),
+            ))
+            .getSingleOrNull(),
   );
 }
 
