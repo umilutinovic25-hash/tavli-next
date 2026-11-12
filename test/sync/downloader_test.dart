@@ -216,6 +216,7 @@ void main() {
       'fetch:recipe_versions',
       'fetch:day_time_budgets',
       'fetch:household_preferences',
+      'fetch:member_allergies',
       'fetch:meal_plans',
       'fetch:week_templates',
       'fetch:meal_plan_entries',

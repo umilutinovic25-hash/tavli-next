@@ -180,7 +180,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 17);
+    expect(db.schemaVersion, 18);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -715,7 +715,7 @@ void main() {
         (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
           'user_version',
         ),
-        17,
+        after.schemaVersion,
       );
     },
   );
@@ -826,7 +826,7 @@ void main() {
       (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
         'user_version',
       ),
-      17,
+      after.schemaVersion,
     );
   });
 
@@ -841,5 +841,49 @@ void main() {
     final again = AppDatabase(NativeDatabase(file));
     addTearDown(again.close);
     expect(await again.select(again.foods).get(), isEmpty);
+  });
+
+  test(
+    'migracija 17 → 18 dodaje alergije po osobi; preferencije ostaju',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('tavli-v18-');
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File('${directory.path}/cache.sqlite');
+      final before = AppDatabase(NativeDatabase(file));
+      await before.customStatement(
+        'INSERT INTO household_preferences (id, household_id, allergies_json) '
+        "VALUES ('h1', 'h1', '[\"kikiriki\"]')",
+      );
+      await before.customStatement('DROP TABLE member_allergies');
+      await before.customStatement('PRAGMA user_version = 17');
+      await before.close();
+
+      final after = AppDatabase(NativeDatabase(file));
+      addTearDown(after.close);
+      expect(
+        (await after.select(after.householdPreferences).get()).single.id,
+        'h1',
+      );
+      expect(await after.select(after.memberAllergies).get(), isEmpty);
+      expect(
+        (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
+          'user_version',
+        ),
+        18,
+      );
+    },
+  );
+
+  test('ponovljena v18 migracija ne pada', () async {
+    final directory = await Directory.systemTemp.createTemp('tavli-v18b-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/cache.sqlite');
+    final first = AppDatabase(NativeDatabase(file));
+    await first.customStatement('PRAGMA user_version = 17');
+    await first.close();
+
+    final again = AppDatabase(NativeDatabase(file));
+    addTearDown(again.close);
+    expect(await again.select(again.memberAllergies).get(), isEmpty);
   });
 }
