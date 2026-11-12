@@ -40,6 +40,7 @@ select is(
     'household_invites:select', 'household_members:select', 'household_preferences:delete', 'household_preferences:insert', 'household_preferences:select', 'household_preferences:update', 'households:select',
     'meal_plan_entries:delete', 'meal_plan_entries:insert', 'meal_plan_entries:select', 'meal_plan_entries:update',
     'meal_plans:delete', 'meal_plans:insert', 'meal_plans:select', 'meal_plans:update',
+    'member_allergies:delete', 'member_allergies:insert', 'member_allergies:select', 'member_allergies:update',
     'pantry_items:delete', 'pantry_items:insert', 'pantry_items:select', 'pantry_items:update',
     'profiles:select',
     'ratings:delete', 'ratings:insert', 'ratings:select', 'ratings:update',
