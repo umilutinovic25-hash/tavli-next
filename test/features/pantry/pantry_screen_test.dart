@@ -13,6 +13,7 @@ import 'package:tavli/features/pantry/pantry_providers.dart';
 import 'package:tavli/features/recipes/recipe_providers.dart';
 import 'package:tavli/sync/synced_writer.dart';
 
+import '../../helpers/food_seed.dart';
 import '../../helpers/test_app.dart';
 
 final now = DateTime(2026, 11, 9, 12);
@@ -60,6 +61,13 @@ Future<void> capture(WidgetTester tester, String name) async {
     await File('build/pantry-preview/$name.png')
         .writeAsBytes(data!.buffer.asUint8List());
   });
+}
+
+Future<void> tapIn(WidgetTester tester, Finder finder) async {
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -218,6 +226,102 @@ void main() {
     await tapButton(tester, 'Ukloni');
     expect(find.text('Još nema unetih namirnica'), findsOneWidget);
     expect(await app.db.select(app.db.pantryItems).get(), isEmpty);
+  });
+
+  testTavli('red Ostave bez namirnice nosi „Nepotvrđeno“', (tester) async {
+    await pumpTavli(
+      tester,
+      location: '/pantry',
+      setup: (db) async {
+        await seedEggs(db);
+        final (pantry, _) = await repositories(db);
+        await pantry.create(name: 'Jaja', quantity: 6, unit: 'kom');
+        await pantry.create(name: 'Zmajevo voće', quantity: 1, unit: 'kom');
+      },
+    );
+    Finder tile(String name) =>
+        find.ancestor(of: find.text(name), matching: find.byType(ListTile));
+    expect(
+      find.descendant(
+        of: tile('Zmajevo voće'),
+        matching: find.byTooltip('Nepotvrđeno'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: tile('Jaja'),
+        matching: find.byTooltip('Nepotvrđeno'),
+      ),
+      findsNothing,
+    );
+  });
+
+  testTavli('preimenovana zaliha ne nosi staru namirnicu', (tester) async {
+    final app = await pumpTavli(
+      tester,
+      location: '/pantry',
+      setup: (db) async {
+        await seedEggs(db);
+        final (pantry, _) = await repositories(db);
+        await pantry.create(name: 'Jaja', quantity: 6, unit: 'kom');
+      },
+    );
+    expect(
+      (await app.db.select(app.db.pantryItems).get()).single.foodId,
+      'f_jaje',
+    );
+    await tester.tap(find.widgetWithText(ListTile, 'Jaja'));
+    await tester.pumpAndSettle();
+    await enter(tester, 'name', 'Jogurt');
+    await tester.pump();
+    expect(find.text('Nepotvrđeno'), findsOneWidget);
+    await tapButton(tester, 'Sačuvaj');
+    final row = (await app.db.select(app.db.pantryItems).get()).single;
+    expect([row.name, row.foodId], ['Jogurt', null]);
+  });
+
+  testTavli('forma Ostave: poznat alias odmah pokazuje namirnicu', (
+    tester,
+  ) async {
+    await pumpTavli(tester, location: '/pantry/new', setup: seedEggs);
+    await enter(tester, 'name', 'Jajce');
+    await tester.pump();
+    expect(find.text('jaje'), findsOneWidget);
+    expect(find.text('Nepotvrđeno'), findsNothing);
+  });
+
+  testTavli('namirnica u formi Ostave: Nepotvrđeno, izbor, izmena je čuva', (
+    tester,
+  ) async {
+    final app = await pumpTavli(
+      tester,
+      location: '/pantry/new',
+      setup: seedEggs,
+    );
+    await enter(tester, 'name', 'Domaća jajca');
+    await tester.pump();
+    expect(find.text('Nepotvrđeno'), findsOneWidget);
+    await tapIn(tester, find.text('Nepotvrđeno'));
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Pretraži namirnice'),
+      'jaj',
+    );
+    await tester.pumpAndSettle();
+    await tapIn(tester, find.widgetWithText(ListTile, 'jaje'));
+    expect(find.text('jaje'), findsOneWidget);
+    await tapButton(tester, 'Sačuvaj');
+    var row = (await app.db.select(app.db.pantryItems).get()).single;
+    expect([row.name, row.foodId], ['Domaća jajca', 'f_jaje']);
+
+    // Izmena količine ne briše izabranu namirnicu.
+    await tester.tap(find.widgetWithText(ListTile, 'Domaća jajca'));
+    await tester.pumpAndSettle();
+    expect(find.text('jaje'), findsOneWidget);
+    await enter(tester, 'quantity', '6');
+    await tapButton(tester, 'Sačuvaj');
+    row = (await app.db.select(app.db.pantryItems).get()).single;
+    expect([row.quantity, row.foodId], [6.0, 'f_jaje']);
   });
 
   testTavli('validacija naziva, količine i datuma; nepoznata količina', (

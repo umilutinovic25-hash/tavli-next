@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import '../account/auth_controller.dart';
 import '../domain/day_rules.dart';
+import '../domain/food.dart' show matchFoods;
 import '../domain/ids.dart';
 import '../domain/meal_plan.dart';
 import '../domain/plan_calendar.dart';
@@ -13,6 +14,7 @@ import '../domain/shopping_source.dart';
 import '../sync/synced_writer.dart';
 import 'database.dart';
 import 'day_rule_repository.dart';
+import 'food_repository.dart';
 import 'shopping_repository.dart';
 
 /// Nacrt nije potpun, a nepotpuno čuvanje nije izričito izabrano (ili
@@ -359,10 +361,11 @@ class MealPlanRepository {
         created[key] = await _insertRecipe(draft.newRecipes[key]!);
       }
       final today = CivilDate.today(_clock);
+      final catalog = await loadFoodCatalog(_db, _scope.householdId);
       for (final slot in ready) {
         final proposal = draft.proposals[slot]!;
         final snapshot = jsonEncode(
-          draft.snapshotFor(slot)!.withCurrentDictionary().toJson(),
+          draft.snapshotFor(slot)!.withCurrentDictionary(catalog).toJson(),
         );
         final recipeId = proposal.isNew
             ? created[proposal.draftRecipeKey]
@@ -592,6 +595,12 @@ class MealPlanRepository {
   Future<String> _insertRecipe(RecipeSnapshot r) async {
     final id = newId();
     final now = _clock().toUtc();
+    // Ista popuna namirnica kao u RecipeRepository (tačan alias, bez
+    // prepisivanja izbora), da biblioteka i snimak obroka imaju isti foodId.
+    final ingredients = matchFoods(
+      r.ingredients,
+      await loadFoodCatalog(_db, _scope.householdId),
+    );
     await _db
         .into(_db.recipes)
         .insert(
@@ -602,7 +611,7 @@ class MealPlanRepository {
             prepMinutes: Value(r.prepMinutes),
             source: RecipeSource.ai.name,
             ingredientsJson: jsonEncode([
-              for (final i in r.ingredients) i.toJson(),
+              for (final i in ingredients) i.toJson(),
             ]),
             stepsJson: jsonEncode(r.steps),
             createdAt: now,

@@ -10,6 +10,7 @@ import 'package:tavli/domain/step_links.dart';
 import 'package:tavli/sync/synced_writer.dart';
 
 import '../helpers/fake_photo_store.dart';
+import '../helpers/food_seed.dart';
 
 Recipe recipe(String id, {String title = 'Sarma', DateTime? createdAt}) =>
     Recipe(
@@ -356,4 +357,36 @@ void main() {
       expect(await outbox(), ['recipe:delete']);
     });
   });
+
+  test(
+    '036: sastojak dobija namirnicu po aliasu, izbor osobe ostaje',
+    () async {
+      await seedEggs(db);
+      final r = recipe('r-jaja').copyWith(
+        ingredients: const [
+          Ingredient(name: 'Jajce ', quantity: 2, unit: 'kom'),
+          Ingredient(name: 'jaja', foodId: 'own-izbor'),
+          Ingredient(name: 'zmajevo voće'),
+        ],
+      );
+      await repo.create(r);
+      var saved = (await repo.get('r-jaja'))!;
+      expect(
+        [for (final i in saved.ingredients) i.foodId],
+        ['f_jaje', 'own-izbor', null],
+      );
+      expect(saved.ingredients.first.name, 'Jajce');
+      await repo.update(
+        saved.copyWith(
+          ingredients: [
+            ...saved.ingredients,
+            const Ingredient(name: 'jaje'),
+          ],
+        ),
+        kind: ChangeKind.manual,
+      );
+      saved = (await repo.get('r-jaja'))!;
+      expect(saved.ingredients.last.foodId, 'f_jaje');
+    },
+  );
 }

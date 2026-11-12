@@ -12,6 +12,8 @@ import 'package:tavli/domain/shopping_demand.dart';
 import 'package:tavli/domain/shopping_source.dart';
 import 'package:tavli/sync/synced_writer.dart';
 
+import '../helpers/food_seed.dart';
+
 void main() {
   const home = AccountScope(userId: 'one', householdId: 'home-one');
   final now = DateTime.utc(2026, 11, 2, 9);
@@ -139,6 +141,22 @@ void main() {
     expect(row.quantity, 0);
     expect(row.sourceShoppingItemId, purchase);
     expect(row.confirmedAt!.isAtSameMomentAs(now), isTrue);
+  });
+
+  test('036: prijem kupovine prenosi namirnicu u Ostavu', () async {
+    final list = await shop.recipeList();
+    final purchase = await shop.addManual(
+      list,
+      'Jaja',
+      quantity: 10,
+      unit: 'kom',
+    );
+    await (db.update(db.shoppingItems)..where((t) => t.id.equals(purchase)))
+        .write(const ShoppingItemsCompanion(foodId: Value('f_jaje')));
+    await shop.setBought([purchase], bought: true);
+    await pantry.receivePurchases([purchase]);
+    final row = (await db.select(db.pantryItems).get()).single;
+    expect((row.name, row.foodId), ('Jaja', 'f_jaje'));
   });
 
   test('provera ne menja tuđu turu i rollback vraća količinu', () async {
@@ -532,5 +550,23 @@ void main() {
     expect(await other.receivePurchases([id]), 0);
     expect(await other.watchReceivedItemIds().first, isEmpty);
     expect(await db.select(db.pantryItems).get(), isEmpty);
+  });
+
+  test('036: zaliha dobija namirnicu po aliasu, izbor osobe ostaje', () async {
+    await seedEggs(db);
+    final a = await pantry.create(name: 'Jajce', quantity: 2, unit: 'kom');
+    final b = await pantry.create(name: 'jaja', foodId: 'own-izbor');
+    final c = await pantry.create(name: 'zmajevo voće');
+    Future<String?> food(String id) async => (await (db.select(
+      db.pantryItems,
+    )..where((t) => t.id.equals(id))).getSingle()).foodId;
+    expect(
+      [await food(a), await food(b), await food(c)],
+      ['f_jaje', 'own-izbor', null],
+    );
+    await pantry.update(c, name: 'jaje');
+    expect(await food(c), 'f_jaje');
+    await pantry.update(a, name: 'Jajce', foodId: 'own-izbor');
+    expect(await food(a), 'own-izbor');
   });
 }

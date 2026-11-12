@@ -115,6 +115,49 @@ void main() {
       r.entity,
   ];
 
+  test('036: obrok plana dobija namirnicu po tačnom aliasu', () async {
+    await db
+        .into(db.foods)
+        .insert(
+          FoodsCompanion.insert(
+            id: 'f_krompir',
+            name: 'krompir',
+            category: 'voće i povrće',
+            baseUnit: 'g',
+          ),
+        );
+    await db
+        .into(db.foodAliases)
+        .insert(
+          FoodAliasesCompanion.insert(
+            id: 'f_krompir:krompir',
+            foodId: 'f_krompir',
+            alias: 'krompir',
+          ),
+        );
+    final id = await repo.approve(draft());
+    final meals = await repo.watchMeals(id).first;
+    expect(
+      meals.every((m) => m.snapshot!.ingredients.single.foodId == 'f_krompir'),
+      isTrue,
+    );
+    final keys = {
+      for (final c in await db.select(db.shoppingContributions).get())
+        c.ingredientKey,
+    };
+    expect(keys, {'food:f_krompir'});
+    // Nov AI recept u biblioteci nosi istu namirnicu kao snimak obroka.
+    final saved = await (db.select(
+      db.recipes,
+    )..where((t) => t.id.isNotIn(['r1']))).get();
+    expect(saved, isNotEmpty);
+    for (final r in saved) {
+      final ingredients = (jsonDecode(r.ingredientsJson) as List)
+          .cast<Map<String, Object?>>();
+      expect(ingredients.map((i) => i['foodId']), everyElement('f_krompir'));
+    }
+  });
+
   test('odobren nacrt čuva plan, obroke sa snimkom i porcijama, '
       'nabavku i outbox redom roditelj pa dete', () async {
     final id = await repo.approve(draft());
@@ -130,7 +173,7 @@ void main() {
     expect(meals.first.slot, MealSlot(monday, MealType.lunch));
     expect(meals.first.recipeId, 'r1');
     expect(meals.first.snapshot!.title, 'Pasulj');
-    expect(meals.every((m) => m.snapshot!.dictionaryVersion == 1), isTrue);
+    expect(meals.every((m) => m.snapshot!.dictionaryVersion == 2), isTrue);
     expect(meals[1].recipeId, isNotNull, reason: 'nov recept ide u Recepte');
     expect(meals[1].snapshot!.ingredients.single.name, 'krompir');
     expect(meals.every((m) => m.servings == 2), isTrue);

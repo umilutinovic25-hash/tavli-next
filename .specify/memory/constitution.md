@@ -1,6 +1,13 @@
 <!--
 Sync Impact Report
-- Version change: 2.0.0 → 2.0.1 (PATCH: test gate split — affected tests run
+- Version change: 2.0.1 → 2.1.0 (MINOR: principle II allows shared reference
+  data — the food catalog and allergen codes — to be readable by every
+  `authenticated` user; no client role may write it; it changes only through
+  migrations)
+- Dependent docs updated: specs/036-food-catalog (plan, research R9)
+- Templates requiring updates: none
+
+Previous: 2.0.0 → 2.0.1 (PATCH: test gate split — affected tests run
   in the pre-commit hook, the full `flutter test` suite runs in CI before merge;
   `scripts/check.sh` is format + analyze only)
 - Dependent docs updated: AGENTS.md, CLAUDE.md, README.md,
@@ -72,6 +79,13 @@ explicitly per table, and `anon` gets no table access. Storage buckets are
 private with the same rules. Schema changes go through migrations in
 `supabase/migrations/`; drift schema changes MUST bump `schemaVersion` and ship
 a migration.
+
+Exception for shared reference data: tables that hold no personal data and are
+the same for every account (the shared food catalog — `foods`, `food_aliases`,
+`food_conversions`, `food_allergens` rows with `household_id is null` — and the
+`allergens` code list) MAY be readable by every `authenticated` user. No client
+role may insert, update or delete such rows; they change only through
+migrations in `supabase/migrations/`, and RLS is still enabled on these tables.
 
 **Rationale**: the user's data must survive a lost device and follow the user to
 any device, while free AI tiers and connectivity stay unreliable — so the app
@@ -197,4 +211,4 @@ wording), and updating dependent templates and docs in the same commit. Every
 `plan.md` Constitution Check MUST evaluate principles I–IX; violations go in
 its Complexity Tracking table with justification.
 
-**Version**: 2.0.1 | **Ratified**: 2026-10-30 | **Last Amended**: 2026-11-02
+**Version**: 2.1.0 | **Ratified**: 2026-10-30 | **Last Amended**: 2026-11-11

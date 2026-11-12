@@ -301,3 +301,18 @@ void testTavli(String description, Future<void> Function(WidgetTester) body) {
     _current = null;
   });
 }
+
+/// testWidgets za samostalan widget nad drift bazom (bez cele aplikacije):
+/// na kraju skida stablo i pušta tajmere, da drift tokovi i riverpod
+/// `autoDispose` ne ostave tajmer posle testa. Bazu zatvara `tearDown`
+/// pozivaoca.
+void testDbWidgets(
+  String description,
+  Future<void> Function(WidgetTester) body,
+) {
+  testWidgets(description, (tester) async {
+    await body(tester);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+}

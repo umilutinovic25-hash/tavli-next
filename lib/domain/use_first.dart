@@ -18,8 +18,12 @@ class PantryStock {
     this.sourceShoppingItemId,
     this.reservedMicros = 0,
     this.reservedWhole = false,
+    this.foodId,
   });
   final String id, name;
+
+  /// Namirnica iz kataloga (036); null = nepotvrđeno.
+  final String? foodId;
   final double? quantity;
   final String? unit, sourceShoppingItemId;
   final DateTime? confirmedAt, expiresAt;
@@ -123,6 +127,17 @@ List<RecipeSuggestion> suggestRecipes(
         origin: SupplyOrigin.pantry,
         ingredient: ingredientKey(value.stock.name),
         unitGroup: normalizeUnit(value.stock.unit).group,
+        dictionaryIngredient: dictionaryIngredientKey(value.stock.name, 1),
+        dictionaryUnitGroup: normalizeUnit(
+          value.stock.unit,
+          dictionaryVersion: 1,
+        ).group,
+        foodIngredient: value.stock.foodId == null
+            ? null
+            : 'food:${value.stock.foodId}',
+        foodUnitGroup: value.stock.foodId == null
+            ? null
+            : normalizeUnit(value.stock.unit, dictionaryVersion: 1).group,
         micros: value.micros,
       ),
   ];
@@ -134,6 +149,8 @@ List<RecipeSuggestion> suggestRecipes(
         id: recipe.id,
         baseServings: recipe.servings,
         servings: servings,
+        // 036: namirnica kad je potvrđena, inače v1 tekst.
+        dictionaryVersion: 2,
         ingredients: [
           for (final i in recipe.ingredients)
             if (i.name.trim().isNotEmpty) _safeIngredient(i),
@@ -242,6 +259,7 @@ Ingredient _safeIngredient(Ingredient i) =>
         unit: i.unit,
         category: i.category,
         note: i.note,
+        foodId: i.foodId,
       );
 
 int _urgency(DateTime expires, DateTime now) {

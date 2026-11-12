@@ -28,11 +28,16 @@ class Ingredient {
     this.category = 'ostalo',
     this.note,
     this.id,
+    this.foodId,
   });
 
   /// Stabilan id u receptu (za veze sa koracima); null kod starih recepata
   /// dok se sastojak ne poveže.
   final String? id;
+
+  /// Namirnica iz kataloga (036); null = nepotvrđen sastojak. [name] ostaje
+  /// originalni tekst i služi samo za prikaz.
+  final String? foodId;
   final String name;
   final double? quantity;
   final String? unit;
@@ -50,6 +55,7 @@ class Ingredient {
       category: ingredientCategories.contains(category) ? category! : 'ostalo',
       note: _blankToNull(json['note']),
       id: _blankToNull(json['id']),
+      foodId: _blankToNull(json['foodId']),
     );
   }
 
@@ -60,6 +66,17 @@ class Ingredient {
     category: category,
     note: note,
     id: id,
+    foodId: foodId,
+  );
+
+  Ingredient withFood(String? foodId) => Ingredient(
+    name: name,
+    quantity: quantity,
+    unit: unit,
+    category: category,
+    note: note,
+    id: id,
+    foodId: foodId,
   );
 
   Map<String, dynamic> toJson() => {
@@ -69,6 +86,7 @@ class Ingredient {
     'category': category,
     'note': note,
     'id': ?id,
+    'foodId': ?foodId,
   };
 }
 

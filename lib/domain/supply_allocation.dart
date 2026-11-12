@@ -13,6 +13,8 @@ class Supply {
     this.samePhysicalAs,
     this.dictionaryIngredient,
     this.dictionaryUnitGroup,
+    this.foodIngredient,
+    this.foodUnitGroup,
   });
 
   final String id;
@@ -26,6 +28,11 @@ class Supply {
   final String? dictionaryIngredient;
   final String? dictionaryUnitGroup;
 
+  /// V2 (036): potvrđena namirnica (`food:<id>`) i grupa njene jedinice; ista
+  /// fizička količina kao ostali identiteti, nikad druga zaliha.
+  final String? foodIngredient;
+  final String? foodUnitGroup;
+
   /// Potvrđena količina u osnovnoj jedinici; `null` = nepotvrđeno, ne pokriva
   /// brojčanu potrebu.
   final int? micros;
@@ -36,6 +43,24 @@ class Supply {
 
   /// Kanonski identitet zalihe; kupovina i njen prijem dele isti.
   String get canonicalId => samePhysicalAs ?? id;
+}
+
+/// Da li zaliha [s] pokriva potrebu [ingredient] / [unitGroup] sastojka
+/// nazvanog [name]: isti tekst (staro pravilo), isti v1 ključ ili ista
+/// namirnica (036). Potreba po namirnici koju zaliha bez namirnice ima pod
+/// istim tekstom se pokriva (tekst kao pre kataloga); druga namirnica ne.
+bool supplyCovers(Supply s, String ingredient, String unitGroup, String name) {
+  if (s.ingredient == ingredient && s.unitGroup == unitGroup) return true;
+  if (s.dictionaryIngredient == ingredient &&
+      s.dictionaryUnitGroup == unitGroup) {
+    return true;
+  }
+  if (!ingredient.startsWith('food:')) return false;
+  if (s.foodIngredient != null) {
+    return s.foodIngredient == ingredient && s.foodUnitGroup == unitGroup;
+  }
+  return s.dictionaryIngredient == dictionaryIngredientKey(name, 1) &&
+      s.dictionaryUnitGroup == unitGroup;
 }
 
 /// Hronološki redosled potražnje. Planirani obroci idu po datumu, pa po
@@ -122,12 +147,7 @@ AllocationResult allocateSupply(
     for (final id in supplyOrder) {
       if (need == 0) break;
       final s = capacity[id]!;
-      final legacyMatch =
-          s.ingredient == key.ingredient && s.unitGroup == key.unitGroup;
-      final dictionaryMatch =
-          s.dictionaryIngredient == key.ingredient &&
-          s.dictionaryUnitGroup == key.unitGroup;
-      if (!legacyMatch && !dictionaryMatch) {
+      if (!supplyCovers(s, key.ingredient, key.unitGroup, d.line.name)) {
         continue;
       }
       final take = need! < left[id]! ? need : left[id]!;

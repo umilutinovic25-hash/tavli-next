@@ -643,6 +643,44 @@ void main() {
       expect(photos.saved.keys, ['recipe_photos/moja.jpg']);
     });
 
+    test('nestalo domaćinstvo briše svoje namirnice, katalog ostaje', () async {
+      backend.server.addMember('home-9', a.userId);
+      await service.refresh();
+      Future<void> food(String id, String? householdId) => db
+          .into(db.foods)
+          .insert(
+            FoodsCompanion.insert(
+              id: id,
+              name: id,
+              category: 'ostalo',
+              baseUnit: 'g',
+              householdId: Value(householdId),
+            ),
+          );
+      await food('f_jaje', null);
+      await food('own-9', 'home-9');
+      await food('own-moj', a.householdId);
+      await db
+          .into(db.foodAliases)
+          .insert(
+            FoodAliasesCompanion.insert(
+              id: 'al-9',
+              foodId: 'own-9',
+              alias: 'x',
+              householdId: const Value('home-9'),
+            ),
+          );
+
+      backend.server.members['home-9']!.remove(a.userId);
+      await service.refresh();
+
+      expect([for (final f in await db.select(db.foods).get()) f.id]..sort(), [
+        'f_jaje',
+        'own-moj',
+      ]);
+      expect(await db.select(db.foodAliases).get(), isEmpty);
+    });
+
     test('domaćinstvo koje koristi drugi nalog na uređaju ostaje', () async {
       backend.server.addMember('home-9', a.userId);
       await service.refresh();

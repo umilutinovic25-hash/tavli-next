@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/database.dart';
 import '../../providers.dart';
+import '../foods/food_chip.dart';
+import '../foods/food_picker.dart';
 import '../recipes/recipe_providers.dart';
 
 Future<void> showShoppingDetails(BuildContext context, ShoppingItemRow item) =>
@@ -23,6 +25,7 @@ class _ShoppingDetailsState extends ConsumerState<_ShoppingDetails> {
   late final _note = TextEditingController(text: widget.item.note);
   Uint8List? _photo;
   bool _removed = false;
+  late String? _foodId = widget.item.foodId;
   bool _busy = false;
   String? _error;
 
@@ -67,14 +70,18 @@ class _ShoppingDetailsState extends ConsumerState<_ShoppingDetails> {
     String? created;
     try {
       if (_photo case final bytes?) created = await store.save(bytes);
-      final ok = await ref
-          .read(shoppingRepositoryProvider)
-          .updateDetails(
-            widget.item.id,
-            brand: _brand.text,
-            note: _note.text,
-            photoPath: created ?? (_removed ? null : widget.item.photoPath),
-          );
+      final repo = ref.read(shoppingRepositoryProvider);
+      if (_foodId case final food? when food != widget.item.foodId) {
+        if (!await repo.setManualFood(widget.item.id, food)) {
+          throw StateError('Stavka se više ne menja');
+        }
+      }
+      final ok = await repo.updateDetails(
+        widget.item.id,
+        brand: _brand.text,
+        note: _note.text,
+        photoPath: created ?? (_removed ? null : widget.item.photoPath),
+      );
       if (!ok) throw StateError('Stavka više ne postoji');
       if (mounted) Navigator.of(context).pop();
     } on Exception {
@@ -106,6 +113,25 @@ class _ShoppingDetailsState extends ConsumerState<_ShoppingDetails> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Namirnicu bira osoba samo za ručnu stavku; izvedena prati
+              // recept.
+              if (widget.item.isManual && !widget.item.isBought)
+                FoodChip(
+                  foodId: _foodId,
+                  onPressed: _busy
+                      ? null
+                      : () async {
+                          final id = await pickFood(
+                            context,
+                            text: widget.item.name,
+                            category: widget.item.category,
+                            unit: widget.item.unit,
+                          );
+                          if (id != null && mounted) {
+                            setState(() => _foodId = id);
+                          }
+                        },
+                ),
               TextField(
                 controller: _brand,
                 maxLength: 120,

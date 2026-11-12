@@ -41,7 +41,8 @@ NormalizedUnit normalizeUnit(String? unit, {int dictionaryVersion = 0}) {
   final u = (unit ?? '').trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
   // V1 is immutable: all aliases below have the same factor as the old
   // spelling, so a physical stock amount has one shared capacity.
-  final alias = dictionaryVersion == 1
+  // V2 (036) uses the same frozen unit aliases as v1.
+  final alias = dictionaryVersion >= 1
       ? const {
           'gram': 'g',
           'grama': 'g',
@@ -58,13 +59,30 @@ NormalizedUnit normalizeUnit(String? unit, {int dictionaryVersion = 0}) {
 }
 
 /// V0 preserves the original matching rule. Published dictionaries are frozen.
-String dictionaryIngredientKey(String name, int version) {
+/// V2 (036): a confirmed catalog food is its own identity; an unconfirmed
+/// ingredient keeps the v1 text identity.
+String dictionaryIngredientKey(String name, int version, {String? foodId}) {
   final key = ingredientKey(name);
   if (version == 0) return key;
-  if (version != 1) throw ArgumentError.value(version, 'version');
+  if (version == 2 && foodId != null) return 'food:$foodId';
+  if (version != 1 && version != 2) {
+    throw ArgumentError.value(version, 'version');
+  }
   final canonical = const {'češnjak': 'beli luk'}[key] ?? key;
   return 'v1:$canonical';
 }
+
+/// Konverzija namirnice zamrznuta u snimku v2: jedna jedinica je
+/// `factorMicros` milionitih delova osnovne jedinice `baseUnit` (g, ml, kom).
+typedef FrozenConversion = ({int factorMicros, String baseUnit});
+
+/// Ključ zamrznute konverzije: namirnica + normalizovana jedinica.
+String conversionKey(String foodId, String unit) =>
+    '$foodId|${ingredientKey(unit)}';
+
+/// Grupa uporedivih jedinica za osnovnu jedinicu namirnice.
+NormalizedUnit baseUnitGroup(String baseUnit) =>
+    _units[baseUnit] ?? (group: 'unit:$baseUnit', base: baseUnit, factor: 1);
 
 void _checkServings(int value, String name, {bool upper = true}) {
   if (value < minServings || (upper && value > maxServings)) {
@@ -93,9 +111,13 @@ class DemandSource {
     required this.servings,
     required this.ingredients,
     this.dictionaryVersion = 0,
+    this.conversions = const {},
   });
 
   final int dictionaryVersion;
+
+  /// Konverzije zamrznute pri potvrdi (samo v2), po [conversionKey].
+  final Map<String, FrozenConversion> conversions;
   final String id;
   final int baseServings;
   final int servings;
@@ -138,24 +160,33 @@ List<DemandLine> demandFor(DemandSource source) {
   _checkServings(source.servings, 'servings');
   final merged = <DemandKey, DemandLine>{};
   for (final i in source.ingredients) {
-    final unit = normalizeUnit(
-      i.unit,
-      dictionaryVersion: source.dictionaryVersion,
-    );
+    final v2 = source.dictionaryVersion == 2;
+    final frozen = v2 && i.foodId != null && i.unit != null
+        ? source.conversions[conversionKey(i.foodId!, i.unit!)]
+        : null;
+    final unit = frozen != null
+        ? baseUnitGroup(frozen.baseUnit)
+        : normalizeUnit(i.unit, dictionaryVersion: source.dictionaryVersion);
     final q = i.quantity;
     final known = q != null && q.isFinite && q >= 0;
     final key = (
       sourceId: source.id,
-      ingredient: dictionaryIngredientKey(i.name, source.dictionaryVersion),
+      ingredient: dictionaryIngredientKey(
+        i.name,
+        source.dictionaryVersion,
+        foodId: v2 ? i.foodId : null,
+      ),
       unitGroup: known ? unit.group : unknownGroup,
     );
-    final micros = known
-        ? _scale(
-            toMicros(q) * unit.factor,
-            source.servings,
-            source.baseServings,
-          )
-        : null;
+    final base = !known
+        ? null
+        : frozen != null
+        ? (toMicros(q) * frozen.factorMicros + microsPerUnit ~/ 2) ~/
+              microsPerUnit
+        : toMicros(q) * unit.factor;
+    final micros = base == null
+        ? null
+        : _scale(base, source.servings, source.baseServings);
     final prev = merged[key];
     merged[key] = DemandLine(
       key: key,

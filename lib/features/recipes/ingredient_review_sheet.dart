@@ -9,7 +9,7 @@ import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
 import '../../domain/shopping_demand.dart';
 import '../../domain/shopping_source.dart';
-import '../../domain/shopping_sync.dart' show ingredientKey;
+import '../../domain/shopping_sync.dart' show sameIngredient;
 import '../../providers.dart';
 import '../shopping/shopping_providers.dart';
 
@@ -88,12 +88,14 @@ class _IngredientReviewSheetState extends ConsumerState<IngredientReviewSheet> {
       _current = current;
       if (current != null) {
         // Ranije "imam": sastojci koji nisu u pripremi.
-        final missing = {
-          for (final i in current.snapshot.ingredients) ingredientKey(i.name),
-        };
+        final missing = current.snapshot.ingredients;
         _servings = current.servings;
         for (final (n, i) in widget.snapshot.ingredients.indexed) {
-          if (!missing.contains(ingredientKey(i.name))) _have.add(n);
+          if (!missing.any(
+            (m) => sameIngredient(m.name, m.foodId, i.name, i.foodId),
+          )) {
+            _have.add(n);
+          }
         }
       }
     });

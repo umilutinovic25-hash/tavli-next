@@ -188,4 +188,138 @@ void main() {
       expect(displayAmount(toMicros(3), 'kom'), (quantity: 3.0, unit: 'kom'));
     });
   });
+
+  group('rečnik v2 (036)', () {
+    DemandSource v2(
+      String id,
+      List<Ingredient> ingredients, {
+      int baseServings = 2,
+      int servings = 2,
+      Map<String, FrozenConversion> conversions = const {},
+    }) => DemandSource(
+      id: id,
+      baseServings: baseServings,
+      servings: servings,
+      ingredients: ingredients,
+      dictionaryVersion: 2,
+      conversions: conversions,
+    );
+
+    test('ključ: food id kad postoji, inače v1 tekst', () {
+      expect(
+        dictionaryIngredientKey('Jaja', 2, foodId: 'f_jaje'),
+        'food:f_jaje',
+      );
+      expect(dictionaryIngredientKey('Češnjak', 2), 'v1:beli luk');
+      expect(dictionaryIngredientKey('Jaja', 1, foodId: 'f_jaje'), 'v1:jaja');
+      expect(dictionaryIngredientKey('Jaja', 0, foodId: 'f_jaje'), 'jaja');
+      expect(() => dictionaryIngredientKey('x', 3), throwsArgumentError);
+    });
+
+    test('v2 jedinice kao v1', () {
+      expect(normalizeUnit('grama', dictionaryVersion: 2).group, 'mass');
+      expect(normalizeUnit('grama').group, 'unit:grama');
+    });
+
+    test('SC-001: jaja i jaje istog food id-ja su jedna potreba', () {
+      final a = demandFor(
+        v2('A', const [
+          Ingredient(name: 'jaja', quantity: 3, unit: 'kom', foodId: 'f_jaje'),
+        ], baseServings: 4),
+      );
+      final b = demandFor(
+        v2('B', const [
+          Ingredient(name: 'jaje', quantity: 2, unit: 'kom', foodId: 'f_jaje'),
+        ]),
+      );
+      final needs = summarize([...a, ...b]);
+      expect(needs, hasLength(1));
+      expect(needs.single.ingredient, 'food:f_jaje');
+      expect(needs.single.unitGroup, 'count:kom');
+      expect(needs.single.micros, 3500000);
+    });
+
+    test('zamrznuta konverzija: 2 čena + 10 g = 20 g', () {
+      final lines = demandFor(
+        v2(
+          'S',
+          const [
+            Ingredient(
+              name: 'beli luk',
+              quantity: 2,
+              unit: 'čena',
+              foodId: 'f_beli_luk',
+            ),
+            Ingredient(
+              name: 'češnjak',
+              quantity: 10,
+              unit: 'g',
+              foodId: 'f_beli_luk',
+            ),
+          ],
+          conversions: {
+            conversionKey('f_beli_luk', 'Čena'): (
+              factorMicros: 5000000,
+              baseUnit: 'g',
+            ),
+          },
+        ),
+      );
+      expect(lines, hasLength(1));
+      expect(lines.single.key.unitGroup, 'mass');
+      expect(lines.single.baseUnit, 'g');
+      expect(lines.single.micros, 20000000);
+    });
+
+    test('konverzija važi samo uz food id', () {
+      final lines = demandFor(
+        v2(
+          'S',
+          const [Ingredient(name: 'beli luk', quantity: 2, unit: 'čena')],
+          conversions: {
+            conversionKey('f_beli_luk', 'čena'): (
+              factorMicros: 5000000,
+              baseUnit: 'g',
+            ),
+          },
+        ),
+      );
+      expect(lines.single.key.unitGroup, 'unit:čena');
+    });
+
+    test('imam/nemam: kašika bez konverzije ostaje svoja grupa', () {
+      final lines = demandFor(
+        v2('S', const [
+          Ingredient(name: 'so', quantity: 1, unit: 'kašika', foodId: 'f_so'),
+          Ingredient(name: 'so', quantity: 5, unit: 'g', foodId: 'f_so'),
+        ]),
+      );
+      expect([for (final l in lines) l.key.unitGroup], ['unit:kašika', 'mass']);
+    });
+
+    test('konverzija sa razlomkom zaokružuje na pola naviše', () {
+      final lines = demandFor(
+        v2(
+          'S',
+          const [
+            Ingredient(
+              name: 'šećer',
+              quantity: 1,
+              unit: 'kašičica',
+              foodId: 'f_secer',
+            ),
+          ],
+          servings: 3,
+          conversions: {
+            conversionKey('f_secer', 'kašičica'): (
+              factorMicros: 2500001,
+              baseUnit: 'g',
+            ),
+          },
+        ),
+      );
+      // 2 500 001 × 3/2 = 3 750 001,5 → 3 750 002
+      expect(lines.single.micros, 3750002);
+    });
+  });
 }

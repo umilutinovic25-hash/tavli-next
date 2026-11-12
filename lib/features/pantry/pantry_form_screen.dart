@@ -4,7 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../data/database.dart';
 import '../../data/pantry_repository.dart';
+import '../../domain/food.dart';
 import '../../domain/recipe.dart';
+import '../../domain/shopping_sync.dart' show ingredientKey;
+import '../../providers.dart';
+import '../foods/food_chip.dart';
+import '../foods/food_picker.dart';
 import '../shopping/shopping_providers.dart';
 import 'pantry_fields.dart';
 import 'pantry_item_tile.dart';
@@ -33,8 +38,40 @@ class _PantryFormScreenState extends ConsumerState<PantryFormScreen> {
   late String _category = ingredientCategories.contains(widget.item?.category)
       ? widget.item!.category
       : 'ostalo';
+  late String? _foodId = widget.item?.foodId;
+
+  /// Naziv za koji važi [_foodId]; preimenovana zaliha je druga stvar.
+  late String _foodFor = widget.item?.name ?? '';
+
+  /// Izbor osobe za ovaj naziv, inače tačan alias (repozitorijum isto
+  /// popunjava pri čuvanju), da se namirnica vidi odmah.
+  String? _food(FoodCatalog? catalog) =>
+      (ingredientKey(_name.text) == ingredientKey(_foodFor) ? _foodId : null) ??
+      catalog?.match(_name.text);
   bool _saving = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _name.addListener(() => setState(() {}));
+  }
+
+  /// Izbor upisuje samo namirnicu; naziv ostaje kako je upisan.
+  Future<void> _pickFood() async {
+    final id = await pickFood(
+      context,
+      text: _name.text,
+      category: _category,
+      unit: _unit.text,
+    );
+    if (id != null && mounted) {
+      setState(() {
+        _foodId = id;
+        _foodFor = _name.text;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -64,6 +101,7 @@ class _PantryFormScreenState extends ConsumerState<PantryFormScreen> {
           unit: _unit.text,
           category: _category,
           expiresAt: _date(),
+          foodId: _food(ref.read(foodCatalogProvider).value),
         );
       } else {
         await repo.create(
@@ -72,6 +110,7 @@ class _PantryFormScreenState extends ConsumerState<PantryFormScreen> {
           unit: _unit.text,
           category: _category,
           expiresAt: _date(),
+          foodId: _food(ref.read(foodCatalogProvider).value),
         );
       }
       if (!mounted) return;
@@ -157,6 +196,16 @@ class _PantryFormScreenState extends ConsumerState<PantryFormScreen> {
                   onCategoryChanged: (value) =>
                       setState(() => _category = value),
                   onSubmit: _save,
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: FoodChip(
+                    foodId: _food(ref.watch(foodCatalogProvider).value),
+                    onPressed: _saving || _name.text.trim().isEmpty
+                        ? null
+                        : _pickFood,
+                  ),
                 ),
                 if (_error case final error?) ...[
                   const SizedBox(height: 16),

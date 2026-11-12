@@ -177,4 +177,143 @@ void main() {
     );
     expect(result.remaining(need.line.key), toMicros(100));
   });
+
+  group('identitet namirnice (036)', () {
+    DemandLine eggs(String id, String name, double q, {int base = 2}) =>
+        demandFor(
+          DemandSource(
+            id: id,
+            baseServings: base,
+            servings: 2,
+            dictionaryVersion: 2,
+            ingredients: [
+              Ingredient(
+                name: name,
+                quantity: q,
+                unit: 'kom',
+                foodId: 'f_jaje',
+              ),
+            ],
+          ),
+        ).single;
+
+    // Zaliha „jajce 2 kom“ potvrđena kao f_jaje: vidi se pod tekstom, v1 i
+    // namirnicom, ali je to jedna fizička količina.
+    const jajce = Supply(
+      id: 'ostava',
+      origin: SupplyOrigin.pantry,
+      ingredient: 'jajce',
+      unitGroup: 'count:kom',
+      dictionaryIngredient: 'v1:jajce',
+      dictionaryUnitGroup: 'count:kom',
+      foodIngredient: 'food:f_jaje',
+      foodUnitGroup: 'count:kom',
+      micros: 2000000,
+    );
+
+    test('SC-001: zaliha pokriva v2 potrebu, za kupovinu ostaje 1,5 kom', () {
+      final a = eggs('A', 'jaja', 3, base: 4);
+      final b = eggs('B', 'jaje', 2);
+      final result = allocateSupply(
+        [DemandRequest(a, at(2)), DemandRequest(b, at(3))],
+        [jajce],
+      );
+      expect(result.allocatedTotal, 2000000);
+      expect(result.remaining(a.key)! + result.remaining(b.key)!, 1500000);
+      expect(result.remaining(a.key), 0);
+    });
+
+    test('ista zaliha pod tri identiteta troši se najviše jednom', () {
+      final legacy = demandFor(
+        const DemandSource(
+          id: 'L',
+          baseServings: 2,
+          servings: 2,
+          ingredients: [Ingredient(name: 'jajce', quantity: 2, unit: 'kom')],
+        ),
+      ).single;
+      final v1 = demandFor(
+        const DemandSource(
+          id: 'V',
+          baseServings: 2,
+          servings: 2,
+          dictionaryVersion: 1,
+          ingredients: [Ingredient(name: 'jajce', quantity: 2, unit: 'kom')],
+        ),
+      ).single;
+      final food = eggs('F', 'jaja', 2);
+      final result = allocateSupply(
+        [
+          DemandRequest(legacy, at(2)),
+          DemandRequest(v1, at(3)),
+          DemandRequest(food, at(4)),
+        ],
+        [jajce],
+      );
+      expect(result.allocatedTotal, 2000000);
+      expect(result.remaining(legacy.key), 0);
+      expect(result.remaining(v1.key), 2000000);
+      expect(result.remaining(food.key), 2000000);
+    });
+
+    test('zaliha bez namirnice ne pokriva potrebu po namirnici', () {
+      const plain = Supply(
+        id: 'ostava',
+        origin: SupplyOrigin.pantry,
+        ingredient: 'jajce',
+        unitGroup: 'count:kom',
+        micros: 2000000,
+      );
+      final food = eggs('F', 'jaja', 2);
+      final result = allocateSupply([DemandRequest(food, at(2))], [plain]);
+      expect(result.remaining(food.key), 2000000);
+    });
+
+    test('zaliha bez namirnice istog teksta pokriva (tekst kao danas)', () {
+      const plain = Supply(
+        id: 'ostava',
+        origin: SupplyOrigin.pantry,
+        ingredient: 'jaja',
+        unitGroup: 'count:kom',
+        dictionaryIngredient: 'v1:jaja',
+        dictionaryUnitGroup: 'count:kom',
+        micros: 2000000,
+      );
+      final food = eggs('F', 'jaja', 2);
+      final result = allocateSupply([DemandRequest(food, at(2))], [plain]);
+      expect(result.remaining(food.key), 0);
+    });
+
+    test('druga namirnica istog teksta ne pokriva', () {
+      const other = Supply(
+        id: 'ostava',
+        origin: SupplyOrigin.pantry,
+        ingredient: 'jaja',
+        unitGroup: 'count:kom',
+        dictionaryIngredient: 'v1:jaja',
+        dictionaryUnitGroup: 'count:kom',
+        foodIngredient: 'food:own-prepelicja',
+        foodUnitGroup: 'count:kom',
+        micros: 2000000,
+      );
+      final food = eggs('F', 'jaja', 2);
+      final result = allocateSupply([DemandRequest(food, at(2))], [other]);
+      expect(result.remaining(food.key), 2000000);
+    });
+
+    test('druga grupa jedinica iste namirnice ne pokriva', () {
+      const grams = Supply(
+        id: 'ostava',
+        origin: SupplyOrigin.pantry,
+        ingredient: 'jaja',
+        unitGroup: 'mass',
+        foodIngredient: 'food:f_jaje',
+        foodUnitGroup: 'mass',
+        micros: 100000000,
+      );
+      final food = eggs('F', 'jaja', 2);
+      final result = allocateSupply([DemandRequest(food, at(2))], [grams]);
+      expect(result.remaining(food.key), 2000000);
+    });
+  });
 }

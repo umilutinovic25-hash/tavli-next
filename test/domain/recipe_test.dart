@@ -151,4 +151,42 @@ void main() {
       expect(original.copyWith(clearPrepMinutes: true).prepMinutes, isNull);
     });
   });
+
+  group('foodId (036)', () {
+    test('fromJson čita foodId, prazan je null', () {
+      final i = Ingredient.fromJson({'name': 'jaja', 'foodId': 'f_jaje'});
+      expect(i.foodId, 'f_jaje');
+      expect(
+        Ingredient.fromJson({'name': 'jaja', 'foodId': ' '}).foodId,
+        isNull,
+      );
+      expect(Ingredient.fromJson({'name': 'jaja'}).foodId, isNull);
+    });
+
+    test('toJson bez foodId je isti kao pre kataloga', () {
+      const i = Ingredient(name: 'jaja', quantity: 3, unit: 'kom', id: 'i1');
+      expect(i.toJson(), {
+        'name': 'jaja',
+        'quantity': 3.0,
+        'unit': 'kom',
+        'category': 'ostalo',
+        'note': null,
+        'id': 'i1',
+      });
+      expect(i.toJson().containsKey('foodId'), isFalse);
+    });
+
+    test('withFood čuva tekst, id i količinu; withId čuva foodId', () {
+      const i = Ingredient(name: 'Jajce', quantity: 2, unit: 'kom', id: 'i1');
+      final f = i.withFood('f_jaje');
+      expect(f.foodId, 'f_jaje');
+      expect(f.name, 'Jajce');
+      expect(f.id, 'i1');
+      expect(f.quantity, 2);
+      expect(f.toJson()['foodId'], 'f_jaje');
+      expect(f.withId('i2').foodId, 'f_jaje');
+      expect(f.withFood(null).foodId, isNull);
+      expect(Ingredient.fromJson(f.toJson()).foodId, 'f_jaje');
+    });
+  });
 }

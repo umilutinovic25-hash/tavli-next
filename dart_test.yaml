@@ -1,0 +1,3 @@
+# Zaglavljen test (npr. drift tok ili tajmer posle testa) pada za minut sa
+# stack trace-om umesto posle podrazumevanih 10 minuta. Ceo skup traje ~1,5 min.
+timeout: 60s

@@ -9,6 +9,7 @@ import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
 import '../../domain/shopping_source.dart';
 import '../../providers.dart';
+import '../foods/unconfirmed_mark.dart';
 import '../planning/plan_format.dart';
 import '../recipes/recipe_providers.dart';
 import 'shopping_details.dart';
@@ -274,6 +275,11 @@ class ShoppingItemTile extends ConsumerWidget {
                   : null,
             ),
           ),
+          // Bez namirnice se sabira samo po tekstu (FR-014).
+          if (item.foodId == null && !item.isBought) ...[
+            const SizedBox(width: 6),
+            const UnconfirmedMark(),
+          ],
         ],
       ),
       subtitle: subtitle.isEmpty ? null : Text(subtitle),

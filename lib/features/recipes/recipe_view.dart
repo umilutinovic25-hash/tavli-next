@@ -6,6 +6,7 @@ import '../../domain/quantity_review.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
 import '../../domain/step_links.dart';
+import '../foods/unconfirmed_mark.dart';
 import 'recipe_photo.dart';
 
 /// Sadržaj recepta: slika, porcije, sastojci po kategorijama, koraci.
@@ -18,6 +19,8 @@ class RecipeView extends StatelessWidget {
     this.showTitle = false,
     this.reviewQuantities = false,
     this.onEditIngredient,
+    this.ingredientsNote,
+    this.markUnconfirmed = false,
   });
 
   final Recipe recipe;
@@ -27,6 +30,13 @@ class RecipeView extends StatelessWidget {
   final bool showTitle;
   final bool reviewQuantities;
   final ValueChanged<int>? onEditIngredient;
+
+  /// Ispod naslova „Sastojci“ (npr. oznake alergena u detalju recepta).
+  final Widget? ingredientsNote;
+
+  /// Oznaka „Nepotvrđeno“ uz sastojak bez namirnice (detalj recepta; AI
+  /// pregledi je nemaju jer se sastojci prepoznaju tek pri čuvanju).
+  final bool markUnconfirmed;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +96,7 @@ class RecipeView extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text('Sastojci', style: theme.textTheme.titleMedium),
+        ?ingredientsNote,
         for (final (category, items) in groupByCategory(
           recipe.ingredients,
         )) ...[
@@ -101,7 +112,15 @@ class RecipeView extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: onEditIngredient == null
-                    ? _ingredient(context, i)
+                    ? markUnconfirmed && i.foodId == null
+                          ? Row(
+                              children: [
+                                Flexible(child: _ingredient(context, i)),
+                                const SizedBox(width: 6),
+                                const UnconfirmedMark(),
+                              ],
+                            )
+                          : _ingredient(context, i)
                     : Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
