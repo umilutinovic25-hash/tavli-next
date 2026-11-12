@@ -29,7 +29,7 @@ Za sastojak se namirnica uzima iz `foodId`, inače iz tačnog aliasa (`FoodCatal
 8. Lični izvoz sadrži sopstvene alergije (`allergies`), format 3 → 4.
 
 ## Novi tekst
-„Moje alergije“, „Važi za sve obroke kad kuvaš za domaćinstvo. Ostali članovi vide tvoje alergije.“, „Ostalo“, „Dodaj alergiju“, „Važi za sve obroke: …“, „Niko u domaćinstvu nije upisao alergije.“, „Sadrži alergen člana: …“, „Nepotvrđeno, proveri alergene“, „Nije pronađen recept bez alergena članova domaćinstva (…). Promeni zahtev i pokušaj ponovo.“; politika privatnosti: „Alergije koje upišeš vide ostali članovi domaćinstva, da bi aplikacija mogla da proveri recepte za sve.“
+„Moje alergije“, „Važi za sve obroke kad kuvaš za domaćinstvo. Ostali članovi vide tvoje alergije.“, „Ostalo“, „Npr. jagode. Proverava se po nazivu sastojka.“, „Dodaj alergiju“, „Važi za sve obroke: …“, „Niko u domaćinstvu nije upisao alergije.“, „Sadrži alergen člana: …“, „Nepotvrđeno, proveri alergene“, „Nije pronađen recept bez alergena članova domaćinstva (…). Promeni zahtev i pokušaj ponovo.“; politika privatnosti: „Alergije koje upišeš vide ostali članovi domaćinstva, da bi aplikacija mogla da proveri recepte za sve.“
 
 ## Van opsega
 Ko jede koji obrok (predlog 57); dijeta i „ne volim“ po osobi; provera dijete u kodu; promena AI šeme odgovora (037).

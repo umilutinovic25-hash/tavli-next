@@ -3,12 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/food.dart' show euAllergens;
 import '../../domain/user_preferences.dart';
 import '../../providers.dart';
 import '../recipes/recipe_view.dart' show ReadableScroll;
 
-/// Profil → Preferencije: ishrana, namirnice koje ne volimo, alergije i broj
-/// osoba. Svaka izmena se odmah čuva, a AI ih dobija uz predloge recepata i
+/// Profil → Preferencije: ishrana, namirnice koje ne volimo, moje alergije
+/// (039, po osobi) i broj osoba. Svaka izmena se odmah čuva, a AI ih dobija uz predloge recepata i
 /// plana.
 class PreferencesScreen extends ConsumerWidget {
   const PreferencesScreen({super.key});
@@ -85,15 +86,7 @@ class PreferencesScreen extends ConsumerWidget {
                 unawaited(save(prefs.copyWith(dislikes: items))),
           ),
           gap,
-          _ItemsEditor(
-            title: 'Alergije',
-            note: 'AI ih nikad ne koristi, ni u jednom sastojku.',
-            field: 'Dodaj alergiju',
-            addTooltip: 'Dodaj alergiju',
-            items: prefs.allergies,
-            onChanged: (items) =>
-                unawaited(save(prefs.copyWith(allergies: items))),
-          ),
+          const _MyAllergies(),
           gap,
           Text('Broj osoba', style: theme.textTheme.titleMedium),
           const SizedBox(height: 4),
@@ -135,6 +128,96 @@ class PreferencesScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Moje alergije (039): EU alergeni i slobodan unos, u redu osobe. Ispod je
+/// unija svih članova, koja važi za svaki obrok.
+class _MyAllergies extends ConsumerWidget {
+  const _MyAllergies();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mine = ref.watch(myAllergiesProvider).value;
+    final household = ref.watch(householdAllergiesProvider).value;
+    if (mine == null) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final muted = theme.textTheme.bodyMedium?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+
+    Future<void> save({Set<String>? codes, List<String>? custom}) async {
+      try {
+        await ref
+            .read(allergyRepositoryProvider)
+            .saveMine(
+              codes: codes ?? mine.codes,
+              custom: custom ?? mine.custom,
+            );
+      } on Object {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Preferencije nisu sačuvane. Pokušaj ponovo.'),
+            ),
+          );
+      }
+    }
+
+    final labels = household?.labels ?? const <String>[];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Moje alergije', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 4),
+        Text(
+          'Važi za sve obroke kad kuvaš za domaćinstvo. Ostali članovi vide '
+          'tvoje alergije.',
+          style: muted,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final MapEntry(:key, :value) in euAllergens.entries)
+              FilterChip(
+                label: Text(value),
+                selected: mine.codes.contains(key),
+                onSelected: (on) => unawaited(
+                  save(
+                    codes: on
+                        ? {...mine.codes, key}
+                        : mine.codes.difference({key}),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _ItemsEditor(
+          title: 'Ostalo',
+          note: 'Npr. jagode. Proverava se po nazivu sastojka.',
+          field: 'Dodaj alergiju',
+          addTooltip: 'Dodaj alergiju',
+          items: mine.custom,
+          onChanged: (items) => unawaited(save(custom: items)),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          labels.isEmpty
+              ? 'Niko u domaćinstvu nije upisao alergije.'
+              : 'Važi za sve obroke: ${labels.join(', ')}',
+          style: labels.isEmpty
+              ? muted
+              : theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+        ),
+      ],
     );
   }
 }
