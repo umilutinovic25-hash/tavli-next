@@ -56,9 +56,23 @@ void main() {
       'dayRules',
       'dayTimeBudgets',
       'foods',
+      'membership',
+      'recipeVersions',
+      'ratings',
+      'weekTemplates',
+      'cookSoonItems',
+      'householdPreferences',
+      'tasteProfile',
+      'shoppingSources',
+      'shoppingContributions',
+      'supplyAllocations',
     ]);
-    for (final list in sections.values) {
-      expect(list, isEmpty);
+    expect(personalExportFormatVersion, 3);
+    expect(sections['membership'], isNull);
+    expect(sections['tasteProfile'], isNull);
+    for (final entry in sections.entries) {
+      if (entry.key == 'membership' || entry.key == 'tasteProfile') continue;
+      expect(entry.value, isEmpty, reason: entry.key);
     }
   });
 
@@ -250,7 +264,7 @@ void main() {
 
     final export = await collectPersonalExport(db, _account, clock: () => _at);
     final sections = export['sections']! as Map<String, Object?>;
-    expect(export['formatVersion'], 2);
+    expect(export['formatVersion'], greaterThanOrEqualTo(2));
     expect(sections['foods'], [
       {
         'id': 'own',
@@ -267,6 +281,221 @@ void main() {
     expect(((sections['pantryItems']! as List).single as Map)['foodId'], 'own');
     expect(jsonEncode(sections['foods']), isNot(contains('f_jaje')));
   });
+
+  test(
+    '038: sve tabele aktivnog domaćinstva, sopstveno članstvo i ocene',
+    () async {
+      final db = AppDatabase(NativeDatabase.memory());
+      addTearDown(db.close);
+      final t0 = DateTime.utc(2026, 3);
+      for (final (id, hh) in [('r1', 'h1'), ('r2', 'h2')]) {
+        await db
+            .into(db.recipes)
+            .insert(
+              RecipesCompanion.insert(
+                id: id,
+                title: 'Recept $id',
+                servings: 2,
+                source: 'manual',
+                ingredientsJson: '[]',
+                stepsJson: '[]',
+                createdAt: t0,
+                updatedAt: t0,
+                householdId: Value(hh),
+              ),
+            );
+        await db
+            .into(db.recipeVersions)
+            .insert(
+              RecipeVersionsCompanion.insert(
+                id: 'v_$hh',
+                recipeId: id,
+                recipeJson: '{"title":"Stari $id"}',
+                createdAt: t0,
+                householdId: Value(hh),
+              ),
+            );
+        await db
+            .into(db.weekTemplates)
+            .insert(
+              WeekTemplatesCompanion.insert(
+                id: 'w_$hh',
+                name: 'Nedelja',
+                mealsJson: '[{"weekday":1}]',
+                createdAt: t0,
+                householdId: Value(hh),
+              ),
+            );
+        await db
+            .into(db.cookSoonItems)
+            .insert(
+              CookSoonItemsCompanion.insert(
+                id: 'c_$hh',
+                recipeSnapshotJson: '{"title":"Brzo"}',
+                servings: 2,
+                position: 0,
+                createdAt: t0,
+                householdId: Value(hh),
+              ),
+            );
+        await db
+            .into(db.householdPreferences)
+            .insert(
+              HouseholdPreferencesCompanion.insert(
+                id: 'p_$hh',
+                householdId: Value(hh),
+                allergiesJson: const Value('["kikiriki"]'),
+              ),
+            );
+        await db
+            .into(db.shoppingLists)
+            .insert(
+              ShoppingListsCompanion.insert(
+                id: 'l_$hh',
+                name: 'Lista',
+                createdAt: t0,
+                householdId: Value(hh),
+              ),
+            );
+        await db
+            .into(db.shoppingSources)
+            .insert(
+              ShoppingSourcesCompanion.insert(
+                id: 's_$hh',
+                listId: 'l_$hh',
+                kind: 'recipePreparation',
+                recipeSnapshotJson: const Value('{"title":"Snimak"}'),
+                createdAt: t0,
+                householdId: Value(hh),
+              ),
+            );
+        await db
+            .into(db.shoppingContributions)
+            .insert(
+              ShoppingContributionsCompanion.insert(
+                id: 'k_$hh',
+                sourceId: 's_$hh',
+                ingredientKey: 'jaje',
+                unitGroup: 'count',
+                baseUnit: 'kom',
+                name: 'jaje',
+                category: 'ostalo',
+                notesJson: const Value('["sveža"]'),
+                householdId: Value(hh),
+              ),
+            );
+        await db
+            .into(db.supplyAllocations)
+            .insert(
+              SupplyAllocationsCompanion.insert(
+                id: 'a_$hh',
+                contributionId: 'k_$hh',
+                pantryItemId: Value('pi_$hh'),
+                createdAt: t0,
+                householdId: Value(hh),
+              ),
+            );
+      }
+      // Ocene: moja za recept domaćinstva, moja za tuđe domaćinstvo, tuđa.
+      for (final (id, recipe, user) in [
+        ('o1', 'r1', 'u1'),
+        ('o2', 'r2', 'u1'),
+        ('o3', 'r1', 'u2'),
+      ]) {
+        await db
+            .into(db.ratings)
+            .insert(
+              RatingsCompanion.insert(
+                id: id,
+                recipeId: recipe,
+                stars: 4,
+                cookedAt: t0,
+                userId: Value(user),
+              ),
+            );
+      }
+      for (final (id, json) in [
+        ('u1', '{"likes":["riba"]}'),
+        ('u2', '{"likes":["meso"]}'),
+      ]) {
+        await db
+            .into(db.userProfiles)
+            .insert(UserProfilesCompanion.insert(id: id, profileJson: json));
+      }
+      for (final (hh, name) in [('h1', 'Dom'), ('h2', 'Kod roditelja')]) {
+        await db
+            .into(db.householdMemberships)
+            .insert(
+              HouseholdMembershipsCompanion.insert(
+                accountId: 'u1',
+                householdId: hh,
+                householdName: name,
+                role: 'owner',
+                joinedAt: DateTime.utc(2026, 1, 5),
+              ),
+            );
+      }
+      await db
+          .into(db.householdMemberCache)
+          .insert(
+            HouseholdMemberCacheCompanion.insert(
+              accountId: 'u1',
+              householdId: 'h1',
+              userId: 'u2',
+              displayName: const Value('Marko Drugi'),
+              role: 'member',
+              joinedAt: t0,
+              fetchedAt: t0,
+            ),
+          );
+
+      final export = await collectPersonalExport(
+        db,
+        _account,
+        clock: () => _at,
+      );
+      final sections = export['sections']! as Map<String, Object?>;
+      List<Object?> ids(String key) => [
+        for (final r in sections[key]! as List<Object?>) (r! as Map)['id'],
+      ];
+
+      expect(sections['membership'], {
+        'householdId': 'h1',
+        'householdName': 'Dom',
+        'role': 'owner',
+        'joinedAt': '2026-01-05T00:00:00.000Z',
+      });
+      expect(ids('recipeVersions'), ['v_h1']);
+      expect(ids('ratings'), ['o1']);
+      expect(ids('weekTemplates'), ['w_h1']);
+      expect(ids('cookSoonItems'), ['c_h1']);
+      expect(ids('householdPreferences'), ['p_h1']);
+      expect(ids('shoppingSources'), ['s_h1']);
+      expect(ids('shoppingContributions'), ['k_h1']);
+      expect(ids('supplyAllocations'), ['a_h1']);
+      expect(sections['tasteProfile'], {
+        'likes': ['riba'],
+      });
+
+      // JSON kolone su objekti, ne tekst.
+      Map<Object?, Object?> first(String key) =>
+          (sections[key]! as List<Object?>).single! as Map;
+      expect(first('recipeVersions')['recipe'], {'title': 'Stari r1'});
+      expect(first('weekTemplates')['meals'], [
+        {'weekday': 1},
+      ]);
+      expect(first('cookSoonItems')['recipeSnapshot'], {'title': 'Brzo'});
+      expect(first('householdPreferences')['allergies'], ['kikiriki']);
+      expect(first('shoppingSources')['recipeSnapshot'], {'title': 'Snimak'});
+      expect(first('shoppingContributions')['notes'], ['sveža']);
+
+      // Drugi članovi i druga domaćinstva nisu u fajlu.
+      final text = jsonEncode(export);
+      for (final forbidden in ['Marko Drugi', 'u2', 'Kod roditelja', 'meso']) {
+        expect(text, isNot(contains(forbidden)), reason: forbidden);
+      }
+    },
+  );
 
   test('writePersonalExportFile upisuje JSON sa datumom u imenu', () async {
     final dir = Directory.systemTemp.createTempSync('tavli_izvoz_test');
