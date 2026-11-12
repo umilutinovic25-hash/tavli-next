@@ -6,6 +6,7 @@ import '../../app/animations/simmering_pot.dart';
 import '../../domain/quantity_review.dart';
 import '../../domain/recipe.dart';
 import '../../domain/shopping_source.dart';
+import '../foods/allergen_line.dart';
 import 'ingredient_review_sheet.dart';
 import 'photo_recipe_comparison.dart';
 import 'recipe_view.dart';
@@ -40,6 +41,10 @@ class AiRecipePreview extends StatelessWidget {
         );
     return Column(
       children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: IngredientsAllergenWarning(recipe.ingredients),
+        ),
         Expanded(
           child: photoBytes != null
               ? PhotoRecipeComparison(

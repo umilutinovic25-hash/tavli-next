@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,8 @@ import 'package:tavli/account/auth_controller.dart';
 import 'package:tavli/data/database.dart';
 import 'package:tavli/domain/recipe.dart';
 import 'package:tavli/features/foods/allergen_line.dart';
+import 'package:tavli/features/recipes/ai_preview.dart';
+import 'package:tavli/features/recipes/recipe_form_screen.dart';
 import 'package:tavli/providers.dart';
 
 import '../../helpers/test_app.dart';
@@ -142,6 +145,107 @@ void main() {
         matching: find.byType(Row),
       ),
       findsWidgets,
+    );
+  });
+
+  group('alergije članova (039)', () {
+    Future<void> allergic(String codes) => db
+        .into(db.memberAllergies)
+        .insert(
+          MemberAllergiesCompanion.insert(
+            id: 'h1:u2',
+            householdId: const Value('h1'),
+            userId: 'u2',
+            codesJson: Value(codes),
+          ),
+        );
+
+    Future<void> pumpWidget(WidgetTester tester, Widget child) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(db),
+            accountScopeProvider.overrideWithValue(_scope),
+          ],
+          child: MaterialApp(home: Scaffold(body: child)),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testDbWidgets('detalj: alergen člana je istaknut', (tester) async {
+      await allergic('["eggs"]');
+      await pump(
+        tester,
+        recipeWith(const [
+          Ingredient(name: 'jaja', foodId: 'f_jaje'),
+          Ingredient(name: 'so', foodId: 'f_so'),
+        ]),
+      );
+      expect(find.text('Sadrži alergen člana: jaja'), findsOneWidget);
+      expect(find.text('Nepotvrđeno, proveri alergene'), findsNothing);
+    });
+
+    testDbWidgets(
+      'detalj: uz alergije i nepotvrđen sastojak → „Nepotvrđeno, proveri alergene“',
+      (tester) async {
+        await allergic('["nuts"]');
+        await pump(
+          tester,
+          recipeWith(const [Ingredient(name: 'pesto đenoveze')]),
+        );
+        expect(find.text('Nepotvrđeno, proveri alergene'), findsOneWidget);
+        expect(find.text('Podaci o alergenima nisu potpuni.'), findsNothing);
+        expect(find.textContaining('Sadrži alergen člana'), findsNothing);
+      },
+    );
+
+    testDbWidgets('bez alergija u domaćinstvu nema upozorenja člana', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        recipeWith(const [Ingredient(name: 'jaja', foodId: 'f_jaje')]),
+      );
+      expect(find.textContaining('alergen člana'), findsNothing);
+      expect(find.text('Nepotvrđeno, proveri alergene'), findsNothing);
+    });
+
+    testDbWidgets('pregled AI recepta (foto/naziv) pokazuje upozorenje', (
+      tester,
+    ) async {
+      await allergic('["eggs"]');
+      await pumpWidget(
+        tester,
+        AiRecipePreview(
+          recipe: recipeWith(const [
+            Ingredient(name: 'jaja', foodId: 'f_jaje'),
+          ]),
+          onSave: () {},
+          onRetry: () {},
+          onDiscard: () {},
+        ),
+      );
+      expect(find.text('Sadrži alergen člana: jaja'), findsOneWidget);
+    });
+
+    testDbWidgets(
+      'uvoz sa linka: forma pokazuje upozorenje i dozvoljava čuvanje',
+      (tester) async {
+        await allergic('["eggs"]');
+        final draft = Recipe(
+          id: 'u',
+          title: 'Uvezeno',
+          servings: 2,
+          ingredients: const [Ingredient(name: 'jaja', foodId: 'f_jaje')],
+          source: RecipeSource.url,
+          sourceUrl: 'https://primer.rs/recept',
+          createdAt: DateTime(2026, 11),
+        );
+        await pumpWidget(tester, RecipeFormScreen(draft: draft));
+        expect(find.text('Sadrži alergen člana: jaja'), findsOneWidget);
+        expect(find.text('Sačuvaj'), findsOneWidget);
+      },
     );
   });
 }

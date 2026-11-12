@@ -13,6 +13,7 @@ import '../../domain/shopping_sync.dart' show ingredientKey;
 import '../../domain/step_links.dart';
 import '../../domain/time_budget.dart';
 import '../../providers.dart';
+import '../foods/allergen_line.dart';
 import '../foods/food_chip.dart';
 import '../foods/food_picker.dart';
 import 'recipe_providers.dart';
@@ -390,6 +391,7 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
                             ),
                             const SizedBox(height: 8),
                             SelectableText('Izvor: ${draft.sourceUrl}'),
+                            IngredientsAllergenWarning(_ingredients),
                             const SizedBox(height: 16),
                           ],
                           TextField(
