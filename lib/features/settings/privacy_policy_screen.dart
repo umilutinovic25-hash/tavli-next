@@ -129,8 +129,9 @@ const _sections = [
     bullets: [
       'Pristup: sve podatke vidite u aplikaciji.',
       'Izvoz: Profil → Izvezi moje podatke pravi JSON fajl sa vašim podacima. '
-          'Izvoz ne sadrži AI ključeve, tokene sesije ni podatke iz sigurnog '
-          'skladišta.',
+          'Obuhvata podatke aktivnog domaćinstva i vaše članstvo u njemu, bez '
+          'podataka drugih članova. Izvoz ne sadrži AI ključeve, tokene sesije '
+          'ni podatke iz sigurnog skladišta.',
       'Ispravka: podatke menjate direktno u aplikaciji.',
       'Brisanje: pojedinačne stavke ili ceo nalog (Profil → Obriši nalog).',
       '[pravni pregled: dodatna prava prema GDPR-u i zakonu Republike Srbije]',
