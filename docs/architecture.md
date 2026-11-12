@@ -151,6 +151,12 @@ flowchart LR
   app never claims a recipe is allergen-free.
 - **Personal export** (format 2) includes the household's own foods with
   aliases, conversions and allergens, not the shared catalog.
+- **Personal export** (format 3, 038) covers every household table of the
+  active household (recipe versions, week templates, cook-soon queue,
+  preferences, shopping sources, contributions, supply allocations), the
+  person's own ratings for that household's recipes, their taste profile and
+  their own membership. It never includes other members (names, emails), other
+  households, app settings, model status, the outbox or sync cursors.
 
 ## Local development backend
 

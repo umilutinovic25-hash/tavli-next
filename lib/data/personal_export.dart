@@ -7,13 +7,15 @@ import '../domain/account.dart';
 import 'database.dart';
 
 /// Verzija formata izvoza. Povećava se kad se menja oblik JSON-a.
-const personalExportFormatVersion = 2;
+const personalExportFormatVersion = 3;
 
 /// Lični izvoz (pravo pristupa podacima). Čist builder: prima samo redove iz
 /// baze i podatke naloga, pa u izvoz ne može da uđe ništa drugo (AI ključevi,
 /// tokeni sesije i sadržaj secure storage-a nisu u ulazu). Slike se ne
 /// izvoze kao bajtovi, samo kao putanje. Od verzije 2 (036) sadrži i
 /// sopstvene namirnice domaćinstva; zajednički katalog nije lični podatak.
+/// Od verzije 3 (038) sadrži sve tabele aktivnog domaćinstva, sopstveno
+/// članstvo i profil ukusa; drugi članovi i druga domaćinstva ne ulaze.
 Map<String, Object?> buildPersonalExport({
   required DateTime exportedAt,
   required String email,
@@ -31,6 +33,16 @@ Map<String, Object?> buildPersonalExport({
   List<FoodAliasRow> foodAliases = const [],
   List<FoodConversionRow> foodConversions = const [],
   List<FoodAllergenRow> foodAllergens = const [],
+  ExportMembership? membership,
+  List<RecipeVersionRow> recipeVersions = const [],
+  List<RatingRow> ratings = const [],
+  List<WeekTemplateRow> weekTemplates = const [],
+  List<CookSoonItemRow> cookSoonItems = const [],
+  List<HouseholdPreferenceRow> householdPreferences = const [],
+  UserProfileRow? tasteProfile,
+  List<ShoppingSourceRow> shoppingSources = const [],
+  List<ShoppingContributionRow> shoppingContributions = const [],
+  List<SupplyAllocationRow> supplyAllocations = const [],
 }) => {
   'formatVersion': personalExportFormatVersion,
   'exportedAt': _date(exportedAt),
@@ -51,6 +63,22 @@ Map<String, Object?> buildPersonalExport({
       for (final f in foods)
         _food(f, foodAliases, foodConversions, foodAllergens),
     ],
+    'membership': membership == null ? null : _membership(membership),
+    'recipeVersions': [for (final v in recipeVersions) _recipeVersion(v)],
+    'ratings': [for (final r in ratings) _rating(r)],
+    'weekTemplates': [for (final w in weekTemplates) _weekTemplate(w)],
+    'cookSoonItems': [for (final c in cookSoonItems) _cookSoonItem(c)],
+    'householdPreferences': [
+      for (final p in householdPreferences) _preferences(p),
+    ],
+    'tasteProfile': tasteProfile == null
+        ? null
+        : _json(tasteProfile.profileJson),
+    'shoppingSources': [for (final s in shoppingSources) _shoppingSource(s)],
+    'shoppingContributions': [
+      for (final c in shoppingContributions) _contribution(c),
+    ],
+    'supplyAllocations': [for (final a in supplyAllocations) _allocation(a)],
   },
 };
 
@@ -106,6 +134,52 @@ Future<Map<String, Object?>> collectPersonalExport(
     foodAllergens: await byHousehold(
       db.foodAllergens,
       db.foodAllergens.householdId,
+    ),
+    // Samo sopstveno članstvo u aktivnom domaćinstvu; keš članova (imena
+    // drugih ljudi) ne ulazi.
+    membership: await _ownMembership(db, account),
+    recipeVersions: await byHousehold(
+      db.recipeVersions,
+      db.recipeVersions.householdId,
+    ),
+    // Samo sopstvene ocene, i to za recepte aktivnog domaćinstva.
+    ratings:
+        await (db.select(db.ratings)..where(
+              (t) =>
+                  t.userId.equals(account.userId) &
+                  t.recipeId.isInQuery(
+                    db.selectOnly(db.recipes)
+                      ..addColumns([db.recipes.id])
+                      ..where(db.recipes.householdId.equals(hh)),
+                  ),
+            ))
+            .get(),
+    weekTemplates: await byHousehold(
+      db.weekTemplates,
+      db.weekTemplates.householdId,
+    ),
+    cookSoonItems: await byHousehold(
+      db.cookSoonItems,
+      db.cookSoonItems.householdId,
+    ),
+    householdPreferences: await byHousehold(
+      db.householdPreferences,
+      db.householdPreferences.householdId,
+    ),
+    tasteProfile: await (db.select(
+      db.userProfiles,
+    )..where((t) => t.id.equals(account.userId))).getSingleOrNull(),
+    shoppingSources: await byHousehold(
+      db.shoppingSources,
+      db.shoppingSources.householdId,
+    ),
+    shoppingContributions: await byHousehold(
+      db.shoppingContributions,
+      db.shoppingContributions.householdId,
+    ),
+    supplyAllocations: await byHousehold(
+      db.supplyAllocations,
+      db.supplyAllocations.householdId,
     ),
   );
 }
@@ -274,4 +348,119 @@ Map<String, Object?> _food(
     for (final a in allergens)
       if (a.foodId == f.id) a.allergenCode,
   ]..sort(),
+};
+
+/// Sopstveno članstvo u aktivnom domaćinstvu.
+typedef ExportMembership = ({
+  String householdId,
+  String householdName,
+  String role,
+  DateTime? joinedAt,
+});
+
+/// Red iz keša članstva; bez njega podaci iz naloga, a `joinedAt` je null.
+Future<ExportMembership> _ownMembership(AppDatabase db, Account account) async {
+  final row =
+      await (db.select(db.householdMemberships)..where(
+            (t) =>
+                t.accountId.equals(account.userId) &
+                t.householdId.equals(account.householdId),
+          ))
+          .getSingleOrNull();
+  return (
+    householdId: account.householdId,
+    householdName: row?.householdName ?? account.householdName,
+    role: row?.role ?? account.role,
+    joinedAt: row?.joinedAt,
+  );
+}
+
+Map<String, Object?> _membership(ExportMembership m) => {
+  'householdId': m.householdId,
+  'householdName': m.householdName,
+  'role': m.role,
+  'joinedAt': _date(m.joinedAt),
+};
+
+Map<String, Object?> _recipeVersion(RecipeVersionRow v) => {
+  'id': v.id,
+  'recipeId': v.recipeId,
+  'recipe': _json(v.recipeJson),
+  'instruction': v.instruction,
+  'changeKind': v.changeKind,
+  'changedBy': v.changedBy,
+  'createdAt': _date(v.createdAt),
+};
+
+Map<String, Object?> _rating(RatingRow r) => {
+  'id': r.id,
+  'recipeId': r.recipeId,
+  'stars': r.stars,
+  'isComfortFood': r.isComfortFood,
+  'comment': r.comment,
+  'cookedAt': _date(r.cookedAt),
+};
+
+Map<String, Object?> _weekTemplate(WeekTemplateRow w) => {
+  'id': w.id,
+  'name': w.name,
+  'meals': _json(w.mealsJson),
+  'usePantry': w.usePantry,
+  'createdAt': _date(w.createdAt),
+};
+
+Map<String, Object?> _cookSoonItem(CookSoonItemRow c) => {
+  'id': c.id,
+  'recipeId': c.recipeId,
+  'recipeSnapshot': _json(c.recipeSnapshotJson),
+  'servings': c.servings,
+  'position': c.position,
+  'createdAt': _date(c.createdAt),
+};
+
+Map<String, Object?> _preferences(HouseholdPreferenceRow p) => {
+  'id': p.id,
+  'diet': _json(p.dietJson),
+  'dislikes': _json(p.dislikesJson),
+  'allergies': _json(p.allergiesJson),
+  'servings': p.servings,
+};
+
+Map<String, Object?> _shoppingSource(ShoppingSourceRow s) => {
+  'id': s.id,
+  'listId': s.listId,
+  'kind': s.kind,
+  'planEntryId': s.planEntryId,
+  'recipeSnapshot': s.recipeSnapshotJson == null
+      ? null
+      : _json(s.recipeSnapshotJson!),
+  'servings': s.servings,
+  'recipeId': s.recipeId,
+  'originKey': s.originKey,
+  'supersededAt': _date(s.supersededAt),
+  'closedAt': _date(s.closedAt),
+  'createdAt': _date(s.createdAt),
+};
+
+Map<String, Object?> _contribution(ShoppingContributionRow c) => {
+  'id': c.id,
+  'shoppingItemId': c.shoppingItemId,
+  'sourceId': c.sourceId,
+  'ingredientKey': c.ingredientKey,
+  'unitGroup': c.unitGroup,
+  'baseUnit': c.baseUnit,
+  'micros': c.micros,
+  'name': c.name,
+  'category': c.category,
+  'notes': _json(c.notesJson),
+};
+
+Map<String, Object?> _allocation(SupplyAllocationRow a) => {
+  'id': a.id,
+  'contributionId': a.contributionId,
+  'pantryItemId': a.pantryItemId,
+  'purchasedShoppingItemId': a.purchasedShoppingItemId,
+  'micros': a.micros,
+  'coversWholeUnknown': a.coversWholeUnknown,
+  'createdAt': _date(a.createdAt),
 };
