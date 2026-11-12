@@ -1,3 +1,5 @@
+import '../domain/allergy.dart';
+import '../domain/food.dart' show FoodCatalog;
 import '../domain/ids.dart';
 import '../domain/recipe.dart';
 import '../domain/step_links.dart';
@@ -15,8 +17,12 @@ class NotARecipeException implements Exception {
 
 /// Funkcije aplikacije koje prave i menjaju recepte preko [AIRouter]-a.
 class RecipeAI {
-  RecipeAI(this._router, {DateTime Function()? clock, this._preferences})
-    : _clock = clock ?? DateTime.now;
+  RecipeAI(
+    this._router, {
+    DateTime Function()? clock,
+    this._preferences,
+    this._allergyContext,
+  }) : _clock = clock ?? DateTime.now;
 
   final AIRouter _router;
   final DateTime Function() _clock;
@@ -24,16 +30,67 @@ class RecipeAI {
   /// Preferencije domaćinstva za svaki upit; bez njih nema bloka.
   final Future<UserPreferences> Function()? _preferences;
 
+  /// Katalog i unija alergija za zaštitnu proveru (039); bez njih nema
+  /// provere (demo i stari testovi).
+  final Future<AllergyContext> Function()? _allergyContext;
+
   Future<UserPreferences> _loadPreferences() =>
       _preferences?.call() ?? Future.value(UserPreferences.defaults);
 
+  Future<AllergyContext> _loadAllergies() =>
+      _allergyContext?.call() ??
+      Future.value((
+        catalog: FoodCatalog.empty,
+        allergies: HouseholdAllergies.none,
+      ));
+
+  /// Pita AI; ako recept ima alergen kog nije bilo u [baseline], pita još
+  /// jednom uz spisak pogodaka. Ako ni drugi odgovor nije čist, baca
+  /// [AllergenViolation]. Ponovni zahtev nije [FormatException]: taj bi
+  /// ponovio isti upit i menjao model.
+  Future<AIResult<Recipe>> _guarded(
+    AllergyContext ctx,
+    Future<AIResult<Recipe>> Function(List<AllergyHit> avoid) ask, {
+    Recipe? baseline,
+  }) async {
+    final allowed = baseline == null
+        ? const <String>{}
+        : checkAllergens(
+            baseline.ingredients,
+            ctx.catalog,
+            ctx.allergies,
+          ).allergens.toSet();
+    List<AllergyHit> newHits(Recipe r) => [
+      for (final h in checkAllergens(
+        r.ingredients,
+        ctx.catalog,
+        ctx.allergies,
+      ).hits)
+        if (!allowed.contains(h.allergen)) h,
+    ];
+
+    final first = await ask(const []);
+    final hits = newHits(first.value);
+    if (hits.isEmpty) return first;
+    final second = await ask(hits);
+    final again = newHits(second.value);
+    if (again.isEmpty) return second;
+    throw AllergenViolation({for (final h in again) h.allergen}.toList());
+  }
+
   Future<AIResult<Recipe>> fromImage(AIImage image, {String? imagePath}) async {
     final prefs = await _loadPreferences();
+    // Recept sa slike se ne odbija (osoba uvozi baš taj recept); upozorenje
+    // o alergenima je u pregledu.
+    final ctx = await _loadAllergies();
     return _router
         .run(
           AIRequest(
             system: recipeSystemPrompt,
-            prompt: recipeFromImagePrompt(preferences: prefs),
+            prompt: recipeFromImagePrompt(
+              preferences: prefs,
+              allergies: ctx.allergies.promptTerms,
+            ),
             images: [image],
             temperature: 0.1,
           ),
@@ -53,26 +110,49 @@ class RecipeAI {
     String? notes,
   }) async {
     final prefs = await _loadPreferences();
-    return _router
-        .run(
-          AIRequest(
-            system: recipeSystemPrompt,
-            prompt: recipeFromNamePrompt(
-              dishName,
-              servings: servings,
-              notes: notes,
-              preferences: prefs,
+    final ctx = await _loadAllergies();
+    return _guarded(
+      ctx,
+      (avoid) => _router
+          .run(
+            AIRequest(
+              system: recipeSystemPrompt,
+              prompt: recipeFromNamePrompt(
+                dishName,
+                servings: servings,
+                notes: notes,
+                preferences: prefs,
+                allergies: ctx.allergies.promptTerms,
+                avoid: avoid,
+              ),
+              temperature: 0.7,
             ),
-            temperature: 0.7,
-          ),
-          (json) => _build(json, RecipeSource.ai),
-        )
-        .then(_stampModel);
+            (json) => _build(json, RecipeSource.ai),
+          )
+          .then(_stampModel),
+    );
   }
 
   /// Vraća novu verziju recepta; id, izvor i slika ostaju isti.
+  /// Odbija se samo nov alergen: onaj koji je već bio u [current] (npr.
+  /// recept sa slike) ne sprečava izmenu.
   Future<AIResult<Recipe>> refine(Recipe current, String instruction) async {
     final prefs = await _loadPreferences();
+    final ctx = await _loadAllergies();
+    return _guarded(
+      ctx,
+      baseline: current,
+      (avoid) => _refineOnce(current, instruction, prefs, ctx, avoid),
+    );
+  }
+
+  Future<AIResult<Recipe>> _refineOnce(
+    Recipe current,
+    String instruction,
+    UserPreferences prefs,
+    AllergyContext ctx,
+    List<AllergyHit> avoid,
+  ) {
     return _router
         .run(
           AIRequest(
@@ -81,6 +161,8 @@ class RecipeAI {
               current,
               instruction,
               preferences: prefs,
+              allergies: ctx.allergies.promptTerms,
+              avoid: avoid,
             ),
           ),
           // Potvrđeno vreme ostaje; AI ga ne menja.

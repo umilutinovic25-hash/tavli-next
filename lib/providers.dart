@@ -265,7 +265,14 @@ final recipeAIProvider = Provider<RecipeAI>(
   (ref) => RecipeAI(
     ref.watch(aiRouterProvider),
     preferences: () => ref.read(preferencesRepositoryProvider).current(),
+    allergyContext: () => loadAllergyContext(ref),
   ),
+);
+
+/// Katalog i unija alergija aktivnog domaćinstva za proveru AI recepata.
+Future<AllergyContext> loadAllergyContext(Ref ref) async => (
+  catalog: await ref.read(foodRepositoryProvider).catalog(),
+  allergies: await ref.read(allergyRepositoryProvider).current(),
 );
 
 final mealPlanAIProvider = Provider<MealPlanAI>(

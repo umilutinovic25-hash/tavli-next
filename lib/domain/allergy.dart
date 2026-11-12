@@ -189,3 +189,6 @@ class AllergenViolation implements Exception {
       'Nije pronađen recept bez alergena članova domaćinstva '
       '(${allergens.join(', ')}). Promeni zahtev i pokušaj ponovo.';
 }
+
+/// Šta treba za proveru AI recepta: katalog na uređaju i unija alergija.
+typedef AllergyContext = ({FoodCatalog catalog, HouseholdAllergies allergies});
