@@ -279,6 +279,7 @@ final mealPlanAIProvider = Provider<MealPlanAI>(
   (ref) => MealPlanAI(
     ref.watch(aiRouterProvider),
     preferences: () => ref.read(preferencesRepositoryProvider).current(),
+    allergyContext: () => loadAllergyContext(ref),
   ),
 );
 

@@ -5,7 +5,7 @@
 - [x] T003 drift v18 `MemberAllergies` + migracioni test; `MemberAllergyEntity` u registru sinhronizacije.
 - [x] T004 `AllergyRepository` (watchMine, watchHousehold, current, saveMine kroz outbox) + test.
 - [x] T005 `RecipeAI`: provera, jedan ponovni zahtev, `AllergenViolation`; upit sa unijom. Testovi u `test/ai/recipe_ai_test.dart`.
-- [ ] T006 `MealPlanAI`: filtriranje biblioteke, ponovni zahtev sažetaka, prazna mesta + greška. Testovi u `test/ai/meal_plan_ai_test.dart`.
+- [x] T006 `MealPlanAI`: filtriranje biblioteke, ponovni zahtev sažetaka, prazna mesta + greška. Testovi u `test/ai/meal_plan_ai_test.dart`.
 - [ ] T007 Provideri + poruka greške (`AllergenViolation`) na ekranima po nazivu, razgovora i plana; widget test.
 - [ ] T008 Ekran Preferencije: „Moje alergije“ (čipovi EU, Ostalo, unija); widget test na 400 i 1200 px.
 - [ ] T009 `AllergenLine` i pregled pre čuvanja: „Sadrži alergen člana: …“, „Nepotvrđeno, proveri alergene“; widget testovi.

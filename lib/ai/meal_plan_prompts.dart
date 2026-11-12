@@ -1,10 +1,11 @@
 import 'dart:convert';
 
+import '../domain/allergy.dart';
 import '../domain/meal_plan.dart';
 import '../domain/recipe.dart';
 import '../domain/time_budget.dart';
 import '../domain/user_preferences.dart';
-import 'prompts.dart' show preferencesBlock;
+import 'prompts.dart' show allergenRetryNote, preferencesBlock;
 
 const mealPlanSystemPrompt = '''
 You are the meal-planning assistant inside "Tavli", a recipe and shopping app.
@@ -29,6 +30,7 @@ String planOutlinePrompt({
   List<String> timeLimits = const [],
   List<String> tooLong = const [],
   UserPreferences? preferences,
+  List<String> allergies = const [],
 }) {
   final slotsJson = jsonEncode([
     for (final s in slots) {'date': s.date.toString(), 'meal': s.type.name},
@@ -42,7 +44,7 @@ String planOutlinePrompt({
         'totalMinutes': ?r.totalMinutes,
       },
   ]);
-  return '''${preferencesBlock(preferences)}Plan one dish for EVERY slot below, and nothing else: no extra or missing slots.
+  return '''${preferencesBlock(preferences, allergies: allergies)}Plan one dish for EVERY slot below, and nothing else: no extra or missing slots.
 The household eats $servings servings per meal.
 ${rules.isEmpty ? '' : 'Day rules (follow every required rule exactly; follow preferred rules when possible):\n${rules.map((r) => '- $r').join('\n')}\n'}${wishes == null || wishes.trim().isEmpty ? '' : 'Wishes of the household: ${wishes.trim()}\n'}${pantry.isEmpty ? '' : 'Prefer using what is at home: ${jsonEncode(pantry)}\n'}${alreadyPlanned.isEmpty ? '' : 'Already planned in other weeks (avoid repeating too often): ${jsonEncode(alreadyPlanned)}\n'}${timeLimits.isEmpty ? '' : 'Time available per day (every dish on that date must fit; for library recipes use their activeMinutes/totalMinutes):\n${timeLimits.map((t) => '- $t').join('\n')}\n'}${tooLong.isEmpty ? '' : 'These library recipes take too long for these days; choose something quicker: ${jsonEncode(tooLong)}\n'}You may reuse the household's own saved recipes by their "id"; never invent ids.
 Library: $libraryJson
@@ -57,8 +59,10 @@ Return:
 String recipeSummariesPrompt(
   List<String> titles, {
   UserPreferences? preferences,
+  List<String> allergies = const [],
+  List<AllergyHit> avoid = const [],
 }) =>
-    '''${preferencesBlock(preferences)}Write a short recipe summary for each dish below, exactly once each, with the
+    '''${preferencesBlock(preferences, allergies: allergies)}${allergenRetryNote(avoid)}Write a short recipe summary for each dish below, exactly once each, with the
 same title. No preparation steps.
 Recipes: ${jsonEncode(titles)}
 Return:
