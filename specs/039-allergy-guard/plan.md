@@ -7,7 +7,7 @@
 - Okidač na `household_members` after delete briše red tog člana (napuštanje, uklanjanje).
 - Migracija podataka: za `household_preferences.allergies` ≠ []: osoba = `updated_by` ako je član, inače vlasnik; srpski EU nazivi (`jaja`, `kikiriki`, …) → kodovi, ostalo → `custom`; zatim `allergies = '[]'`. Kolona ostaje zbog starijih klijenata.
 - drift 17 → 18: `PersonAllergies` (id, householdId, userId, codesJson, customJson); `SyncEntity` scope household.
-- Ranija polja ostaju: `UserPreferences.allergies` se više ne prikazuje i ne šalje AI-ju (upit uzima uniju).
+- Ranija polja ostaju: `UserPreferences.allergies` se više ne prikazuje; upit uzima uniju. Izmena posle implementacije (Convergence 1): stari zajednički spisak se i dalje **dodaje** upitu, jer ga stariji klijenti pišu (bezbednije da ga AI vidi); kod ga ne proverava.
 
 ## Domen (`lib/domain/allergy.dart`)
 `PersonAllergies` (validacija), `HouseholdAllergies.union`, `checkAllergens(ingredients, catalog, allergies) → AllergyCheck(hits, unconfirmed)`, `AllergyHit(ingredient, label)`, `AllergenViolation` (izuzetak sa srpskom porukom).

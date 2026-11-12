@@ -10,4 +10,7 @@
 - [x] T008 Ekran Preferencije: „Moje alergije“ (čipovi EU, Ostalo, unija); widget test na 400 i 1200 px.
 - [x] T009 `AllergenLine` (detalj), `AiRecipePreview` (po nazivu i foto) i forma uvoza sa linka (`RecipeFormScreen`): „Sadrži alergen člana: …“, „Nepotvrđeno, proveri alergene“; widget testovi.
 - [x] T010 Lični izvoz format 4 sa `allergies`; politika privatnosti; `docs/architecture.md`.
-- [ ] T011 `spec-converge` do „Converged“; `flutter test`, `supabase db reset && supabase test db`, `flutter analyze`; PR.
+- [x] T011 `spec-converge` do „Converged“; `flutter test`, `supabase db reset && supabase test db`, `flutter analyze`; PR.
+
+## Convergence 1 (2026-11-12)
+- [x] T012 Uskladi plan sa kodom: stari zajednički spisak (`UserPreferences.allergies`) i dalje ide u AI upit uz uniju, jer ga stariji klijenti pišu; kod ga ne proverava, per plan: Podaci (contradicts)
