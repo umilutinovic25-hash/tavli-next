@@ -1,5 +1,6 @@
 import '../../ai/ai_errors.dart';
 import '../../ai/recipe_ai.dart';
+import '../../domain/allergy.dart';
 
 /// Poruka za korisnika umesto tehničke greške.
 String aiErrorText(Object error) => switch (error) {
@@ -15,6 +16,7 @@ String aiErrorText(Object error) => switch (error) {
         : 'Svi besplatni limiti su potrošeni. Pokušaj ponovo posle '
               '${_hhmm(nextAvailableAt.toLocal())}.',
   NotARecipeException() => 'Na slici nije pronađen recept.',
+  AllergenViolation() => error.toString(),
   _ => 'Nešto nije u redu: $error',
 };
 
