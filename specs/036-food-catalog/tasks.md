@@ -128,7 +128,8 @@
 - [x] T033 `spec-converge` (kod vs spec) dok ne kaže „Converged“; ispravke kao zasebni commitovi.
 - [ ] T034 `flutter test` ceo, `supabase db reset && supabase test db`, `flutter build macos --debug`; quickstart ručno na uskoj i širokoj širini.
   - Stanje 2026-11-11: `flutter test` 1165/1165, `supabase db reset && supabase test db` 520/520. `flutter build macos --debug` prolazi uz `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` (aktivan je bio Command Line Tools). Quickstart koraci 1–6 imaju automatske testove (korak 1 na 400 i 1200 px otkrio je da se alias nije prikazivao odmah, popravljeno u `fdc6c2e`). Ostaje ručni prolaz u pokrenutoj aplikaciji sa nalogom.
-- [ ] T035 PR opis: veza na spec, upozorenje o mešovitim verzijama klijenata (v2 snimak na starom klijentu), CSV na pregled timu, lista migracija.
+  - Ponovo 2026-11-12: `flutter analyze` čist, `flutter test` 1172/1172, `supabase db reset && supabase test db` 520/520. Ručni prolaz (quickstart 1–6, uska i široka širina) radi Uroš pre spajanja.
+- [x] T035 PR opis: veza na spec, upozorenje o mešovitim verzijama klijenata (v2 snimak na starom klijentu), CSV na pregled timu, lista migracija.
 
 ---
 
