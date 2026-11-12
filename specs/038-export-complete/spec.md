@@ -24,3 +24,6 @@ Novi tekst (politika privatnosti, „Vaša prava“ → Izvoz): „Obuhvata poda
 - prazan izvor: redosled svih sekcija, `formatVersion` 3, `membership` i `tasteProfile` null.
 - `collectPersonalExport`: nove sekcije sadrže samo redove aktivnog domaćinstva; ocene samo sopstvene i samo za recepte domaćinstva; članstvo samo sopstveno za aktivno domaćinstvo; imena iz keša članova nisu u fajlu.
 - JSON kolone novih sekcija su objekti.
+
+## Convergence 1 (2026-11-12)
+- [x] T001 Bez reda u kešu članstva `membership` dolazi iz naloga sa `joinedAt: null` po spec: Prihvatanje/`membership` (partial)

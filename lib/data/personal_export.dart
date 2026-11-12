@@ -33,7 +33,7 @@ Map<String, Object?> buildPersonalExport({
   List<FoodAliasRow> foodAliases = const [],
   List<FoodConversionRow> foodConversions = const [],
   List<FoodAllergenRow> foodAllergens = const [],
-  HouseholdMembershipRow? membership,
+  ExportMembership? membership,
   List<RecipeVersionRow> recipeVersions = const [],
   List<RatingRow> ratings = const [],
   List<WeekTemplateRow> weekTemplates = const [],
@@ -137,12 +137,7 @@ Future<Map<String, Object?>> collectPersonalExport(
     ),
     // Samo sopstveno članstvo u aktivnom domaćinstvu; keš članova (imena
     // drugih ljudi) ne ulazi.
-    membership:
-        await (db.select(db.householdMemberships)..where(
-              (t) =>
-                  t.accountId.equals(account.userId) & t.householdId.equals(hh),
-            ))
-            .getSingleOrNull(),
+    membership: await _ownMembership(db, account),
     recipeVersions: await byHousehold(
       db.recipeVersions,
       db.recipeVersions.householdId,
@@ -355,7 +350,32 @@ Map<String, Object?> _food(
   ]..sort(),
 };
 
-Map<String, Object?> _membership(HouseholdMembershipRow m) => {
+/// Sopstveno članstvo u aktivnom domaćinstvu.
+typedef ExportMembership = ({
+  String householdId,
+  String householdName,
+  String role,
+  DateTime? joinedAt,
+});
+
+/// Red iz keša članstva; bez njega podaci iz naloga, a `joinedAt` je null.
+Future<ExportMembership> _ownMembership(AppDatabase db, Account account) async {
+  final row =
+      await (db.select(db.householdMemberships)..where(
+            (t) =>
+                t.accountId.equals(account.userId) &
+                t.householdId.equals(account.householdId),
+          ))
+          .getSingleOrNull();
+  return (
+    householdId: account.householdId,
+    householdName: row?.householdName ?? account.householdName,
+    role: row?.role ?? account.role,
+    joinedAt: row?.joinedAt,
+  );
+}
+
+Map<String, Object?> _membership(ExportMembership m) => {
   'householdId': m.householdId,
   'householdName': m.householdName,
   'role': m.role,

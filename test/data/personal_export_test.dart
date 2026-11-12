@@ -497,6 +497,28 @@ void main() {
     },
   );
 
+  test(
+    '038: bez reda u kešu članstvo dolazi iz naloga, joinedAt null',
+    () async {
+      final db = AppDatabase(NativeDatabase.memory());
+      addTearDown(db.close);
+
+      final export = await collectPersonalExport(
+        db,
+        _account,
+        clock: () => _at,
+      );
+      final sections = export['sections']! as Map<String, Object?>;
+
+      expect(sections['membership'], {
+        'householdId': 'h1',
+        'householdName': 'Dom',
+        'role': 'owner',
+        'joinedAt': null,
+      });
+    },
+  );
+
   test('writePersonalExportFile upisuje JSON sa datumom u imenu', () async {
     final dir = Directory.systemTemp.createTempSync('tavli_izvoz_test');
     addTearDown(() => dir.deleteSync(recursive: true));
