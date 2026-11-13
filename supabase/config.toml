@@ -430,3 +430,7 @@ enabled = true
 [functions.recipe-url-import]
 enabled = true
 verify_jwt = true
+
+[functions.ai-complete]
+enabled = true
+verify_jwt = true
