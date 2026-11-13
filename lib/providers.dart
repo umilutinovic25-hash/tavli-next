@@ -17,9 +17,11 @@ import 'ai/ai_router.dart';
 import 'ai/chain_config.dart';
 import 'ai/chat_client.dart';
 import 'ai/debug_file_storage.dart';
+import 'ai/gateway_chat_client.dart';
 import 'ai/key_store.dart';
 import 'ai/meal_plan_ai.dart';
 import 'ai/recipe_ai.dart';
+import 'ai/routing_chat_client.dart';
 import 'data/allergy_repository.dart';
 import 'data/database.dart';
 import 'data/drift_model_status_store.dart';
@@ -223,12 +225,17 @@ final keyStoreProvider = Provider<KeyStore>(
   (ref) => SecureKeyStore(storage: ref.watch(secretStorageProvider)),
 );
 
-/// Ugrađeni ključevi iz `--dart-define-from-file=secrets.json`.
+/// Ugrađeni AI: preko Tavli gatewaya za prijavljen nalog; ključevi iz
+/// `--dart-define-from-file=secrets.json` samo u razvoju (nikad u izdanju).
 final builtInKeysProvider = Provider<BuiltInKeys>(
-  (ref) => BuiltInKeys.fromEnvironment(),
+  (ref) => builtInKeysFor(
+    release: kReleaseMode,
+    signedIn: ref.watch(accountScopeProvider) != null,
+    fromEnvironment: BuiltInKeys.fromEnvironment(),
+  ),
 );
 
-/// Sopstveni ključ pa ugrađeni. Kasnije ga menja Cloudflare proxy.
+/// Sopstveni ključ pa ugrađeni (gateway).
 final keySourceProvider = Provider<KeySource>(
   (ref) => LayeredKeySource(
     ref.watch(keyStoreProvider),
@@ -252,10 +259,18 @@ final chatClientProvider = Provider<OpenAICompatibleClient>(
   (ref) => OpenAICompatibleClient(),
 );
 
+/// Router šalje ugrađeni ključ na gateway, sopstvene ključeve direktno.
+final aiChatClientProvider = Provider<ChatClient>(
+  (ref) => RoutingChatClient(
+    direct: ref.watch(chatClientProvider),
+    gateway: GatewayChatClient(ref.watch(supabaseClientProvider)),
+  ),
+);
+
 final aiRouterProvider = Provider<AIRouter>(
   (ref) => AIRouter(
     config: () => ref.read(chainConfigProvider),
-    client: ref.watch(chatClientProvider),
+    client: ref.watch(aiChatClientProvider),
     keys: ref.watch(keySourceProvider),
     status: DriftModelStatusStore(ref.watch(databaseProvider)),
   ),

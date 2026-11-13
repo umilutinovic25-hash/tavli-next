@@ -291,15 +291,24 @@ class ApiCredential {
   String toString() => 'ApiCredential(${provider.name}, ${origin.name})';
 }
 
-/// Ključevi koje router proba za provajdera, redom. Kasnije ga može
-/// zameniti Cloudflare proxy bez izmena u routeru.
+/// Ključevi koje router proba za provajdera, redom. Ugrađeni ključ
+/// je marker gatewaya ([gatewayCredentialValue]), pa router ostaje isti.
 abstract interface class KeySource {
   Future<List<ApiCredential>> credentialsFor(AIProvider provider);
 }
 
-/// Ugrađeni ključevi iz `secrets.json` preko `--dart-define-from-file`.
+/// Vrednost „ključa“ koja znači: zahtev ide preko Tavli gatewaya
+/// (edge funkcija `ai-complete`), a pravi ključ drži server.
+const gatewayCredentialValue = 'tavli-gateway';
+
+/// Ugrađeni ključevi iz `secrets.json` preko `--dart-define-from-file`
+/// (samo za razvoj) ili marker gatewaya ([BuiltInKeys.gateway]).
 class BuiltInKeys {
   const BuiltInKeys([this._keys = const {}]);
+
+  factory BuiltInKeys.gateway() => BuiltInKeys({
+    for (final p in AIProvider.values) p: gatewayCredentialValue,
+  });
 
   factory BuiltInKeys.fromEnvironment() => const BuiltInKeys({
     AIProvider.gemini: String.fromEnvironment('GEMINI_API_KEY'),
@@ -321,6 +330,20 @@ class BuiltInKeys {
     final v = value.trim();
     return v.isNotEmpty && AIProvider.values.any((p) => this[p] == v);
   }
+}
+
+/// Koji ugrađeni ključevi važe: izdanje nikad ne koristi ključeve iz
+/// okruženja, već gateway (samo prijavljen nalog); razvoj koristi ključeve iz
+/// `secrets.json` ako ih ima, inače gateway.
+BuiltInKeys builtInKeysFor({
+  required bool release,
+  required bool signedIn,
+  required BuiltInKeys fromEnvironment,
+}) {
+  if (!release && AIProvider.values.any(fromEnvironment.has)) {
+    return fromEnvironment;
+  }
+  return signedIn ? BuiltInKeys.gateway() : const BuiltInKeys();
 }
 
 /// Prvo korisnikovi ključevi (redom dodavanja), pa ugrađeni. Sačuvan ključ
