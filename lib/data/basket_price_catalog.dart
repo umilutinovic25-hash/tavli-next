@@ -14,19 +14,36 @@ class PriceProduct {
 }
 
 class PriceCatalog {
-  const PriceCatalog(this.products, this.failedSources, this.fetchedAt);
+  const PriceCatalog(this.products, this.sources);
   final List<PriceProduct> products;
-  final List<String> failedSources;
-  final DateTime fetchedAt;
+  final List<PriceSourceStatus> sources;
+}
+
+class PriceSourceStatus {
+  const PriceSourceStatus({
+    required this.name,
+    required this.source,
+    required this.fetchedAt,
+    required this.failed,
+  });
+  final String name;
+  final Uri source;
+  final DateTime? fetchedAt;
+  final bool failed;
 }
 
 /// Samo fiksni javni izvori. Korisnikova korpa se ne šalje trgovcima.
 class BasketPriceCatalog {
-  BasketPriceCatalog({Dio? dio, Future<Directory> Function()? cacheDirectory})
-    : _dio = dio ?? Dio(),
-      _cacheDirectory = cacheDirectory ?? getApplicationSupportDirectory;
+  BasketPriceCatalog({
+    Dio? dio,
+    Future<Directory> Function()? cacheDirectory,
+    DateTime Function()? clock,
+  }) : _dio = dio ?? Dio(),
+       _cacheDirectory = cacheDirectory ?? getApplicationSupportDirectory,
+       _clock = clock ?? DateTime.now;
   final Dio _dio;
   final Future<Directory> Function() _cacheDirectory;
+  final DateTime Function() _clock;
   static final sources = <String, Uri>{
     'Delhaize': Uri.parse(
       'https://tsmdelhaizeserbia.delhaize.rs/PublicDoc/cene_proizvoda_Delhaize.csv',
@@ -34,12 +51,20 @@ class BasketPriceCatalog {
     'Europrom': Uri.parse(
       'https://api.nitsolutions.rs/api/v1/external/cenovnik/00fc017c-0f22-40c2-9e38-50f4c4a66f80.csv',
     ),
+    'IDEA MARKETI': Uri.parse(
+      'https://ideacenovnici.blob.core.windows.net/cenovnici/drzavni/cene_proizvoda_ideamarketi.csv',
+    ),
+    'Lidl': Uri.parse(
+      'https://www.lidl.rs/explore/assets/webPriceData/rs/cene_proizvoda_Lidl.csv',
+    ),
+    'Univerexport': Uri.parse(
+      'https://ucloud.univerexport.rs/opendata/univer.csv',
+    ),
   };
 
   Future<PriceCatalog> fetch() async {
     final products = <PriceProduct>[];
-    final failed = <String>[];
-    final timestamps = <DateTime>[];
+    final statuses = <PriceSourceStatus>[];
     Directory? directory;
     try {
       directory = await _cacheDirectory();
@@ -53,6 +78,7 @@ class BasketPriceCatalog {
           : File('${directory.path}/tavli_prices_${entry.key}.csv');
       List<PriceProduct>? parsed;
       DateTime? fetchedAt;
+      var failed = false;
       try {
         final response = await _dio.getUri<List<int>>(
           entry.value,
@@ -66,15 +92,16 @@ class BasketPriceCatalog {
         if (bytes == null || bytes.length > 40 * 1024 * 1024) {
           throw const FormatException();
         }
+        final now = _clock();
         parsed = await Isolate.run(
           () => parsePrices(
             utf8.decode(bytes, allowMalformed: false),
             entry.value,
-            DateTime.now(),
+            now,
           ),
         );
         if (parsed?.isEmpty ?? true) throw const FormatException();
-        fetchedAt = DateTime.now();
+        fetchedAt = _clock();
         if (file != null) {
           try {
             final temp = File('${file.path}.tmp');
@@ -85,17 +112,18 @@ class BasketPriceCatalog {
           }
         }
       } on Exception {
-        failed.add(entry.key);
+        failed = true;
         try {
           if (file != null &&
               await file.exists() &&
               await file.length() <= 40 * 1024 * 1024) {
             final bytes = await file.readAsBytes();
+            final now = _clock();
             parsed = await Isolate.run(
               () => parsePrices(
                 utf8.decode(bytes, allowMalformed: false),
                 entry.value,
-                DateTime.now(),
+                now,
               ),
             );
             if (parsed?.isEmpty ?? true) parsed = null;
@@ -107,15 +135,17 @@ class BasketPriceCatalog {
       }
       if (parsed != null && fetchedAt != null) {
         products.addAll(parsed);
-        timestamps.add(fetchedAt);
       }
+      statuses.add(
+        PriceSourceStatus(
+          name: entry.key,
+          source: entry.value,
+          fetchedAt: parsed == null ? null : fetchedAt,
+          failed: failed,
+        ),
+      );
     }
-    timestamps.sort();
-    return PriceCatalog(
-      products,
-      failed,
-      timestamps.isEmpty ? DateTime.now() : timestamps.first,
-    );
+    return PriceCatalog(products, statuses);
   }
 }
 

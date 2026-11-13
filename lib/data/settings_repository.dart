@@ -9,6 +9,7 @@ class SettingsRepository {
 
   static const themeKey = 'theme';
   static const themeModeKey = 'theme_mode';
+  static const univerexportPriceCategoryKey = 'univerexport_price_category';
 
   Future<String?> get(String key) async {
     final row = await (_db.select(

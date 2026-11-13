@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/theme/theme_controller.dart';
 import '../../data/database.dart';
+import '../../data/settings_repository.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/recipe.dart';
 import '../../domain/recipe_format.dart';
@@ -146,6 +148,15 @@ class ShoppingItemsList extends ConsumerWidget {
               MaterialPageRoute<void>(
                 builder: (_) => BasketPriceScreen(
                   items: open,
+                  loadPriceCategory: () => ref
+                      .read(settingsRepositoryProvider)
+                      .get(SettingsRepository.univerexportPriceCategoryKey),
+                  savePriceCategory: (value) => ref
+                      .read(settingsRepositoryProvider)
+                      .set(
+                        SettingsRepository.univerexportPriceCategoryKey,
+                        value,
+                      ),
                   saveSelection: ref
                       .read(shoppingRepositoryProvider)
                       .updatePriceSelection,
