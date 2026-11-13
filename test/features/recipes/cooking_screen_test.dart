@@ -241,15 +241,19 @@ void main() {
     expect(app.wakeLock.on, isFalse);
   });
 
-  testTavli('recept bez koraka jasno prikazuje prazno stanje', (tester) async {
+  testTavli('recept bez koraka nema prazan deo Priprema, sastojci ostaju', (
+    tester,
+  ) async {
     await pumpTavli(
       tester,
       location: '/recipes/a',
       recipes: [sampleRecipe('a', 'Sarma').copyWith(steps: [])],
     );
     await tapLabel(tester, 'Kreni sa kuvanjem');
-    expect(find.text('Koraci pripreme nisu uneti.'), findsOneWidget);
+    expect(find.text('Priprema'), findsNothing);
+    expect(find.text('Koraci pripreme nisu uneti.'), findsNothing);
     expect(find.text('Sledeći'), findsNothing);
+    expect(find.textContaining('kupus'), findsOneWidget);
   });
 
   testTavli('recept sa više od 20 porcija zadržava originalne količine', (

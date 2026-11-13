@@ -80,12 +80,7 @@ class _CookingScreenState extends State<CookingScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text('Priprema', style: theme.textTheme.titleLarge),
-        if (snapshot.steps.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Text('Koraci pripreme nisu uneti.'),
-          )
-        else ...[
+        if (snapshot.steps.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
             'Korak ${_step + 1} od ${snapshot.steps.length}',
@@ -142,7 +137,10 @@ class _CookingScreenState extends State<CookingScreen> {
                         style: theme.textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 16),
-                      if (wide)
+                      // Obrok bez koraka: samo sastojci, bez praznog dela „Priprema“.
+                      if (snapshot.steps.isEmpty)
+                        ingredients
+                      else if (wide)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
