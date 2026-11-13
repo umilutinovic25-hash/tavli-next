@@ -376,6 +376,9 @@ class ShoppingContributions extends Table {
   TextColumn get category => text()();
   TextColumn get notesJson => text().withDefault(const Constant('[]'))();
 
+  /// Količina sadrži približnu meru (kuhinjska mera, rečnik v3): prikaz ~.
+  BoolColumn get approximate => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -658,7 +661,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 20;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -848,6 +851,17 @@ class AppDatabase extends _$AppDatabase {
           (c) => c.read<String>('name') == 'price_selection_json',
         )) {
           await m.addColumn(shoppingItems, shoppingItems.priceSelectionJson);
+        }
+      }
+      if (from < 20) {
+        final columns = await customSelect(
+          'PRAGMA table_info(shopping_contributions)',
+        ).get();
+        if (!columns.any((c) => c.read<String>('name') == 'approximate')) {
+          await m.addColumn(
+            shoppingContributions,
+            shoppingContributions.approximate,
+          );
         }
       }
     },

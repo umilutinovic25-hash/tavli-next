@@ -786,6 +786,7 @@ class ShoppingContributionEntity
     'name': r.name,
     'category': r.category,
     'notes': jsonDecode(r.notesJson),
+    'approximate': r.approximate,
   };
 
   @override
@@ -802,6 +803,7 @@ class ShoppingContributionEntity
         name: Value(j['name']! as String),
         category: Value(j['category']! as String),
         notesJson: Value(_json(j['notes'] ?? const [])),
+        approximate: Value(j['approximate'] as bool? ?? false),
       );
 }
 

@@ -10,6 +10,7 @@ import 'package:tavli/data/recipe_photo_store.dart';
 import 'package:tavli/data/shopping_repository.dart';
 import 'package:tavli/domain/plan_calendar.dart';
 import 'package:tavli/domain/recipe.dart';
+import 'package:tavli/domain/shopping_demand.dart';
 import 'package:tavli/domain/shopping_source.dart';
 import 'package:tavli/sync/synced_writer.dart';
 import 'package:tavli/sync/uploader.dart';
@@ -1255,6 +1256,35 @@ void main() {
       expect(ingredient['name'], 'Jaja');
       final c = (await db.select(db.shoppingContributions).get()).single;
       expect(c.ingredientKey, 'food:f_jaje');
+    });
+
+    test('043: čaša i ml su jedan doprinos od 350 ml sa oznakom ~', () async {
+      await repo.addRecipePreparation(
+        snapshot: dish('Kolač', 2, const [
+          Ingredient(name: 'jogurt', quantity: 1, unit: 'čaša'),
+          Ingredient(name: 'jogurt', quantity: 150, unit: 'ml'),
+        ]),
+        servings: 2,
+        originKey: 'kolac',
+      );
+      final c = (await db.select(db.shoppingContributions).get()).single;
+      expect(c.micros, 350 * microsPerUnit);
+      expect(c.baseUnit, 'ml');
+      expect(c.approximate, true);
+    });
+
+    test('043: kg i g su tačan zbir bez oznake ~', () async {
+      await repo.addRecipePreparation(
+        snapshot: dish('Testo', 2, const [
+          Ingredient(name: 'brašno', quantity: 1, unit: 'kg'),
+          Ingredient(name: 'brašno', quantity: 500, unit: 'g'),
+        ]),
+        servings: 2,
+        originKey: 'testo',
+      );
+      final c = (await db.select(db.shoppingContributions).get()).single;
+      expect(c.micros, 1500 * microsPerUnit);
+      expect(c.approximate, false);
     });
 
     test('SC-001: jedna stavka „jaje“ 1,5 kom posle zalihe „jajce“', () async {

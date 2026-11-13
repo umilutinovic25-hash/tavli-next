@@ -689,12 +689,14 @@ void main() {
         name: 'Kupus',
         category: 'voće i povrće',
         notesJson: const Value('["kiseli"]'),
+        approximate: const Value(true),
         householdId: const Value('h1'),
       ),
       'c1',
       (r) {
         expect(r['micros'], 1500000000);
         expect(r['notes'], ['kiseli']);
+        expect(r['approximate'], true);
       },
     );
     await roundTrip(

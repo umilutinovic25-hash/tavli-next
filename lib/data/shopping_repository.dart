@@ -1195,6 +1195,7 @@ class ShoppingRepository {
             prev.name == line.name &&
             prev.category == line.category &&
             prev.baseUnit == line.baseUnit &&
+            prev.approximate == line.approximate &&
             prev.notesJson == notes) {
           continue;
         }
@@ -1210,6 +1211,7 @@ class ShoppingRepository {
           name: Value(line.name),
           category: Value(line.category),
           notesJson: Value(notes),
+          approximate: Value(line.approximate),
         );
         await _db.into(_db.shoppingContributions).insertOnConflictUpdate(row);
         contributions[row.id.value] = await (_db.select(

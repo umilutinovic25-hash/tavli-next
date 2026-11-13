@@ -8547,6 +8547,21 @@ class $ShoppingContributionsTable extends ShoppingContributions
     requiredDuringInsert: false,
     defaultValue: const Constant('[]'),
   );
+  static const VerificationMeta _approximateMeta = const VerificationMeta(
+    'approximate',
+  );
+  @override
+  late final GeneratedColumn<bool> approximate = GeneratedColumn<bool>(
+    'approximate',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("approximate" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -8560,6 +8575,7 @@ class $ShoppingContributionsTable extends ShoppingContributions
     name,
     category,
     notesJson,
+    approximate,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -8659,6 +8675,15 @@ class $ShoppingContributionsTable extends ShoppingContributions
         notesJson.isAcceptableOrUnknown(data['notes_json']!, _notesJsonMeta),
       );
     }
+    if (data.containsKey('approximate')) {
+      context.handle(
+        _approximateMeta,
+        approximate.isAcceptableOrUnknown(
+          data['approximate']!,
+          _approximateMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -8715,6 +8740,10 @@ class $ShoppingContributionsTable extends ShoppingContributions
         DriftSqlType.string,
         data['${effectivePrefix}notes_json'],
       )!,
+      approximate: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}approximate'],
+      )!,
     );
   }
 
@@ -8742,6 +8771,9 @@ class ShoppingContributionRow extends DataClass
   final String name;
   final String category;
   final String notesJson;
+
+  /// Količina sadrži približnu meru (kuhinjska mera, rečnik v3): prikaz ~.
+  final bool approximate;
   const ShoppingContributionRow({
     required this.id,
     this.householdId,
@@ -8754,6 +8786,7 @@ class ShoppingContributionRow extends DataClass
     required this.name,
     required this.category,
     required this.notesJson,
+    required this.approximate,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -8775,6 +8808,7 @@ class ShoppingContributionRow extends DataClass
     map['name'] = Variable<String>(name);
     map['category'] = Variable<String>(category);
     map['notes_json'] = Variable<String>(notesJson);
+    map['approximate'] = Variable<bool>(approximate);
     return map;
   }
 
@@ -8797,6 +8831,7 @@ class ShoppingContributionRow extends DataClass
       name: Value(name),
       category: Value(category),
       notesJson: Value(notesJson),
+      approximate: Value(approximate),
     );
   }
 
@@ -8817,6 +8852,7 @@ class ShoppingContributionRow extends DataClass
       name: serializer.fromJson<String>(json['name']),
       category: serializer.fromJson<String>(json['category']),
       notesJson: serializer.fromJson<String>(json['notesJson']),
+      approximate: serializer.fromJson<bool>(json['approximate']),
     );
   }
   @override
@@ -8834,6 +8870,7 @@ class ShoppingContributionRow extends DataClass
       'name': serializer.toJson<String>(name),
       'category': serializer.toJson<String>(category),
       'notesJson': serializer.toJson<String>(notesJson),
+      'approximate': serializer.toJson<bool>(approximate),
     };
   }
 
@@ -8849,6 +8886,7 @@ class ShoppingContributionRow extends DataClass
     String? name,
     String? category,
     String? notesJson,
+    bool? approximate,
   }) => ShoppingContributionRow(
     id: id ?? this.id,
     householdId: householdId.present ? householdId.value : this.householdId,
@@ -8863,6 +8901,7 @@ class ShoppingContributionRow extends DataClass
     name: name ?? this.name,
     category: category ?? this.category,
     notesJson: notesJson ?? this.notesJson,
+    approximate: approximate ?? this.approximate,
   );
   ShoppingContributionRow copyWithCompanion(
     ShoppingContributionsCompanion data,
@@ -8885,6 +8924,9 @@ class ShoppingContributionRow extends DataClass
       name: data.name.present ? data.name.value : this.name,
       category: data.category.present ? data.category.value : this.category,
       notesJson: data.notesJson.present ? data.notesJson.value : this.notesJson,
+      approximate: data.approximate.present
+          ? data.approximate.value
+          : this.approximate,
     );
   }
 
@@ -8901,7 +8943,8 @@ class ShoppingContributionRow extends DataClass
           ..write('micros: $micros, ')
           ..write('name: $name, ')
           ..write('category: $category, ')
-          ..write('notesJson: $notesJson')
+          ..write('notesJson: $notesJson, ')
+          ..write('approximate: $approximate')
           ..write(')'))
         .toString();
   }
@@ -8919,6 +8962,7 @@ class ShoppingContributionRow extends DataClass
     name,
     category,
     notesJson,
+    approximate,
   );
   @override
   bool operator ==(Object other) =>
@@ -8934,7 +8978,8 @@ class ShoppingContributionRow extends DataClass
           other.micros == this.micros &&
           other.name == this.name &&
           other.category == this.category &&
-          other.notesJson == this.notesJson);
+          other.notesJson == this.notesJson &&
+          other.approximate == this.approximate);
 }
 
 class ShoppingContributionsCompanion
@@ -8950,6 +8995,7 @@ class ShoppingContributionsCompanion
   final Value<String> name;
   final Value<String> category;
   final Value<String> notesJson;
+  final Value<bool> approximate;
   final Value<int> rowid;
   const ShoppingContributionsCompanion({
     this.id = const Value.absent(),
@@ -8963,6 +9009,7 @@ class ShoppingContributionsCompanion
     this.name = const Value.absent(),
     this.category = const Value.absent(),
     this.notesJson = const Value.absent(),
+    this.approximate = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ShoppingContributionsCompanion.insert({
@@ -8977,6 +9024,7 @@ class ShoppingContributionsCompanion
     required String name,
     required String category,
     this.notesJson = const Value.absent(),
+    this.approximate = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        sourceId = Value(sourceId),
@@ -8997,6 +9045,7 @@ class ShoppingContributionsCompanion
     Expression<String>? name,
     Expression<String>? category,
     Expression<String>? notesJson,
+    Expression<bool>? approximate,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -9011,6 +9060,7 @@ class ShoppingContributionsCompanion
       if (name != null) 'name': name,
       if (category != null) 'category': category,
       if (notesJson != null) 'notes_json': notesJson,
+      if (approximate != null) 'approximate': approximate,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -9027,6 +9077,7 @@ class ShoppingContributionsCompanion
     Value<String>? name,
     Value<String>? category,
     Value<String>? notesJson,
+    Value<bool>? approximate,
     Value<int>? rowid,
   }) {
     return ShoppingContributionsCompanion(
@@ -9041,6 +9092,7 @@ class ShoppingContributionsCompanion
       name: name ?? this.name,
       category: category ?? this.category,
       notesJson: notesJson ?? this.notesJson,
+      approximate: approximate ?? this.approximate,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -9081,6 +9133,9 @@ class ShoppingContributionsCompanion
     if (notesJson.present) {
       map['notes_json'] = Variable<String>(notesJson.value);
     }
+    if (approximate.present) {
+      map['approximate'] = Variable<bool>(approximate.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -9101,6 +9156,7 @@ class ShoppingContributionsCompanion
           ..write('name: $name, ')
           ..write('category: $category, ')
           ..write('notesJson: $notesJson, ')
+          ..write('approximate: $approximate, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -21373,6 +21429,7 @@ typedef $$ShoppingContributionsTableCreateCompanionBuilder =
       required String name,
       required String category,
       Value<String> notesJson,
+      Value<bool> approximate,
       Value<int> rowid,
     });
 typedef $$ShoppingContributionsTableUpdateCompanionBuilder =
@@ -21388,6 +21445,7 @@ typedef $$ShoppingContributionsTableUpdateCompanionBuilder =
       Value<String> name,
       Value<String> category,
       Value<String> notesJson,
+      Value<bool> approximate,
       Value<int> rowid,
     });
 
@@ -21518,6 +21576,11 @@ class $$ShoppingContributionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ShoppingItemsTableFilterComposer get shoppingItemId {
     final $$ShoppingItemsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -21644,6 +21707,11 @@ class $$ShoppingContributionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ShoppingItemsTableOrderingComposer get shoppingItemId {
     final $$ShoppingItemsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -21730,6 +21798,11 @@ class $$ShoppingContributionsTableAnnotationComposer
 
   GeneratedColumn<String> get notesJson =>
       $composableBuilder(column: $table.notesJson, builder: (column) => column);
+
+  GeneratedColumn<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
+    builder: (column) => column,
+  );
 
   $$ShoppingItemsTableAnnotationComposer get shoppingItemId {
     final $$ShoppingItemsTableAnnotationComposer composer = $composerBuilder(
@@ -21858,6 +21931,7 @@ class $$ShoppingContributionsTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String> category = const Value.absent(),
                 Value<String> notesJson = const Value.absent(),
+                Value<bool> approximate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShoppingContributionsCompanion(
                 id: id,
@@ -21871,6 +21945,7 @@ class $$ShoppingContributionsTableTableManager
                 name: name,
                 category: category,
                 notesJson: notesJson,
+                approximate: approximate,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -21886,6 +21961,7 @@ class $$ShoppingContributionsTableTableManager
                 required String name,
                 required String category,
                 Value<String> notesJson = const Value.absent(),
+                Value<bool> approximate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShoppingContributionsCompanion.insert(
                 id: id,
@@ -21899,6 +21975,7 @@ class $$ShoppingContributionsTableTableManager
                 name: name,
                 category: category,
                 notesJson: notesJson,
+                approximate: approximate,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
