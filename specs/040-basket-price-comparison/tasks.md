@@ -6,4 +6,4 @@
 - [x] Sačuvati izbor po stavci u bazi i outbox-u; izolovati po domaćinstvu i dodati u lični izvoz.
 - [x] Migracija lokalne i serverske baze; test pristupa sa dva naloga.
 - [x] Testovi obračuna, parsiranja, offline keša, ponovnog otvaranja ekrana, sinhronizacije, migracije i okolne nabavke.
-- [ ] Ručna provera cele funkcije sa prijavljenim nalogom: debug aplikacija se pokreće do prijave, ali nalog u toj instalaciji nije prijavljen.
+- [x] Ručna provera na lokalnom testnom nalogu: recept sa 1 l mleka → Nabavka → izbor proizvoda od 1 l → 109,99 din za jedno pakovanje; izbor i rezultat ostaju posle povratka i ponovnog otvaranja.
