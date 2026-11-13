@@ -68,7 +68,7 @@ void main() {
       'supplyAllocations',
       'allergies',
     ]);
-    expect(personalExportFormatVersion, 4);
+    expect(personalExportFormatVersion, 5);
     expect(sections['membership'], isNull);
     expect(sections['tasteProfile'], isNull);
     expect(sections['allergies'], isNull);
@@ -82,6 +82,32 @@ void main() {
       }
       expect(entry.value, isEmpty, reason: entry.key);
     }
+  });
+
+  test('izvoz sadrži potvrđeni proizvod i pakovanje', () {
+    const item = ShoppingItemRow(
+      id: 'i',
+      listId: 'l',
+      name: 'Mleko',
+      quantity: 1,
+      unit: 'l',
+      category: 'ostalo',
+      isBought: false,
+      isManual: true,
+      fromRecipeIdsJson: '[]',
+      priceSelectionJson: '{"barcode":"123","package":"1000"}',
+    );
+    final export = buildPersonalExport(
+      exportedAt: _at,
+      email: _account.email,
+      shoppingItems: [item],
+    );
+    final rows =
+        (export['sections']! as Map)['shoppingItems']! as List<Object?>;
+    expect((rows.single! as Map)['priceSelection'], {
+      'barcode': '123',
+      'package': '1000',
+    });
   });
 
   test('recept: JSON kolone su objekti, slika je samo putanja', () {

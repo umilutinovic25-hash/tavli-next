@@ -18,6 +18,7 @@ import '../../providers.dart';
 import '../planning/plan_format.dart';
 import '../planning/planning_providers.dart';
 import '../recipes/recipe_providers.dart';
+import 'basket_price_screen.dart';
 import 'shopping_list_view.dart';
 import 'shopping_providers.dart';
 
@@ -346,6 +347,21 @@ class _WholePlan extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       children: [
         ...header,
+        if (open.isNotEmpty)
+          OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => BasketPriceScreen(
+                  items: items.where((i) => !i.isBought).toList(),
+                  saveSelection: ref
+                      .read(shoppingRepositoryProvider)
+                      .updatePriceSelection,
+                ),
+              ),
+            ),
+            icon: const Icon(Icons.compare_arrows),
+            label: const Text('Uporedi cene korpe'),
+          ),
         if (open.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 24),

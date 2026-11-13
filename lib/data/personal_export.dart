@@ -7,7 +7,7 @@ import '../domain/account.dart';
 import 'database.dart';
 
 /// Verzija formata izvoza. Povećava se kad se menja oblik JSON-a.
-const personalExportFormatVersion = 4;
+const personalExportFormatVersion = 5;
 
 /// Lični izvoz (pravo pristupa podacima). Čist builder: prima samo redove iz
 /// baze i podatke naloga, pa u izvoz ne može da uđe ništa drugo (AI ključevi,
@@ -299,6 +299,9 @@ Map<String, Object?> _shoppingItem(ShoppingItemRow i) => {
   'isManual': i.isManual,
   'fromRecipeIds': _json(i.fromRecipeIdsJson),
   'photoPath': i.photoPath,
+  'priceSelection': i.priceSelectionJson == null
+      ? null
+      : _json(i.priceSelectionJson!),
 };
 
 Map<String, Object?> _pantryItem(PantryItemRow p) => {

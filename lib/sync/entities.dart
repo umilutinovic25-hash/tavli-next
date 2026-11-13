@@ -366,6 +366,7 @@ class ShoppingItemEntity
     'note': r.note,
     'photo_path': photoFileName(r.photoPath),
     'food_id': r.foodId,
+    'price_selection': _decodeOrNull(r.priceSelectionJson),
   };
 
   @override
@@ -386,6 +387,7 @@ class ShoppingItemEntity
         note: Value(j['note'] as String?),
         photoPath: Value(photoLocalPath(j['photo_path'] as String?)),
         foodId: Value(j['food_id'] as String?),
+        priceSelectionJson: Value(_jsonOrNull(j['price_selection'])),
       );
 }
 
