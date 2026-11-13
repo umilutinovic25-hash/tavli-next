@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:supabase/supabase.dart';
@@ -34,7 +35,8 @@ class GatewayChatClient implements ChatClient {
     final FunctionResponse response;
     try {
       response = await invoke('ai-complete', {
-        'provider': model.provider.name,
+        // Server očekuje mala slova ("openrouter"), enum je "openRouter".
+        'provider': model.provider.name.toLowerCase(),
         'model': model.model,
         'system': request.system,
         'prompt': request.prompt,
@@ -43,7 +45,13 @@ class GatewayChatClient implements ChatClient {
           for (final image in request.images)
             {'mime': image.mimeType, 'base64': base64Encode(image.bytes)},
         ],
-      });
+      }).timeout(model.timeout);
+    } on TimeoutException {
+      // Isto kao direktan klijent: spor model ne blokira ceo lanac.
+      throw const TransientError(
+        'Model nije odgovorio na vreme',
+        isTimeout: true,
+      );
     } on FunctionException catch (e) {
       throw _map(e);
     }

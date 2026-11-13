@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -135,4 +136,49 @@ void main() {
       throwsA(isA<InvalidOutputError>()),
     );
   });
+
+  test(
+    'OpenRouter se šalje kao openrouter (ime koje server očekuje)',
+    () async {
+      Map<String, dynamic>? sent;
+      final client = GatewayChatClient.withInvoker((name, body) async {
+        sent = body;
+        return const FunctionResponse(data: {'text': '{}'}, status: 200);
+      });
+      await client.complete(
+        const ModelSpec(
+          provider: AIProvider.openRouter,
+          model: 'google/gemma-3-27b-it:free',
+          label: 'OR',
+        ),
+        request,
+        apiKey: 'x',
+      );
+      expect(sent!['provider'], 'openrouter');
+    },
+  );
+
+  test(
+    'model koji ne odgovori u svom roku je TransientError(isTimeout)',
+    () async {
+      final client = GatewayChatClient.withInvoker(
+        (name, body) => Completer<FunctionResponse>().future,
+      );
+      await expectLater(
+        client.complete(
+          const ModelSpec(
+            provider: AIProvider.groq,
+            model: 'openai/gpt-oss-120b',
+            label: 'T',
+            timeout: Duration(milliseconds: 20),
+          ),
+          request,
+          apiKey: 'x',
+        ),
+        throwsA(
+          isA<TransientError>().having((e) => e.isTimeout, 'isTimeout', true),
+        ),
+      );
+    },
+  );
 }
