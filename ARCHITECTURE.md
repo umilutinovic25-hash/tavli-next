@@ -15,7 +15,7 @@ Osnova: [anjahubac/tavli](https://github.com/anjahubac/tavli), commit `1eca2c3d1
 | Lokalni podaci | Drift, schemaVersion 5 u posmatranoj verziji | Aditivne migracije; sledeću verziju odrediti tek pri implementaciji. |
 | Server | Supabase Auth, Postgres RLS, privatni Storage | Zadržati naloge, vlasništvo i privatne fotografije. |
 | Sinhronizacija | Repozitorijum → lokalni red + outbox, Uploader/Downloader/PhotoSync | Svaki novi korisnički entitet ulazi u isti registar i cleanup. |
-| AI | AIRouter, više modela, retry/cooldown, direktan HTTP i build-time ključevi | Postojeći direktni model je baseline; cilj za zajedničke ključeve je autentifikovan serverski gateway. |
+| AI | AIRouter, više modela, retry/cooldown; ugrađeni AI preko edge funkcije `ai-complete`, sopstveni ključevi direktno | Zajednički provajder ključevi su serverski secrets (037); u izdanju aplikacije nema build-time ključeva. Limit po nalogu: 20 u minuti, 300 dnevno. |
 
 README/roadmap originala delimično zaostaju za kodom. Merodavni su tačno posmatrani moduli i testovi, ne oznaka „planned” iz starog dokumenta. Specifikacija 010 ima implementirane delove, ali otvorene završne/UX zadatke.
 

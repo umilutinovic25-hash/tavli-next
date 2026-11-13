@@ -1,6 +1,6 @@
 # 037 — AI gateway (serverski AI ključevi)
 
-**Status**: U radu. **Grana**: `037-ai-gateway`.
+**Status**: Implementirano (čeka pravi ključeve na serveru i PR). **Grana**: `037-ai-gateway`.
 
 Dizajn: [docs/superpowers/specs/2026-11-13-ai-gateway-design.md](../../docs/superpowers/specs/2026-11-13-ai-gateway-design.md)
 Plan: [docs/superpowers/plans/2026-11-13-ai-gateway.md](../../docs/superpowers/plans/2026-11-13-ai-gateway.md)

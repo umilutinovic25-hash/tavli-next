@@ -106,8 +106,10 @@ Historical specs retain their delivered acceptance criteria.
 6. **006b Apple/Google sign-in** after the Apple Developer account; email code
    sign-in remains available during planning development.
 7. **AI models screen**: persisted ordering/enabling of fallback-chain models.
-8. **Cloudflare key proxy**: account-verified requests, provider keys in Worker,
-   per-user limits; remove build-time provider keys from the app.
+8. **AI key gateway** (`specs/037-ai-gateway`, done): Supabase edge function
+   `ai-complete` instead of a Cloudflare Worker; account-verified requests,
+   provider keys as server secrets, per-user limits; release builds carry no
+   provider keys.
 9. **Store release**: privacy/terms/domain, declarations/manifests, deletion
    page, review account, export, crash reporting and optional notifications.
 
