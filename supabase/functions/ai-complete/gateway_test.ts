@@ -2,6 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   buildUpstream,
   type GatewayRequest,
+  limitResponse,
   mapUpstream,
   MAX_BODY_BYTES,
   parseRequest,
@@ -144,5 +145,19 @@ Deno.test("mapUpstream: 401/403 su provider_error, 404 je model_not_found, 5xx p
   assertEquals(await mapUpstream(new Response("", { status: 404 })), {
     status: 404,
     body: { error: "model_not_found" },
+  });
+});
+
+Deno.test("limitResponse: minutni limit kaže koliko do sledećeg minuta", () => {
+  assertEquals(limitResponse("minute", new Date("2026-11-13T10:00:50Z")), {
+    status: 429,
+    body: { error: "rate_limited", daily: false, retry_after: 10 },
+  });
+});
+
+Deno.test("limitResponse: dnevni limit je daily i kaže koliko do ponoći UTC", () => {
+  assertEquals(limitResponse("day", new Date("2026-11-13T20:00:00Z")), {
+    status: 429,
+    body: { error: "rate_limited", daily: true, retry_after: 14400 },
   });
 });

@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   buildUpstream,
   type GatewayRequest,
+  limitResponse,
   mapUpstream,
   MAX_BODY_BYTES,
   parseRequest,
@@ -30,21 +31,6 @@ Deno.serve(async (req: Request) => {
   );
   const { data, error } = await client.auth.getUser(token);
   if (error || !data.user) return json(401, { error: "unauthorized" });
-  // Ograničenje po nalogu pre bilo kakvog poziva provajdera. Ako brojač nije
-  // dostupan, funkcija odbija zahtev umesto da ga propusti.
-  const admin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    { auth: { persistSession: false, autoRefreshToken: false } },
-  );
-  const { data: allowed, error: limitError } = await admin.rpc(
-    "consume_ai_request",
-    { uid: data.user.id },
-  );
-  if (limitError) return json(503, { error: "unavailable" });
-  if (allowed !== true) {
-    return json(429, { error: "rate_limited", daily: false });
-  }
   if (Number(req.headers.get("content-length") ?? "0") > MAX_BODY_BYTES) {
     return json(413, { error: "too_large" });
   }
@@ -81,6 +67,23 @@ Deno.serve(async (req: Request) => {
   const request = parsed as GatewayRequest;
   const key = Deno.env.get(KEY_NAMES[request.provider]);
   if (!key) return json(503, { error: "unavailable" });
+  // Ograničenje po nalogu pre poziva provajdera, a posle provere zahteva: ne
+  // broje se pogrešni zahtevi. Ako brojač nije dostupan, zahtev se odbija.
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+  const { data: window, error: limitError } = await admin.rpc(
+    "consume_ai_request",
+    { uid: data.user.id },
+  );
+  if (limitError) return json(503, { error: "unavailable" });
+  if (window === "minute" || window === "day") {
+    const limited = limitResponse(window, new Date());
+    return json(limited.status, limited.body);
+  }
+  if (window !== "ok") return json(503, { error: "unavailable" });
   try {
     const { url, init } = buildUpstream(request, { [request.provider]: key });
     const upstream = await fetch(url, {

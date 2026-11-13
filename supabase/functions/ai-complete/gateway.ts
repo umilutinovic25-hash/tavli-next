@@ -147,3 +147,17 @@ export async function mapUpstream(res: Response): Promise<Mapped> {
     return PROVIDER_ERROR;
   }
 }
+
+/** Odgovor kad je limit naloga potrošen; `retry_after` do kraja prozora. */
+export function limitResponse(window: "minute" | "day", now: Date): Mapped {
+  const ms = window === "minute" ? 60_000 : 86_400_000;
+  const retryAfter = Math.ceil((ms - (now.getTime() % ms)) / 1000);
+  return {
+    status: 429,
+    body: {
+      error: "rate_limited",
+      daily: window === "day",
+      retry_after: retryAfter,
+    },
+  };
+}
