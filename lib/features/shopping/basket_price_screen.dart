@@ -14,10 +14,14 @@ class BasketPriceScreen extends StatefulWidget {
     required this.items,
     this.loadCatalog,
     this.saveSelection,
+    this.loadPriceCategory,
+    this.savePriceCategory,
   });
   final List<ShoppingItemRow> items;
   final Future<PriceCatalog> Function()? loadCatalog;
   final Future<bool> Function(String, String?)? saveSelection;
+  final Future<String?> Function()? loadPriceCategory;
+  final Future<void> Function(String)? savePriceCategory;
   @override
   State<BasketPriceScreen> createState() => _BasketPriceScreenState();
 }
@@ -28,6 +32,8 @@ class _BasketPriceScreenState extends State<BasketPriceScreen> {
   final names = <String, String>{};
   Future<void> writes = Future.value();
   final packs = <String, TextEditingController>{};
+  String? priceCategory;
+  bool categoryChanged = false;
 
   @override
   void initState() {
@@ -52,6 +58,41 @@ class _BasketPriceScreenState extends State<BasketPriceScreen> {
       }
     }
     catalog = (widget.loadCatalog ?? BasketPriceCatalog().fetch)();
+    unawaited(loadCategory());
+  }
+
+  Future<void> loadCategory() async {
+    try {
+      final saved = await widget.loadPriceCategory?.call();
+      if (mounted &&
+          !categoryChanged &&
+          const ['S', 'M', 'L'].contains(saved)) {
+        setState(() => priceCategory = saved);
+      }
+    } on Exception {
+      // Bez sačuvanog izbora korisnik bira kategoriju ponovo.
+    }
+  }
+
+  void selectCategory(String? value) {
+    setState(() {
+      categoryChanged = true;
+      priceCategory = value;
+    });
+    if (value != null && widget.savePriceCategory != null) {
+      writes = writes.then((_) async {
+        try {
+          await widget.savePriceCategory!(value);
+        } on Exception {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Kategorija nije sačuvana.')),
+            );
+          }
+        }
+      });
+      unawaited(writes);
+    }
   }
 
   @override
@@ -151,7 +192,13 @@ class _BasketPriceScreenState extends State<BasketPriceScreen> {
               .map(line)
               .toList();
           final results = compareBasket(lines, [
-            for (final p in data.products) p.offer,
+            for (final p in data.products)
+              if (p.offer.source !=
+                      BasketPriceCatalog.sources['Univerexport'] ||
+                  (priceCategory != null &&
+                      p.offer.store.toUpperCase() ==
+                          'UNIVEREXPORT - $priceCategory'))
+                p.offer,
           ]);
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -159,26 +206,46 @@ class _BasketPriceScreenState extends State<BasketPriceScreen> {
               const Text(
                 'Izaberi proizvod za svaku stavku i unesi veličinu pakovanja u prikazanoj jedinici. Cene su informativne.',
               ),
-              Text(
-                data.products.isEmpty
-                    ? 'Cenovnici nisu dostupni.'
-                    : 'Preuzeto: ${data.fetchedAt.day}.${data.fetchedAt.month}.${data.fetchedAt.year}. · Izvori: Delhaize i Europrom',
+              if (data.products.isEmpty) const Text('Cenovnici nisu dostupni.'),
+              for (final source in data.sources) ...[
+                Text(_sourceDescription(source)),
+                SelectableText('Izvor: ${source.source}'),
+              ],
+              const Text(
+                'IDEA MARKETI: objedinjeni cenovnik može prikazivati najvišu cenu kada se cene razlikuju po objektima.',
+              ),
+              const Text(
+                'Lidl i Univerexport objavljuju objedinjene cene; cena u tvojoj prodavnici može se razlikovati.',
+              ),
+              DropdownButtonFormField<String>(
+                initialValue: priceCategory,
+                decoration: const InputDecoration(
+                  labelText: 'Univerexport cenovna kategorija',
+                ),
+                hint: const Text('Izaberi kategoriju prodavnice'),
+                items: const ['S', 'M', 'L']
+                    .map(
+                      (category) => DropdownMenuItem(
+                        value: category,
+                        child: Text('Kategorija $category'),
+                      ),
+                    )
+                    .toList(),
+                onChanged: selectCategory,
+              ),
+              const Text(
+                'Odaberi kategoriju za svoju prodavnicu. Bez izbora Univerexport nije uključen u rezultat. Spisak prodavnica i kategorija:',
               ),
               const SelectableText(
-                'Izvori: https://data.gov.rs/sr/datasets/r/aa0a4ab4-1dc8-49e2-abef-67612a2abcbb i https://data.gov.rs/sr/datasets/r/7bcd8e5e-a89f-4dc8-9b7d-70ce27e31096',
+                'https://data.gov.rs/sr/datasets/r/29c4eed9-d650-465e-a679-70011480cd83',
               ),
-              if (data.failedSources.isNotEmpty)
-                Text(
-                  'Nije moguće osvežiti: ${data.failedSources.join(', ')}. Ako postoji, prikazan je sačuvani cenovnik.',
+              OutlinedButton(
+                onPressed: () => setState(
+                  () => catalog =
+                      (widget.loadCatalog ?? BasketPriceCatalog().fetch)(),
                 ),
-              if (data.products.isEmpty)
-                OutlinedButton(
-                  onPressed: () => setState(
-                    () => catalog =
-                        (widget.loadCatalog ?? BasketPriceCatalog().fetch)(),
-                  ),
-                  child: const Text('Pokušaj ponovo'),
-                ),
+                child: const Text('Osveži cenovnike'),
+              ),
               for (final item in widget.items.where((i) => !i.isBought)) ...[
                 const Divider(),
                 ListTile(
@@ -247,6 +314,17 @@ class _BasketPriceScreenState extends State<BasketPriceScreen> {
       ),
     );
   }
+}
+
+String _sourceDescription(PriceSourceStatus source) {
+  final at = source.fetchedAt?.toLocal();
+  if (at == null) return '${source.name}: cenovnik nije dostupan.';
+  final time =
+      '${at.day}.${at.month}.${at.year}. u ${at.hour.toString().padLeft(2, '0')}:${at.minute.toString().padLeft(2, '0')}';
+  if (source.failed) {
+    return '${source.name}: nije moguće osvežiti; prikazan sačuvani cenovnik preuzet $time.';
+  }
+  return '${source.name}: preuzeto $time.';
 }
 
 class _ProductSearch extends SearchDelegate<PriceProduct?> {

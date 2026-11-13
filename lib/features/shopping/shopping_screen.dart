@@ -8,7 +8,9 @@ import '../../app/animations/empty_basket.dart';
 import '../../app/placeholder_screen.dart';
 import '../../app/section_heading.dart';
 import '../../app/tab_app_bar.dart';
+import '../../app/theme/theme_controller.dart';
 import '../../data/database.dart';
+import '../../data/settings_repository.dart';
 import '../../data/shopping_repository.dart';
 import '../../domain/meal_plan.dart';
 import '../../domain/plan_calendar.dart';
@@ -353,6 +355,15 @@ class _WholePlan extends ConsumerWidget {
               MaterialPageRoute<void>(
                 builder: (_) => BasketPriceScreen(
                   items: items.where((i) => !i.isBought).toList(),
+                  loadPriceCategory: () => ref
+                      .read(settingsRepositoryProvider)
+                      .get(SettingsRepository.univerexportPriceCategoryKey),
+                  savePriceCategory: (value) => ref
+                      .read(settingsRepositoryProvider)
+                      .set(
+                        SettingsRepository.univerexportPriceCategoryKey,
+                        value,
+                      ),
                   saveSelection: ref
                       .read(shoppingRepositoryProvider)
                       .updatePriceSelection,
