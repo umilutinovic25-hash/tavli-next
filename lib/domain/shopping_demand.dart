@@ -178,6 +178,7 @@ class DemandLine {
     required this.micros,
     required this.baseUnit,
     this.notes = const [],
+    this.approximate = false,
   });
 
   final DemandKey key;
@@ -188,6 +189,9 @@ class DemandLine {
   final int? micros;
   final String baseUnit;
   final List<String> notes;
+
+  /// Zbir sadrži približnu meru (kuhinjska mera, v3): prikaz nosi znak ~.
+  final bool approximate;
 
   bool get isUnknown => micros == null;
 
@@ -202,7 +206,7 @@ List<DemandLine> demandFor(DemandSource source) {
   _checkServings(source.servings, 'servings');
   final merged = <DemandKey, DemandLine>{};
   for (final i in source.ingredients) {
-    final v2 = source.dictionaryVersion == 2;
+    final v2 = source.dictionaryVersion >= 2;
     final frozen = v2 && i.foodId != null && i.unit != null
         ? source.conversions[conversionKey(i.foodId!, i.unit!)]
         : null;
@@ -229,6 +233,10 @@ List<DemandLine> demandFor(DemandSource source) {
     final micros = base == null
         ? null
         : _scale(base, source.servings, source.baseServings);
+    final approximate =
+        known &&
+        frozen == null &&
+        unitIsApproximate(i.unit, dictionaryVersion: source.dictionaryVersion);
     final prev = merged[key];
     merged[key] = DemandLine(
       key: key,
@@ -239,6 +247,7 @@ List<DemandLine> demandFor(DemandSource source) {
           : (micros == null ? null : prev.micros! + micros),
       baseUnit: prev?.baseUnit ?? unit.base,
       notes: [...?prev?.notes, if (i.note != null) i.note!],
+      approximate: (prev?.approximate ?? false) || approximate,
     );
   }
   return merged.values.toList();
@@ -258,6 +267,7 @@ class ShoppingNeed {
     required this.micros,
     required this.baseUnit,
     required this.sourceIds,
+    this.approximate = false,
   });
 
   final String ingredient;
@@ -267,6 +277,9 @@ class ShoppingNeed {
   final int? micros;
   final String baseUnit;
   final List<String> sourceIds;
+
+  /// Bar jedan deo zbira je približan (v3 kuhinjska mera).
+  final bool approximate;
 
   bool get isUnknown => micros == null;
 }
@@ -288,6 +301,7 @@ List<ShoppingNeed> summarize(Iterable<DemandLine> lines) {
             : ls.fold<int>(0, (sum, l) => sum + l.micros!),
         baseUnit: ls.first.baseUnit,
         sourceIds: {for (final l in ls) l.key.sourceId}.toList(),
+        approximate: ls.any((l) => l.approximate),
       ),
   ];
 }
