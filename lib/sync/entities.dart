@@ -201,6 +201,44 @@ class HouseholdPreferenceEntity
       );
 }
 
+/// Alergije osobe u domaćinstvu (039): id je `domaćinstvo:osoba`; čitaju
+/// ih svi članovi, menja samo osoba sama (RLS).
+class MemberAllergyEntity
+    extends SyncEntity<$MemberAllergiesTable, MemberAllergyRow> {
+  const MemberAllergyEntity();
+  @override
+  String get name => 'member_allergy';
+  @override
+  String get remoteTable => 'member_allergies';
+  @override
+  EntityScope get scope => EntityScope.household;
+  @override
+  $MemberAllergiesTable table(AppDatabase db) => db.memberAllergies;
+  @override
+  Expression<String> idColumn($MemberAllergiesTable t) => t.id;
+  @override
+  GeneratedColumn<String> scopeColumn($MemberAllergiesTable t) => t.householdId;
+
+  @override
+  Map<String, Object?> toRemote(MemberAllergyRow r) => {
+    'id': r.id,
+    'household_id': r.householdId,
+    'user_id': r.userId,
+    'codes': jsonDecode(r.codesJson),
+    'custom': jsonDecode(r.customJson),
+  };
+
+  @override
+  MemberAllergiesCompanion fromRemote(Map<String, Object?> j) =>
+      MemberAllergiesCompanion(
+        id: Value(j['id']! as String),
+        householdId: Value(j['household_id'] as String?),
+        userId: Value(j['user_id']! as String),
+        codesJson: Value(_json(j['codes'] ?? const <String>[])),
+        customJson: Value(_json(j['custom'] ?? const <String>[])),
+      );
+}
+
 class RecipeVersionEntity
     extends SyncEntity<$RecipeVersionsTable, RecipeVersionRow> {
   const RecipeVersionEntity();
@@ -1056,6 +1094,7 @@ const List<SyncEntity<Table, Object?>> syncEntities = [
   RecipeVersionEntity(),
   DayTimeBudgetEntity(),
   HouseholdPreferenceEntity(),
+  MemberAllergyEntity(),
   MealPlanEntity(),
   WeekTemplateEntity(),
   MealPlanEntryEntity(),

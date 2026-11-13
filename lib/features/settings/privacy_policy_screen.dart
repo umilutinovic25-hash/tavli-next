@@ -91,6 +91,9 @@ const _sections = [
       'ostava (zalihe),',
       'sačuvane pretrage recepata,',
       'pravila po danima i vreme za kuvanje po danima,',
+      'alergije (zdravstveni podatak). Alergije koje upišete vide ostali '
+          'članovi domaćinstva, da bi aplikacija mogla da proveri recepte za '
+          'sve,',
       'fotografije jela i recepata koje pošaljete.',
     ],
   ),

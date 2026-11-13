@@ -1,3 +1,5 @@
+import '../domain/allergy.dart';
+import '../domain/food.dart' show FoodCatalog;
 import '../domain/meal_plan.dart';
 import '../domain/plan_calendar.dart';
 import '../domain/recipe.dart';
@@ -46,12 +48,15 @@ class PlanGenerationCancelled implements Exception {
 /// pa sažeci novih recepata u malim grupama. Ništa ne čuva; nacrt ostaje
 /// u sesiji dok ga osoba ne odobri.
 class MealPlanAI {
-  MealPlanAI(this._router, {this._preferences});
+  MealPlanAI(this._router, {this._preferences, this._allergyContext});
 
   final AIRouter _router;
 
   /// Preferencije domaćinstva, čitaju se jednom po predlogu plana.
   final Future<UserPreferences> Function()? _preferences;
+
+  /// Katalog i unija alergija (039); bez njih nema provere.
+  final Future<AllergyContext> Function()? _allergyContext;
 
   /// Vraća pun nacrt. Kad grupa ne uspe baca [PlanGenerationFailed], a kad
   /// je [cancel] prekinut [PlanGenerationCancelled]; oba nose gotov deo,
@@ -68,7 +73,17 @@ class MealPlanAI {
     }
     var draft = resume ?? PlanDraft(request: request);
     final prefs = await _preferences?.call() ?? UserPreferences.defaults;
-    final offered = library.take(maxLibraryInPrompt).toList();
+    final ctx =
+        await _allergyContext?.call() ??
+        (catalog: FoodCatalog.empty, allergies: HouseholdAllergies.none);
+    List<AllergyHit> hitsOf(List<Ingredient> items) =>
+        checkAllergens(items, ctx.catalog, ctx.allergies).hits;
+    final terms = ctx.allergies.promptTerms;
+    // Recept iz biblioteke sa alergenom člana se ni ne nudi AI-ju.
+    final offered = library
+        .where((r) => hitsOf(r.ingredients).isEmpty)
+        .take(maxLibraryInPrompt)
+        .toList();
     final byId = {for (final r in offered) r.id: r};
 
     Future<T> step<T>(Future<T> Function() run) async {
@@ -116,6 +131,7 @@ class MealPlanAI {
               timeLimits: _timeLimits(slots, request.budgets),
               tooLong: tooLong,
               preferences: prefs,
+              allergies: terms,
             ),
             temperature: 0.8,
           ),
@@ -160,18 +176,65 @@ class MealPlanAI {
         for (final key in missingKeys.skip(i).take(recipeSummaryBatch))
           titles[key]!,
       ];
-      final result = await step(
+      Future<Map<String, RecipeSnapshot>> summaries(
+        List<String> titles, {
+        List<AllergyHit> avoid = const [],
+      }) async => (await step(
         () => _router.run(
           AIRequest(
             system: mealPlanSystemPrompt,
-            prompt: recipeSummariesPrompt(batch, preferences: prefs),
+            prompt: recipeSummariesPrompt(
+              titles,
+              preferences: prefs,
+              allergies: terms,
+              avoid: avoid,
+            ),
           ),
-          (json) => parseSummaries(json, titles: batch),
+          (json) => parseSummaries(json, titles: titles),
         ),
-      );
-      draft = draft.copyWith(
-        newRecipes: {...draft.newRecipes, ...result.value},
-      );
+      )).value;
+      Map<String, List<AllergyHit>> offending(
+        Map<String, RecipeSnapshot> r,
+      ) => {
+        for (final MapEntry(:key, :value) in r.entries)
+          if (hitsOf(value.ingredients) case final h when h.isNotEmpty) key: h,
+      };
+
+      var result = await summaries(batch);
+      // Novi recept sa alergenom traži se još jednom, samo on.
+      var bad = offending(result);
+      if (bad.isNotEmpty) {
+        final retryTitles = [
+          for (final t in batch)
+            if (bad.containsKey(draftRecipeKey(t))) t,
+        ];
+        final retry = await summaries(
+          retryTitles,
+          avoid: [for (final h in bad.values) ...h],
+        );
+        result = {...result, ...retry};
+        bad = offending(result);
+      }
+      final clean = {
+        for (final e in result.entries)
+          if (!bad.containsKey(e.key)) e.key: e.value,
+      };
+      draft = draft.copyWith(newRecipes: {...draft.newRecipes, ...clean});
+      if (bad.isNotEmpty) {
+        // Mesta ostaju prazna; nastavak traži samo njih.
+        draft = draft.copyWith(
+          proposals: {
+            for (final e in draft.proposals.entries)
+              if (!bad.containsKey(e.value.draftRecipeKey)) e.key: e.value,
+          },
+        );
+        throw PlanGenerationFailed(
+          draft,
+          AllergenViolation(
+            {for (final h in bad.values.expand((h) => h)) h.allergen}.toList(),
+          ),
+        );
+      }
       onProgress?.call(draft);
     }
     return draft;

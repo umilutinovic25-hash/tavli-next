@@ -20,6 +20,7 @@ import 'ai/debug_file_storage.dart';
 import 'ai/key_store.dart';
 import 'ai/meal_plan_ai.dart';
 import 'ai/recipe_ai.dart';
+import 'data/allergy_repository.dart';
 import 'data/database.dart';
 import 'data/drift_model_status_store.dart';
 import 'data/food_repository.dart';
@@ -27,6 +28,7 @@ import 'data/household_invite_repository.dart';
 import 'data/household_membership_repository.dart';
 import 'data/preferences_repository.dart';
 import 'data/shopping_repository.dart';
+import 'domain/allergy.dart';
 import 'domain/food.dart';
 import 'domain/household.dart';
 import 'domain/user_preferences.dart';
@@ -263,13 +265,21 @@ final recipeAIProvider = Provider<RecipeAI>(
   (ref) => RecipeAI(
     ref.watch(aiRouterProvider),
     preferences: () => ref.read(preferencesRepositoryProvider).current(),
+    allergyContext: () => loadAllergyContext(ref),
   ),
+);
+
+/// Katalog i unija alergija aktivnog domaćinstva za proveru AI recepata.
+Future<AllergyContext> loadAllergyContext(Ref ref) async => (
+  catalog: await ref.read(foodRepositoryProvider).catalog(),
+  allergies: await ref.read(allergyRepositoryProvider).current(),
 );
 
 final mealPlanAIProvider = Provider<MealPlanAI>(
   (ref) => MealPlanAI(
     ref.watch(aiRouterProvider),
     preferences: () => ref.read(preferencesRepositoryProvider).current(),
+    allergyContext: () => loadAllergyContext(ref),
   ),
 );
 
@@ -304,6 +314,24 @@ final preferencesRepositoryProvider = Provider<PreferencesRepository>(
     writer: ref.watch(syncedWriterProvider),
   ),
 );
+
+/// Alergije po osobi (039): moje i unija domaćinstva.
+final allergyRepositoryProvider = Provider<AllergyRepository>(
+  (ref) => AllergyRepository(
+    ref.watch(databaseProvider),
+    scope: ref.watch(accountScopeProvider) ?? noAccountScope,
+    writer: ref.watch(syncedWriterProvider),
+  ),
+);
+
+final myAllergiesProvider = StreamProvider.autoDispose<PersonAllergies>(
+  (ref) => ref.watch(allergyRepositoryProvider).watchMine(),
+);
+
+final householdAllergiesProvider =
+    StreamProvider.autoDispose<HouseholdAllergies>(
+      (ref) => ref.watch(allergyRepositoryProvider).watchHousehold(),
+    );
 
 final preferencesProvider = StreamProvider.autoDispose<UserPreferences>(
   (ref) => ref.watch(preferencesRepositoryProvider).watch(),

@@ -291,6 +291,25 @@ class HouseholdPreferences extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Alergije jedne osobe u domaćinstvu (v18, 039). Id je
+/// `domaćinstvo:osoba`. Svi članovi čitaju redove svog domaćinstva (provera
+/// AI recepata važi za uniju), a menja ih samo osoba sama.
+@DataClassName('MemberAllergyRow')
+class MemberAllergies extends Table {
+  TextColumn get id => text()();
+  TextColumn get householdId => text().nullable()();
+  TextColumn get userId => text()();
+
+  /// Niz EU kodova (`euAllergens`).
+  TextColumn get codesJson => text().withDefault(const Constant('[]'))();
+
+  /// Slobodan unos (niz stringova, mala slova).
+  TextColumn get customJson => text().withDefault(const Constant('[]'))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Izvor potražnje u listi (v5): planirani obrok ili samostalna priprema
 /// recepta. Id samostalnog izvora je id pripreme.
 @DataClassName('ShoppingSourceRow')
@@ -611,6 +630,7 @@ class FoodAllergens extends Table {
     CookSoonItems,
     DayRules,
     HouseholdPreferences,
+    MemberAllergies,
     ShoppingSources,
     ShoppingContributions,
     SupplyAllocations,
@@ -635,7 +655,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -810,6 +830,13 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(table);
           }
         }
+      }
+      if (from < 18) {
+        final existing = await customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'member_allergies'",
+        ).get();
+        if (existing.isEmpty) await m.createTable(memberAllergies);
       }
     },
   );

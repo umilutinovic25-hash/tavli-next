@@ -178,6 +178,27 @@ void main() {
     },
   );
 
+  test('alergije osobe: kodovi i slobodan unos su JSON nizovi', () async {
+    await roundTrip(
+      const MemberAllergyEntity(),
+      MemberAllergiesCompanion.insert(
+        id: 'h1:u1',
+        householdId: const Value('h1'),
+        userId: 'u1',
+        codesJson: const Value('["peanuts","gluten"]'),
+        customJson: const Value('["jagode"]'),
+      ),
+      'h1:u1',
+      (r) {
+        expect(r['id'], 'h1:u1');
+        expect(r['household_id'], 'h1');
+        expect(r['user_id'], 'u1');
+        expect(r['codes'], ['peanuts', 'gluten']);
+        expect(r['custom'], ['jagode']);
+      },
+    );
+  });
+
   test('verzija recepta', () async {
     await roundTrip(
       const RecipeVersionEntity(),
@@ -492,7 +513,7 @@ void main() {
         );
       }
     }
-    expect(names, hasLength(22));
+    expect(names, hasLength(23));
     expect(const SupplyAllocationEntity().parents, [
       'shopping_contribution',
       'pantry_item',

@@ -1,0 +1,16 @@
+# Zadaci 039
+
+- [x] T001 Domen `lib/domain/allergy.dart` + `test/domain/allergy_test.dart`: EU pogodak preko foodId i preko aliasa; slobodan unos preko kataloga i po celim rečima („sveže jagode“ da, „jagodasto“ ne); nepotvrđeno samo uz alergije; bez alergija prazno; unija članova; validacija (nepoznat kod, 31. stavka, predug unos).
+- [x] T002 Server migracija `member_allergies` + okidač brisanja pri napuštanju + prenos starih alergija; pgTAP `supabase/tests/*_member_allergies_test.sql` sa dva naloga (čitanje člana, zabrana tuđeg upisa, nečlan ne vidi, napuštanje briše, prenos updated_by/vlasnik i mapiranje kodova).
+- [x] T003 drift v18 `MemberAllergies` + migracioni test; `MemberAllergyEntity` u registru sinhronizacije.
+- [x] T004 `AllergyRepository` (watchMine, watchHousehold, current, saveMine kroz outbox) + test.
+- [x] T005 `RecipeAI`: provera, jedan ponovni zahtev, `AllergenViolation`; upit sa unijom. Testovi u `test/ai/recipe_ai_test.dart`.
+- [x] T006 `MealPlanAI`: filtriranje biblioteke, ponovni zahtev sažetaka, prazna mesta + greška. Testovi u `test/ai/meal_plan_ai_test.dart`.
+- [x] T007 Provideri + poruka greške (`AllergenViolation`) na ekranima po nazivu, razgovora i plana; widget test.
+- [x] T008 Ekran Preferencije: „Moje alergije“ (čipovi EU, Ostalo, unija); widget test na 400 i 1200 px.
+- [x] T009 `AllergenLine` (detalj), `AiRecipePreview` (po nazivu i foto) i forma uvoza sa linka (`RecipeFormScreen`): „Sadrži alergen člana: …“, „Nepotvrđeno, proveri alergene“; widget testovi.
+- [x] T010 Lični izvoz format 4 sa `allergies`; politika privatnosti; `docs/architecture.md`.
+- [x] T011 `spec-converge` do „Converged“; `flutter test`, `supabase db reset && supabase test db`, `flutter analyze`; PR.
+
+## Convergence 1 (2026-11-12)
+- [x] T012 Uskladi plan sa kodom: stari zajednički spisak (`UserPreferences.allergies`) i dalje ide u AI upit uz uniju, jer ga stariji klijenti pišu; kod ga ne proverava, per plan: Podaci (contradicts)

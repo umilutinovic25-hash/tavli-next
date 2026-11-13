@@ -7239,6 +7239,376 @@ class HouseholdPreferencesCompanion
   }
 }
 
+class $MemberAllergiesTable extends MemberAllergies
+    with TableInfo<$MemberAllergiesTable, MemberAllergyRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MemberAllergiesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _householdIdMeta = const VerificationMeta(
+    'householdId',
+  );
+  @override
+  late final GeneratedColumn<String> householdId = GeneratedColumn<String>(
+    'household_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _codesJsonMeta = const VerificationMeta(
+    'codesJson',
+  );
+  @override
+  late final GeneratedColumn<String> codesJson = GeneratedColumn<String>(
+    'codes_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _customJsonMeta = const VerificationMeta(
+    'customJson',
+  );
+  @override
+  late final GeneratedColumn<String> customJson = GeneratedColumn<String>(
+    'custom_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    householdId,
+    userId,
+    codesJson,
+    customJson,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'member_allergies';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MemberAllergyRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('household_id')) {
+      context.handle(
+        _householdIdMeta,
+        householdId.isAcceptableOrUnknown(
+          data['household_id']!,
+          _householdIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('codes_json')) {
+      context.handle(
+        _codesJsonMeta,
+        codesJson.isAcceptableOrUnknown(data['codes_json']!, _codesJsonMeta),
+      );
+    }
+    if (data.containsKey('custom_json')) {
+      context.handle(
+        _customJsonMeta,
+        customJson.isAcceptableOrUnknown(data['custom_json']!, _customJsonMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MemberAllergyRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MemberAllergyRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      householdId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}household_id'],
+      ),
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      codesJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}codes_json'],
+      )!,
+      customJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}custom_json'],
+      )!,
+    );
+  }
+
+  @override
+  $MemberAllergiesTable createAlias(String alias) {
+    return $MemberAllergiesTable(attachedDatabase, alias);
+  }
+}
+
+class MemberAllergyRow extends DataClass
+    implements Insertable<MemberAllergyRow> {
+  final String id;
+  final String? householdId;
+  final String userId;
+
+  /// Niz EU kodova (`euAllergens`).
+  final String codesJson;
+
+  /// Slobodan unos (niz stringova, mala slova).
+  final String customJson;
+  const MemberAllergyRow({
+    required this.id,
+    this.householdId,
+    required this.userId,
+    required this.codesJson,
+    required this.customJson,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || householdId != null) {
+      map['household_id'] = Variable<String>(householdId);
+    }
+    map['user_id'] = Variable<String>(userId);
+    map['codes_json'] = Variable<String>(codesJson);
+    map['custom_json'] = Variable<String>(customJson);
+    return map;
+  }
+
+  MemberAllergiesCompanion toCompanion(bool nullToAbsent) {
+    return MemberAllergiesCompanion(
+      id: Value(id),
+      householdId: householdId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(householdId),
+      userId: Value(userId),
+      codesJson: Value(codesJson),
+      customJson: Value(customJson),
+    );
+  }
+
+  factory MemberAllergyRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MemberAllergyRow(
+      id: serializer.fromJson<String>(json['id']),
+      householdId: serializer.fromJson<String?>(json['householdId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      codesJson: serializer.fromJson<String>(json['codesJson']),
+      customJson: serializer.fromJson<String>(json['customJson']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'householdId': serializer.toJson<String?>(householdId),
+      'userId': serializer.toJson<String>(userId),
+      'codesJson': serializer.toJson<String>(codesJson),
+      'customJson': serializer.toJson<String>(customJson),
+    };
+  }
+
+  MemberAllergyRow copyWith({
+    String? id,
+    Value<String?> householdId = const Value.absent(),
+    String? userId,
+    String? codesJson,
+    String? customJson,
+  }) => MemberAllergyRow(
+    id: id ?? this.id,
+    householdId: householdId.present ? householdId.value : this.householdId,
+    userId: userId ?? this.userId,
+    codesJson: codesJson ?? this.codesJson,
+    customJson: customJson ?? this.customJson,
+  );
+  MemberAllergyRow copyWithCompanion(MemberAllergiesCompanion data) {
+    return MemberAllergyRow(
+      id: data.id.present ? data.id.value : this.id,
+      householdId: data.householdId.present
+          ? data.householdId.value
+          : this.householdId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      codesJson: data.codesJson.present ? data.codesJson.value : this.codesJson,
+      customJson: data.customJson.present
+          ? data.customJson.value
+          : this.customJson,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemberAllergyRow(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('userId: $userId, ')
+          ..write('codesJson: $codesJson, ')
+          ..write('customJson: $customJson')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, householdId, userId, codesJson, customJson);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MemberAllergyRow &&
+          other.id == this.id &&
+          other.householdId == this.householdId &&
+          other.userId == this.userId &&
+          other.codesJson == this.codesJson &&
+          other.customJson == this.customJson);
+}
+
+class MemberAllergiesCompanion extends UpdateCompanion<MemberAllergyRow> {
+  final Value<String> id;
+  final Value<String?> householdId;
+  final Value<String> userId;
+  final Value<String> codesJson;
+  final Value<String> customJson;
+  final Value<int> rowid;
+  const MemberAllergiesCompanion({
+    this.id = const Value.absent(),
+    this.householdId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.codesJson = const Value.absent(),
+    this.customJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MemberAllergiesCompanion.insert({
+    required String id,
+    this.householdId = const Value.absent(),
+    required String userId,
+    this.codesJson = const Value.absent(),
+    this.customJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId);
+  static Insertable<MemberAllergyRow> custom({
+    Expression<String>? id,
+    Expression<String>? householdId,
+    Expression<String>? userId,
+    Expression<String>? codesJson,
+    Expression<String>? customJson,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (householdId != null) 'household_id': householdId,
+      if (userId != null) 'user_id': userId,
+      if (codesJson != null) 'codes_json': codesJson,
+      if (customJson != null) 'custom_json': customJson,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MemberAllergiesCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? householdId,
+    Value<String>? userId,
+    Value<String>? codesJson,
+    Value<String>? customJson,
+    Value<int>? rowid,
+  }) {
+    return MemberAllergiesCompanion(
+      id: id ?? this.id,
+      householdId: householdId ?? this.householdId,
+      userId: userId ?? this.userId,
+      codesJson: codesJson ?? this.codesJson,
+      customJson: customJson ?? this.customJson,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (householdId.present) {
+      map['household_id'] = Variable<String>(householdId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (codesJson.present) {
+      map['codes_json'] = Variable<String>(codesJson.value);
+    }
+    if (customJson.present) {
+      map['custom_json'] = Variable<String>(customJson.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemberAllergiesCompanion(')
+          ..write('id: $id, ')
+          ..write('householdId: $householdId, ')
+          ..write('userId: $userId, ')
+          ..write('codesJson: $codesJson, ')
+          ..write('customJson: $customJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ShoppingSourcesTable extends ShoppingSources
     with TableInfo<$ShoppingSourcesTable, ShoppingSourceRow> {
   @override
@@ -14911,6 +15281,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DayRulesTable dayRules = $DayRulesTable(this);
   late final $HouseholdPreferencesTable householdPreferences =
       $HouseholdPreferencesTable(this);
+  late final $MemberAllergiesTable memberAllergies = $MemberAllergiesTable(
+    this,
+  );
   late final $ShoppingSourcesTable shoppingSources = $ShoppingSourcesTable(
     this,
   );
@@ -14978,6 +15351,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     cookSoonItems,
     dayRules,
     householdPreferences,
+    memberAllergies,
     shoppingSources,
     shoppingContributions,
     supplyAllocations,
@@ -20020,6 +20394,225 @@ typedef $$HouseholdPreferencesTableProcessedTableManager =
         >,
       ),
       HouseholdPreferenceRow,
+      PrefetchHooks Function()
+    >;
+typedef $$MemberAllergiesTableCreateCompanionBuilder =
+    MemberAllergiesCompanion Function({
+      required String id,
+      Value<String?> householdId,
+      required String userId,
+      Value<String> codesJson,
+      Value<String> customJson,
+      Value<int> rowid,
+    });
+typedef $$MemberAllergiesTableUpdateCompanionBuilder =
+    MemberAllergiesCompanion Function({
+      Value<String> id,
+      Value<String?> householdId,
+      Value<String> userId,
+      Value<String> codesJson,
+      Value<String> customJson,
+      Value<int> rowid,
+    });
+
+class $$MemberAllergiesTableFilterComposer
+    extends Composer<_$AppDatabase, $MemberAllergiesTable> {
+  $$MemberAllergiesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get codesJson => $composableBuilder(
+    column: $table.codesJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get customJson => $composableBuilder(
+    column: $table.customJson,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MemberAllergiesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MemberAllergiesTable> {
+  $$MemberAllergiesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get codesJson => $composableBuilder(
+    column: $table.codesJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get customJson => $composableBuilder(
+    column: $table.customJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MemberAllergiesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MemberAllergiesTable> {
+  $$MemberAllergiesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get codesJson =>
+      $composableBuilder(column: $table.codesJson, builder: (column) => column);
+
+  GeneratedColumn<String> get customJson => $composableBuilder(
+    column: $table.customJson,
+    builder: (column) => column,
+  );
+}
+
+class $$MemberAllergiesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MemberAllergiesTable,
+          MemberAllergyRow,
+          $$MemberAllergiesTableFilterComposer,
+          $$MemberAllergiesTableOrderingComposer,
+          $$MemberAllergiesTableAnnotationComposer,
+          $$MemberAllergiesTableCreateCompanionBuilder,
+          $$MemberAllergiesTableUpdateCompanionBuilder,
+          (
+            MemberAllergyRow,
+            BaseReferences<
+              _$AppDatabase,
+              $MemberAllergiesTable,
+              MemberAllergyRow
+            >,
+          ),
+          MemberAllergyRow,
+          PrefetchHooks Function()
+        > {
+  $$MemberAllergiesTableTableManager(
+    _$AppDatabase db,
+    $MemberAllergiesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MemberAllergiesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MemberAllergiesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MemberAllergiesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> householdId = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> codesJson = const Value.absent(),
+                Value<String> customJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MemberAllergiesCompanion(
+                id: id,
+                householdId: householdId,
+                userId: userId,
+                codesJson: codesJson,
+                customJson: customJson,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> householdId = const Value.absent(),
+                required String userId,
+                Value<String> codesJson = const Value.absent(),
+                Value<String> customJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MemberAllergiesCompanion.insert(
+                id: id,
+                householdId: householdId,
+                userId: userId,
+                codesJson: codesJson,
+                customJson: customJson,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$MemberAllergiesTable, MemberAllergyRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $MemberAllergiesTable,
+                    MemberAllergyRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MemberAllergiesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MemberAllergiesTable,
+      MemberAllergyRow,
+      $$MemberAllergiesTableFilterComposer,
+      $$MemberAllergiesTableOrderingComposer,
+      $$MemberAllergiesTableAnnotationComposer,
+      $$MemberAllergiesTableCreateCompanionBuilder,
+      $$MemberAllergiesTableUpdateCompanionBuilder,
+      (
+        MemberAllergyRow,
+        BaseReferences<_$AppDatabase, $MemberAllergiesTable, MemberAllergyRow>,
+      ),
+      MemberAllergyRow,
       PrefetchHooks Function()
     >;
 typedef $$ShoppingSourcesTableCreateCompanionBuilder =
@@ -25065,6 +25658,8 @@ class $AppDatabaseManager {
       $$DayRulesTableTableManager(_db, _db.dayRules);
   $$HouseholdPreferencesTableTableManager get householdPreferences =>
       $$HouseholdPreferencesTableTableManager(_db, _db.householdPreferences);
+  $$MemberAllergiesTableTableManager get memberAllergies =>
+      $$MemberAllergiesTableTableManager(_db, _db.memberAllergies);
   $$ShoppingSourcesTableTableManager get shoppingSources =>
       $$ShoppingSourcesTableTableManager(_db, _db.shoppingSources);
   $$ShoppingContributionsTableTableManager get shoppingContributions =>
