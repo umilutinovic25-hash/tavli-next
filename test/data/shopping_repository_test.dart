@@ -746,7 +746,7 @@ void main() {
         expect(
           (jsonDecode(source.recipeSnapshotJson!)
               as Map<String, dynamic>)['dictionaryVersion'],
-          2,
+          3,
         );
         final current = lines.where((c) => c.sourceId == source.id).toList();
         expect(current, hasLength(2));
@@ -1248,7 +1248,7 @@ void main() {
       final source = (await db.select(db.shoppingSources).get()).single;
       final json =
           jsonDecode(source.recipeSnapshotJson!) as Map<String, dynamic>;
-      expect(json['dictionaryVersion'], 2);
+      expect(json['dictionaryVersion'], 3);
       final ingredient =
           (json['ingredients'] as List).single as Map<String, dynamic>;
       expect(ingredient['foodId'], 'f_jaje');

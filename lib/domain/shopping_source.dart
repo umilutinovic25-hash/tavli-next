@@ -141,7 +141,7 @@ class RecipeSnapshot {
       steps: steps,
       prepMinutes: prepMinutes,
       imagePath: imagePath,
-      dictionaryVersion: 2,
+      dictionaryVersion: 3,
       stepUses: stepUses,
       activeMinutes: activeMinutes,
       totalMinutes: totalMinutes,

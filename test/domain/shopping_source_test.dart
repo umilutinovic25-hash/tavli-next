@@ -103,7 +103,7 @@ void main() {
 
     test('potvrda: verzija 2, foodId po aliasu, izbor osobe ostaje', () {
       final s = recipe.withCurrentDictionary(catalog());
-      expect(s.dictionaryVersion, 2);
+      expect(s.dictionaryVersion, 3);
       expect(
         [for (final i in s.ingredients) i.foodId],
         ['f_jaje', 'f_beli_luk', null, 'own-izbor'],
@@ -120,7 +120,7 @@ void main() {
     test('JSON kružno čuva foodId i konverzije', () {
       final s = recipe.withCurrentDictionary(catalog());
       final back = RecipeSnapshot.fromJson(s.toJson());
-      expect(back.dictionaryVersion, 2);
+      expect(back.dictionaryVersion, 3);
       expect(back.conversions, s.conversions);
       expect(back.ingredients.first.foodId, 'f_jaje');
       expect(back.toJson(), s.toJson());
@@ -149,7 +149,7 @@ void main() {
 
     test('bez kataloga: v2 bez konverzija, tekstualni ključ', () {
       final s = recipe.withCurrentDictionary();
-      expect(s.dictionaryVersion, 2);
+      expect(s.dictionaryVersion, 3);
       expect(s.conversions, isEmpty);
       expect(s.ingredients.first.foodId, isNull);
       expect(lines(s).first.key.ingredient, 'v1:jaja');
@@ -158,7 +158,7 @@ void main() {
     test('withIngredients čuva verziju i konverzije', () {
       final s = recipe.withCurrentDictionary(catalog());
       final only = s.withIngredients([s.ingredients[1]]);
-      expect(only.dictionaryVersion, 2);
+      expect(only.dictionaryVersion, 3);
       expect(only.conversions, s.conversions);
     });
   });
