@@ -142,6 +142,11 @@ flowchart LR
   → `scripts/catalog_seed.dart` → seed migration. Existing rows were mapped
   once on the server (`private.map_food_ids()`, exact shared alias only) and
   reach devices through the normal download.
+- **Demand dictionary v3 (043)**: snapshots approved from 043 on add kitchen
+  measures to v2 (čaša 200 ml, šolja 250 ml, kašika 15 ml, kašičica 5 ml are
+  approximate and make the summed amount carry `~`; dl and dkg are exact).
+  v0–v2 stay frozen; older plans and stock are not re-summed. The flag is
+  stored per contribution and shopping item (`approximate`).
 - **Demand dictionary v2**: snapshots approved after 036 use
   `dictionaryVersion: 2`: identity `food:<id>` when the ingredient has a food,
   with food conversions (e.g. 1 čen garlic = 5 g) frozen in the snapshot.
@@ -167,7 +172,7 @@ flowchart LR
   recipes with an allergen are not offered; new summaries retry once, then the
   slots stay empty. Photo and link imports are not rejected; preview, form and
   detail show "Sadrži alergen člana" or "Nepotvrđeno, proveri alergene".
-  Personal export format 5 also includes confirmed shopping product selections; format 4 added the person's own allergies.
+  Personal export format 6 also includes the approximate-quantity flag on shopping items and contributions (043); format 5 added confirmed shopping product selections; format 4 added the person's own allergies.
 
 ## Local development backend
 
