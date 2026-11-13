@@ -96,6 +96,7 @@ void main() {
       isManual: true,
       fromRecipeIdsJson: '[]',
       priceSelectionJson: '{"barcode":"123","package":"1000"}',
+      approximate: true,
     );
     final export = buildPersonalExport(
       exportedAt: _at,
@@ -104,6 +105,7 @@ void main() {
     );
     final rows =
         (export['sections']! as Map)['shoppingItems']! as List<Object?>;
+    expect((rows.single! as Map)['approximate'], true);
     expect((rows.single! as Map)['priceSelection'], {
       'barcode': '123',
       'package': '1000',

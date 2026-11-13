@@ -47,6 +47,7 @@ void main() {
       product('UNIVEREXPORT - L', 20000),
     ], []);
     const item = ShoppingItemRow(
+      approximate: false,
       id: '1',
       listId: '1',
       name: 'Mleko',
@@ -175,6 +176,7 @@ void main() {
       ],
     );
     const item = ShoppingItemRow(
+      approximate: false,
       id: '1',
       listId: '1',
       name: 'Mleko',
@@ -238,6 +240,7 @@ void main() {
       ],
     );
     const item = ShoppingItemRow(
+      approximate: false,
       id: '1',
       listId: '1',
       name: 'Mleko',

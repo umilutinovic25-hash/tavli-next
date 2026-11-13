@@ -304,7 +304,7 @@ class _WholePlan extends ConsumerWidget {
     String? amount(int micros, PlanTotal t) {
       if (micros == 0) return null;
       final a = displayAmount(micros, t.baseUnit);
-      return amountLabel(a.quantity, a.unit);
+      return amountLabel(a.quantity, a.unit, approximate: t.approximate);
     }
 
     Widget tile(PlanTotal t, {required bool bought}) {

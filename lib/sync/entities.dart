@@ -367,6 +367,7 @@ class ShoppingItemEntity
     'photo_path': photoFileName(r.photoPath),
     'food_id': r.foodId,
     'price_selection': _decodeOrNull(r.priceSelectionJson),
+    'approximate': r.approximate,
   };
 
   @override
@@ -388,6 +389,7 @@ class ShoppingItemEntity
         photoPath: Value(photoLocalPath(j['photo_path'] as String?)),
         foodId: Value(j['food_id'] as String?),
         priceSelectionJson: Value(_jsonOrNull(j['price_selection'])),
+        approximate: Value(j['approximate'] as bool? ?? false),
       );
 }
 

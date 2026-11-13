@@ -3314,6 +3314,21 @@ class $ShoppingItemsTable extends ShoppingItems
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _approximateMeta = const VerificationMeta(
+    'approximate',
+  );
+  @override
+  late final GeneratedColumn<bool> approximate = GeneratedColumn<bool>(
+    'approximate',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("approximate" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3332,6 +3347,7 @@ class $ShoppingItemsTable extends ShoppingItems
     photoPath,
     foodId,
     priceSelectionJson,
+    approximate,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3458,6 +3474,15 @@ class $ShoppingItemsTable extends ShoppingItems
         ),
       );
     }
+    if (data.containsKey('approximate')) {
+      context.handle(
+        _approximateMeta,
+        approximate.isAcceptableOrUnknown(
+          data['approximate']!,
+          _approximateMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -3531,6 +3556,10 @@ class $ShoppingItemsTable extends ShoppingItems
         DriftSqlType.string,
         data['${effectivePrefix}price_selection_json'],
       ),
+      approximate: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}approximate'],
+      )!,
     );
   }
 
@@ -3564,6 +3593,9 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
 
   /// Potvrđen proizvod i pakovanje za poređenje cena.
   final String? priceSelectionJson;
+
+  /// Količina stavke sadrži približnu meru (rečnik v3): prikaz ~.
+  final bool approximate;
   const ShoppingItemRow({
     required this.id,
     required this.listId,
@@ -3581,6 +3613,7 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
     this.photoPath,
     this.foodId,
     this.priceSelectionJson,
+    required this.approximate,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3621,6 +3654,7 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
     if (!nullToAbsent || priceSelectionJson != null) {
       map['price_selection_json'] = Variable<String>(priceSelectionJson);
     }
+    map['approximate'] = Variable<bool>(approximate);
     return map;
   }
 
@@ -3656,6 +3690,7 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
       priceSelectionJson: priceSelectionJson == null && nullToAbsent
           ? const Value.absent()
           : Value(priceSelectionJson),
+      approximate: Value(approximate),
     );
   }
 
@@ -3685,6 +3720,7 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
       priceSelectionJson: serializer.fromJson<String?>(
         json['priceSelectionJson'],
       ),
+      approximate: serializer.fromJson<bool>(json['approximate']),
     );
   }
   @override
@@ -3709,6 +3745,7 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
       'photoPath': serializer.toJson<String?>(photoPath),
       'foodId': serializer.toJson<String?>(foodId),
       'priceSelectionJson': serializer.toJson<String?>(priceSelectionJson),
+      'approximate': serializer.toJson<bool>(approximate),
     };
   }
 
@@ -3729,6 +3766,7 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
     Value<String?> photoPath = const Value.absent(),
     Value<String?> foodId = const Value.absent(),
     Value<String?> priceSelectionJson = const Value.absent(),
+    bool? approximate,
   }) => ShoppingItemRow(
     id: id ?? this.id,
     listId: listId ?? this.listId,
@@ -3750,6 +3788,7 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
     priceSelectionJson: priceSelectionJson.present
         ? priceSelectionJson.value
         : this.priceSelectionJson,
+    approximate: approximate ?? this.approximate,
   );
   ShoppingItemRow copyWithCompanion(ShoppingItemsCompanion data) {
     return ShoppingItemRow(
@@ -3777,6 +3816,9 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
       priceSelectionJson: data.priceSelectionJson.present
           ? data.priceSelectionJson.value
           : this.priceSelectionJson,
+      approximate: data.approximate.present
+          ? data.approximate.value
+          : this.approximate,
     );
   }
 
@@ -3798,7 +3840,8 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
           ..write('note: $note, ')
           ..write('photoPath: $photoPath, ')
           ..write('foodId: $foodId, ')
-          ..write('priceSelectionJson: $priceSelectionJson')
+          ..write('priceSelectionJson: $priceSelectionJson, ')
+          ..write('approximate: $approximate')
           ..write(')'))
         .toString();
   }
@@ -3821,6 +3864,7 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
     photoPath,
     foodId,
     priceSelectionJson,
+    approximate,
   );
   @override
   bool operator ==(Object other) =>
@@ -3841,7 +3885,8 @@ class ShoppingItemRow extends DataClass implements Insertable<ShoppingItemRow> {
           other.note == this.note &&
           other.photoPath == this.photoPath &&
           other.foodId == this.foodId &&
-          other.priceSelectionJson == this.priceSelectionJson);
+          other.priceSelectionJson == this.priceSelectionJson &&
+          other.approximate == this.approximate);
 }
 
 class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
@@ -3861,6 +3906,7 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
   final Value<String?> photoPath;
   final Value<String?> foodId;
   final Value<String?> priceSelectionJson;
+  final Value<bool> approximate;
   final Value<int> rowid;
   const ShoppingItemsCompanion({
     this.id = const Value.absent(),
@@ -3879,6 +3925,7 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
     this.photoPath = const Value.absent(),
     this.foodId = const Value.absent(),
     this.priceSelectionJson = const Value.absent(),
+    this.approximate = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ShoppingItemsCompanion.insert({
@@ -3898,6 +3945,7 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
     this.photoPath = const Value.absent(),
     this.foodId = const Value.absent(),
     this.priceSelectionJson = const Value.absent(),
+    this.approximate = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        listId = Value(listId),
@@ -3920,6 +3968,7 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
     Expression<String>? photoPath,
     Expression<String>? foodId,
     Expression<String>? priceSelectionJson,
+    Expression<bool>? approximate,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3941,6 +3990,7 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
       if (foodId != null) 'food_id': foodId,
       if (priceSelectionJson != null)
         'price_selection_json': priceSelectionJson,
+      if (approximate != null) 'approximate': approximate,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3962,6 +4012,7 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
     Value<String?>? photoPath,
     Value<String?>? foodId,
     Value<String?>? priceSelectionJson,
+    Value<bool>? approximate,
     Value<int>? rowid,
   }) {
     return ShoppingItemsCompanion(
@@ -3982,6 +4033,7 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
       photoPath: photoPath ?? this.photoPath,
       foodId: foodId ?? this.foodId,
       priceSelectionJson: priceSelectionJson ?? this.priceSelectionJson,
+      approximate: approximate ?? this.approximate,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4039,6 +4091,9 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
     if (priceSelectionJson.present) {
       map['price_selection_json'] = Variable<String>(priceSelectionJson.value);
     }
+    if (approximate.present) {
+      map['approximate'] = Variable<bool>(approximate.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4064,6 +4119,7 @@ class ShoppingItemsCompanion extends UpdateCompanion<ShoppingItemRow> {
           ..write('photoPath: $photoPath, ')
           ..write('foodId: $foodId, ')
           ..write('priceSelectionJson: $priceSelectionJson, ')
+          ..write('approximate: $approximate, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -17747,6 +17803,7 @@ typedef $$ShoppingItemsTableCreateCompanionBuilder =
       Value<String?> photoPath,
       Value<String?> foodId,
       Value<String?> priceSelectionJson,
+      Value<bool> approximate,
       Value<int> rowid,
     });
 typedef $$ShoppingItemsTableUpdateCompanionBuilder =
@@ -17767,6 +17824,7 @@ typedef $$ShoppingItemsTableUpdateCompanionBuilder =
       Value<String?> photoPath,
       Value<String?> foodId,
       Value<String?> priceSelectionJson,
+      Value<bool> approximate,
       Value<int> rowid,
     });
 
@@ -17907,6 +17965,11 @@ class $$ShoppingItemsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ShoppingListsTableFilterComposer get listId {
     final $$ShoppingListsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -18041,6 +18104,11 @@ class $$ShoppingItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ShoppingListsTableOrderingComposer get listId {
     final $$ShoppingListsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -18124,6 +18192,11 @@ class $$ShoppingItemsTableAnnotationComposer
 
   GeneratedColumn<String> get priceSelectionJson => $composableBuilder(
     column: $table.priceSelectionJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
     builder: (column) => column,
   );
 
@@ -18221,6 +18294,7 @@ class $$ShoppingItemsTableTableManager
                 Value<String?> photoPath = const Value.absent(),
                 Value<String?> foodId = const Value.absent(),
                 Value<String?> priceSelectionJson = const Value.absent(),
+                Value<bool> approximate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShoppingItemsCompanion(
                 id: id,
@@ -18239,6 +18313,7 @@ class $$ShoppingItemsTableTableManager
                 photoPath: photoPath,
                 foodId: foodId,
                 priceSelectionJson: priceSelectionJson,
+                approximate: approximate,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -18259,6 +18334,7 @@ class $$ShoppingItemsTableTableManager
                 Value<String?> photoPath = const Value.absent(),
                 Value<String?> foodId = const Value.absent(),
                 Value<String?> priceSelectionJson = const Value.absent(),
+                Value<bool> approximate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ShoppingItemsCompanion.insert(
                 id: id,
@@ -18277,6 +18353,7 @@ class $$ShoppingItemsTableTableManager
                 photoPath: photoPath,
                 foodId: foodId,
                 priceSelectionJson: priceSelectionJson,
+                approximate: approximate,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

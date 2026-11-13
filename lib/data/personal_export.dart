@@ -302,6 +302,7 @@ Map<String, Object?> _shoppingItem(ShoppingItemRow i) => {
   'priceSelection': i.priceSelectionJson == null
       ? null
       : _json(i.priceSelectionJson!),
+  'approximate': i.approximate,
 };
 
 Map<String, Object?> _pantryItem(PantryItemRow p) => {

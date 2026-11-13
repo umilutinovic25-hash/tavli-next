@@ -18,10 +18,15 @@ import 'basket_price_screen.dart';
 import 'shopping_details.dart';
 import 'shopping_providers.dart';
 
-/// "1,5 kg", "2 kom"; null kad količina nije poznata.
-String? amountLabel(double? quantity, String? unit) => quantity == null
+/// "1,5 kg", "2 kom", "~350 ml" (približna mera); null kad količina nije
+/// poznata.
+String? amountLabel(
+  double? quantity,
+  String? unit, {
+  bool approximate = false,
+}) => quantity == null
     ? null
-    : [formatQuantity(quantity), ?unit].join(' ').trim();
+    : '${approximate ? '~' : ''}${[formatQuantity(quantity), ?unit].join(' ').trim()}';
 
 /// "Voće i povrće"
 String categoryLabel(String category) => category.isEmpty
@@ -229,7 +234,11 @@ class ShoppingItemTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final amount = amountLabel(item.quantity, item.unit);
+    final amount = amountLabel(
+      item.quantity,
+      item.unit,
+      approximate: item.approximate,
+    );
     final subtitle = [
       if (amount != null)
         amount

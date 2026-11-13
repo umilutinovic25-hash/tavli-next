@@ -1271,6 +1271,9 @@ void main() {
       expect(c.micros, 350 * microsPerUnit);
       expect(c.baseUnit, 'ml');
       expect(c.approximate, true);
+      final item = (await db.select(db.shoppingItems).get()).single;
+      expect((item.quantity, item.unit), (350, 'ml'));
+      expect(item.approximate, true);
     });
 
     test('043: kg i g su tačan zbir bez oznake ~', () async {
@@ -1285,6 +1288,9 @@ void main() {
       final c = (await db.select(db.shoppingContributions).get()).single;
       expect(c.micros, 1500 * microsPerUnit);
       expect(c.approximate, false);
+      final item = (await db.select(db.shoppingItems).get()).single;
+      expect((item.quantity, item.unit), (1.5, 'kg'));
+      expect(item.approximate, false);
     });
 
     test('SC-001: jedna stavka „jaje“ 1,5 kom posle zalihe „jajce“', () async {
@@ -1393,6 +1399,7 @@ void main() {
     test('totalsOf grupiše po namirnici', () {
       ShoppingItemRow row(String id, String name, String? foodId) =>
           ShoppingItemRow(
+            approximate: false,
             id: id,
             listId: 'l',
             name: name,

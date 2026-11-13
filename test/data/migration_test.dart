@@ -41,18 +41,23 @@ void main() {
     await before.customStatement(
       'ALTER TABLE shopping_contributions DROP COLUMN approximate',
     );
+    await before.customStatement(
+      'ALTER TABLE shopping_items DROP COLUMN approximate',
+    );
     await before.customStatement('PRAGMA user_version = 19');
     await before.close();
     final after = AppDatabase(NativeDatabase(file));
     addTearDown(after.close);
-    final columns = await after
-        .customSelect('PRAGMA table_info(shopping_contributions)')
-        .get();
-    final approximate = columns.singleWhere(
-      (c) => c.read<String>('name') == 'approximate',
-    );
-    expect(approximate.read<int>('notnull'), 1);
-    expect(approximate.read<String>('dflt_value'), '0');
+    for (final table in ['shopping_contributions', 'shopping_items']) {
+      final columns = await after
+          .customSelect('PRAGMA table_info($table)')
+          .get();
+      final approximate = columns.singleWhere(
+        (c) => c.read<String>('name') == 'approximate',
+      );
+      expect(approximate.read<int>('notnull'), 1, reason: table);
+      expect(approximate.read<String>('dflt_value'), '0', reason: table);
+    }
     expect(after.schemaVersion, 20);
   });
 

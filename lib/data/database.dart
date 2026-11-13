@@ -159,6 +159,9 @@ class ShoppingItems extends Table {
   /// Potvrđen proizvod i pakovanje za poređenje cena.
   TextColumn get priceSelectionJson => text().nullable()();
 
+  /// Količina stavke sadrži približnu meru (rečnik v3): prikaz ~.
+  BoolColumn get approximate => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -862,6 +865,12 @@ class AppDatabase extends _$AppDatabase {
             shoppingContributions,
             shoppingContributions.approximate,
           );
+        }
+        final itemColumns = await customSelect(
+          'PRAGMA table_info(shopping_items)',
+        ).get();
+        if (!itemColumns.any((c) => c.read<String>('name') == 'approximate')) {
+          await m.addColumn(shoppingItems, shoppingItems.approximate);
         }
       }
     },
