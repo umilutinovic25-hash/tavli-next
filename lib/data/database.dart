@@ -594,6 +594,11 @@ class Foods extends Table {
   TextColumn get nutritionSource => text().nullable()();
   TextColumn get nutritionRef => text().nullable()();
 
+  /// Težina osnovne jedinice u gramima (046): komad (kom) ili gustina g/ml
+  /// (ml); null kod g namirnica i kad je nepoznata.
+  RealColumn get unitGrams => real().nullable()();
+  TextColumn get unitGramsSource => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -674,7 +679,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -893,6 +898,16 @@ class AppDatabase extends _$AppDatabase {
           ('carbs100', foods.carbs100),
           ('nutrition_source', foods.nutritionSource),
           ('nutrition_ref', foods.nutritionRef),
+        ]) {
+          if (!have.contains(name)) await m.addColumn(foods, column);
+        }
+      }
+      if (from < 22) {
+        final columns = await customSelect('PRAGMA table_info(foods)').get();
+        final have = {for (final c in columns) c.read<String>('name')};
+        for (final (name, column) in <(String, GeneratedColumn<Object>)>[
+          ('unit_grams', foods.unitGrams),
+          ('unit_grams_source', foods.unitGramsSource),
         ]) {
           if (!have.contains(name)) await m.addColumn(foods, column);
         }

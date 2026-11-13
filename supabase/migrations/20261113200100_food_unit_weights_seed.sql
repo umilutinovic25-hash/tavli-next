@@ -1,0 +1,33 @@
+-- Težina komada (kom) i gustina (ml) iz USDA FoodData Central porcija
+-- (SR Legacy 2018-04, CC0). Generisano: dart run scripts/nutrition_seed.dart
+update public.foods set unit_grams = 58.0000, unit_grams_source = 'usda-sr-legacy-2018-04:167746:fruit (2-1/8" dia)' where id = 'f_limun' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 67.0000, unit_grams_source = 'usda-sr-legacy-2018-04:168155:fruit (2" dia)' where id = 'f_limeta' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 131.0000, unit_grams_source = 'usda-sr-legacy-2018-04:169097:fruit (2-5/8" dia)' where id = 'f_pomorandza' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 182.0000, unit_grams_source = 'usda-sr-legacy-2018-04:171688:medium (3" dia)' where id = 'f_jabuka' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 178.0000, unit_grams_source = 'usda-sr-legacy-2018-04:169118:medium' where id = 'f_kruska' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 118.0000, unit_grams_source = 'usda-sr-legacy-2018-04:173944:medium (7" to 7-7/8" long)' where id = 'f_banana' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 150.0000, unit_grams_source = 'usda-sr-legacy-2018-04:169928:medium (2-2/3" dia)' where id = 'f_breskva' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 35.0000, unit_grams_source = 'usda-sr-legacy-2018-04:171697:apricot' where id = 'f_kajsija' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 201.0000, unit_grams_source = 'usda-sr-legacy-2018-04:171705:avocado, NS as to Florida or California' where id = 'f_avokado' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 50.0000, unit_grams_source = 'usda-sr-legacy-2018-04:171287:large' where id = 'f_jaje' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.0313, unit_grams_source = 'usda-sr-legacy-2018-04:171265:fl oz' where id = 'f_mleko' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.0347, unit_grams_source = 'usda-sr-legacy-2018-04:170874:fl oz' where id = 'f_kiselo_mleko' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.0060, unit_grams_source = 'usda-sr-legacy-2018-04:170859:cup, fluid (yields 2 cups whipped)' where id = 'f_slatka_pavlaka' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 60.0000, unit_grams_source = 'usda-sr-legacy-2018-04:174915:pita, large (6-1/2" dia)' where id = 'f_lepinja' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 43.0000, unit_grams_source = 'usda-sr-legacy-2018-04:172793:roll (hamburger, frankfurter, onion roll, bun, large roll)' where id = 'f_kifla' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 49.0000, unit_grams_source = 'usda-sr-legacy-2018-04:167535:tortilla' where id = 'f_tortilja' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.0060, unit_grams_source = 'usda-sr-legacy-2018-04:172237:cup' where id = 'f_sirce' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.0778, unit_grams_source = 'usda-sr-legacy-2018-04:172241:cup' where id = 'f_balzamiko' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.0778, unit_grams_source = 'usda-sr-legacy-2018-04:174277:cup' where id = 'f_soja_sos' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 0.9214, unit_grams_source = 'usda-sr-legacy-2018-04:171025:cup' where id = 'f_ulje' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 0.9130, unit_grams_source = 'usda-sr-legacy-2018-04:171413:cup' where id = 'f_maslinovo_ulje' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.3188, unit_grams_source = 'usda-sr-legacy-2018-04:171186:tsp' where id = 'f_ljuti_sos' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 0.9552, unit_grams_source = 'usda-sr-legacy-2018-04:170173:cup' where id = 'f_kokosovo_mleko' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.0009, unit_grams_source = 'usda-sr-legacy-2018-04:173647:fl oz' where id = 'f_voda' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.0009, unit_grams_source = 'usda-sr-legacy-2018-04:173233:fl oz' where id = 'f_mineralna_voda' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 0.9941, unit_grams_source = 'usda-sr-legacy-2018-04:174837:fl oz' where id = 'f_belo_vino' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 0.9941, unit_grams_source = 'usda-sr-legacy-2018-04:173190:fl oz' where id = 'f_crno_vino' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.0043, unit_grams_source = 'usda-sr-legacy-2018-04:168746:fl oz' where id = 'f_pivo' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.0313, unit_grams_source = 'usda-sr-legacy-2018-04:167747:fl oz' where id = 'f_sok_od_limuna' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 1.0482, unit_grams_source = 'usda-sr-legacy-2018-04:169098:fl oz' where id = 'f_sok_od_pomorandze' and household_id is null and unit_grams is null;
+update public.foods set unit_grams = 4.0000, unit_grams_source = 'usda-sr-legacy-2018-04:171562:cube' where id = 'f_supa_kocka' and household_id is null and unit_grams is null;

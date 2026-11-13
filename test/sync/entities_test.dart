@@ -447,6 +447,8 @@ void main() {
         carbs100: const Value(0.72),
         nutritionSource: const Value('usda-sr-legacy-2018-04'),
         nutritionRef: const Value('171287'),
+        unitGrams: const Value(50),
+        unitGramsSource: const Value('usda-sr-legacy-2018-04:171287:large'),
       ),
       'f_jaje2',
       (r) {
@@ -456,6 +458,8 @@ void main() {
         expect(r['carbs_100'], 0.72);
         expect(r['nutrition_source'], 'usda-sr-legacy-2018-04');
         expect(r['nutrition_ref'], '171287');
+        expect(r['unit_grams'], 50);
+        expect(r['unit_grams_source'], 'usda-sr-legacy-2018-04:171287:large');
       },
     );
     await roundTrip(

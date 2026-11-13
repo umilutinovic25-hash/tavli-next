@@ -970,6 +970,8 @@ class FoodEntity extends SyncEntity<$FoodsTable, FoodRow> {
     'carbs_100': r.carbs100,
     'nutrition_source': r.nutritionSource,
     'nutrition_ref': r.nutritionRef,
+    'unit_grams': r.unitGrams,
+    'unit_grams_source': r.unitGramsSource,
   };
 
   @override
@@ -985,6 +987,8 @@ class FoodEntity extends SyncEntity<$FoodsTable, FoodRow> {
     carbs100: Value((j['carbs_100'] as num?)?.toDouble()),
     nutritionSource: Value(j['nutrition_source'] as String?),
     nutritionRef: Value(j['nutrition_ref'] as String?),
+    unitGrams: Value((j['unit_grams'] as num?)?.toDouble()),
+    unitGramsSource: Value(j['unit_grams_source'] as String?),
   );
 }
 

@@ -14188,6 +14188,28 @@ class $FoodsTable extends Foods with TableInfo<$FoodsTable, FoodRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _unitGramsMeta = const VerificationMeta(
+    'unitGrams',
+  );
+  @override
+  late final GeneratedColumn<double> unitGrams = GeneratedColumn<double>(
+    'unit_grams',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _unitGramsSourceMeta = const VerificationMeta(
+    'unitGramsSource',
+  );
+  @override
+  late final GeneratedColumn<String> unitGramsSource = GeneratedColumn<String>(
+    'unit_grams_source',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -14201,6 +14223,8 @@ class $FoodsTable extends Foods with TableInfo<$FoodsTable, FoodRow> {
     carbs100,
     nutritionSource,
     nutritionRef,
+    unitGrams,
+    unitGramsSource,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -14294,6 +14318,21 @@ class $FoodsTable extends Foods with TableInfo<$FoodsTable, FoodRow> {
         ),
       );
     }
+    if (data.containsKey('unit_grams')) {
+      context.handle(
+        _unitGramsMeta,
+        unitGrams.isAcceptableOrUnknown(data['unit_grams']!, _unitGramsMeta),
+      );
+    }
+    if (data.containsKey('unit_grams_source')) {
+      context.handle(
+        _unitGramsSourceMeta,
+        unitGramsSource.isAcceptableOrUnknown(
+          data['unit_grams_source']!,
+          _unitGramsSourceMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -14347,6 +14386,14 @@ class $FoodsTable extends Foods with TableInfo<$FoodsTable, FoodRow> {
         DriftSqlType.string,
         data['${effectivePrefix}nutrition_ref'],
       ),
+      unitGrams: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}unit_grams'],
+      ),
+      unitGramsSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit_grams_source'],
+      ),
     );
   }
 
@@ -14374,6 +14421,11 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
   /// Izvor i oznaka zapisa u izvoru (npr. `usda-sr-legacy-2018-04`, FDC id).
   final String? nutritionSource;
   final String? nutritionRef;
+
+  /// Težina osnovne jedinice u gramima (046): komad (kom) ili gustina g/ml
+  /// (ml); null kod g namirnica i kad je nepoznata.
+  final double? unitGrams;
+  final String? unitGramsSource;
   const FoodRow({
     required this.id,
     this.householdId,
@@ -14386,6 +14438,8 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     this.carbs100,
     this.nutritionSource,
     this.nutritionRef,
+    this.unitGrams,
+    this.unitGramsSource,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -14414,6 +14468,12 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     }
     if (!nullToAbsent || nutritionRef != null) {
       map['nutrition_ref'] = Variable<String>(nutritionRef);
+    }
+    if (!nullToAbsent || unitGrams != null) {
+      map['unit_grams'] = Variable<double>(unitGrams);
+    }
+    if (!nullToAbsent || unitGramsSource != null) {
+      map['unit_grams_source'] = Variable<String>(unitGramsSource);
     }
     return map;
   }
@@ -14445,6 +14505,12 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
       nutritionRef: nutritionRef == null && nullToAbsent
           ? const Value.absent()
           : Value(nutritionRef),
+      unitGrams: unitGrams == null && nullToAbsent
+          ? const Value.absent()
+          : Value(unitGrams),
+      unitGramsSource: unitGramsSource == null && nullToAbsent
+          ? const Value.absent()
+          : Value(unitGramsSource),
     );
   }
 
@@ -14465,6 +14531,8 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
       carbs100: serializer.fromJson<double?>(json['carbs100']),
       nutritionSource: serializer.fromJson<String?>(json['nutritionSource']),
       nutritionRef: serializer.fromJson<String?>(json['nutritionRef']),
+      unitGrams: serializer.fromJson<double?>(json['unitGrams']),
+      unitGramsSource: serializer.fromJson<String?>(json['unitGramsSource']),
     );
   }
   @override
@@ -14482,6 +14550,8 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
       'carbs100': serializer.toJson<double?>(carbs100),
       'nutritionSource': serializer.toJson<String?>(nutritionSource),
       'nutritionRef': serializer.toJson<String?>(nutritionRef),
+      'unitGrams': serializer.toJson<double?>(unitGrams),
+      'unitGramsSource': serializer.toJson<String?>(unitGramsSource),
     };
   }
 
@@ -14497,6 +14567,8 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     Value<double?> carbs100 = const Value.absent(),
     Value<String?> nutritionSource = const Value.absent(),
     Value<String?> nutritionRef = const Value.absent(),
+    Value<double?> unitGrams = const Value.absent(),
+    Value<String?> unitGramsSource = const Value.absent(),
   }) => FoodRow(
     id: id ?? this.id,
     householdId: householdId.present ? householdId.value : this.householdId,
@@ -14511,6 +14583,10 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
         ? nutritionSource.value
         : this.nutritionSource,
     nutritionRef: nutritionRef.present ? nutritionRef.value : this.nutritionRef,
+    unitGrams: unitGrams.present ? unitGrams.value : this.unitGrams,
+    unitGramsSource: unitGramsSource.present
+        ? unitGramsSource.value
+        : this.unitGramsSource,
   );
   FoodRow copyWithCompanion(FoodsCompanion data) {
     return FoodRow(
@@ -14533,6 +14609,10 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
       nutritionRef: data.nutritionRef.present
           ? data.nutritionRef.value
           : this.nutritionRef,
+      unitGrams: data.unitGrams.present ? data.unitGrams.value : this.unitGrams,
+      unitGramsSource: data.unitGramsSource.present
+          ? data.unitGramsSource.value
+          : this.unitGramsSource,
     );
   }
 
@@ -14549,7 +14629,9 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
           ..write('fat100: $fat100, ')
           ..write('carbs100: $carbs100, ')
           ..write('nutritionSource: $nutritionSource, ')
-          ..write('nutritionRef: $nutritionRef')
+          ..write('nutritionRef: $nutritionRef, ')
+          ..write('unitGrams: $unitGrams, ')
+          ..write('unitGramsSource: $unitGramsSource')
           ..write(')'))
         .toString();
   }
@@ -14567,6 +14649,8 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     carbs100,
     nutritionSource,
     nutritionRef,
+    unitGrams,
+    unitGramsSource,
   );
   @override
   bool operator ==(Object other) =>
@@ -14582,7 +14666,9 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
           other.fat100 == this.fat100 &&
           other.carbs100 == this.carbs100 &&
           other.nutritionSource == this.nutritionSource &&
-          other.nutritionRef == this.nutritionRef);
+          other.nutritionRef == this.nutritionRef &&
+          other.unitGrams == this.unitGrams &&
+          other.unitGramsSource == this.unitGramsSource);
 }
 
 class FoodsCompanion extends UpdateCompanion<FoodRow> {
@@ -14597,6 +14683,8 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
   final Value<double?> carbs100;
   final Value<String?> nutritionSource;
   final Value<String?> nutritionRef;
+  final Value<double?> unitGrams;
+  final Value<String?> unitGramsSource;
   final Value<int> rowid;
   const FoodsCompanion({
     this.id = const Value.absent(),
@@ -14610,6 +14698,8 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     this.carbs100 = const Value.absent(),
     this.nutritionSource = const Value.absent(),
     this.nutritionRef = const Value.absent(),
+    this.unitGrams = const Value.absent(),
+    this.unitGramsSource = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FoodsCompanion.insert({
@@ -14624,6 +14714,8 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     this.carbs100 = const Value.absent(),
     this.nutritionSource = const Value.absent(),
     this.nutritionRef = const Value.absent(),
+    this.unitGrams = const Value.absent(),
+    this.unitGramsSource = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -14641,6 +14733,8 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     Expression<double>? carbs100,
     Expression<String>? nutritionSource,
     Expression<String>? nutritionRef,
+    Expression<double>? unitGrams,
+    Expression<String>? unitGramsSource,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -14655,6 +14749,8 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
       if (carbs100 != null) 'carbs100': carbs100,
       if (nutritionSource != null) 'nutrition_source': nutritionSource,
       if (nutritionRef != null) 'nutrition_ref': nutritionRef,
+      if (unitGrams != null) 'unit_grams': unitGrams,
+      if (unitGramsSource != null) 'unit_grams_source': unitGramsSource,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -14671,6 +14767,8 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     Value<double?>? carbs100,
     Value<String?>? nutritionSource,
     Value<String?>? nutritionRef,
+    Value<double?>? unitGrams,
+    Value<String?>? unitGramsSource,
     Value<int>? rowid,
   }) {
     return FoodsCompanion(
@@ -14685,6 +14783,8 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
       carbs100: carbs100 ?? this.carbs100,
       nutritionSource: nutritionSource ?? this.nutritionSource,
       nutritionRef: nutritionRef ?? this.nutritionRef,
+      unitGrams: unitGrams ?? this.unitGrams,
+      unitGramsSource: unitGramsSource ?? this.unitGramsSource,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -14725,6 +14825,12 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     if (nutritionRef.present) {
       map['nutrition_ref'] = Variable<String>(nutritionRef.value);
     }
+    if (unitGrams.present) {
+      map['unit_grams'] = Variable<double>(unitGrams.value);
+    }
+    if (unitGramsSource.present) {
+      map['unit_grams_source'] = Variable<String>(unitGramsSource.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -14745,6 +14851,8 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
           ..write('carbs100: $carbs100, ')
           ..write('nutritionSource: $nutritionSource, ')
           ..write('nutritionRef: $nutritionRef, ')
+          ..write('unitGrams: $unitGrams, ')
+          ..write('unitGramsSource: $unitGramsSource, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -25387,6 +25495,8 @@ typedef $$FoodsTableCreateCompanionBuilder = FoodsCompanion Function({
   Value<double?> carbs100,
   Value<String?> nutritionSource,
   Value<String?> nutritionRef,
+  Value<double?> unitGrams,
+  Value<String?> unitGramsSource,
   Value<int> rowid,
 });
 typedef $$FoodsTableUpdateCompanionBuilder = FoodsCompanion Function({
@@ -25401,6 +25511,8 @@ typedef $$FoodsTableUpdateCompanionBuilder = FoodsCompanion Function({
   Value<double?> carbs100,
   Value<String?> nutritionSource,
   Value<String?> nutritionRef,
+  Value<double?> unitGrams,
+  Value<String?> unitGramsSource,
   Value<int> rowid,
 });
 
@@ -25464,6 +25576,16 @@ class $$FoodsTableFilterComposer extends Composer<_$AppDatabase, $FoodsTable> {
 
   ColumnFilters<String> get nutritionRef => $composableBuilder(
     column: $table.nutritionRef,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get unitGrams => $composableBuilder(
+    column: $table.unitGrams,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unitGramsSource => $composableBuilder(
+    column: $table.unitGramsSource,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -25531,6 +25653,16 @@ class $$FoodsTableOrderingComposer
     column: $table.nutritionRef,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<double> get unitGrams => $composableBuilder(
+    column: $table.unitGrams,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unitGramsSource => $composableBuilder(
+    column: $table.unitGramsSource,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$FoodsTableAnnotationComposer
@@ -25582,6 +25714,14 @@ class $$FoodsTableAnnotationComposer
     column: $table.nutritionRef,
     builder: (column) => column,
   );
+
+  GeneratedColumn<double> get unitGrams =>
+      $composableBuilder(column: $table.unitGrams, builder: (column) => column);
+
+  GeneratedColumn<String> get unitGramsSource => $composableBuilder(
+    column: $table.unitGramsSource,
+    builder: (column) => column,
+  );
 }
 
 class $$FoodsTableTableManager
@@ -25623,6 +25763,8 @@ class $$FoodsTableTableManager
                 Value<double?> carbs100 = const Value.absent(),
                 Value<String?> nutritionSource = const Value.absent(),
                 Value<String?> nutritionRef = const Value.absent(),
+                Value<double?> unitGrams = const Value.absent(),
+                Value<String?> unitGramsSource = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FoodsCompanion(
                 id: id,
@@ -25636,6 +25778,8 @@ class $$FoodsTableTableManager
                 carbs100: carbs100,
                 nutritionSource: nutritionSource,
                 nutritionRef: nutritionRef,
+                unitGrams: unitGrams,
+                unitGramsSource: unitGramsSource,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -25651,6 +25795,8 @@ class $$FoodsTableTableManager
                 Value<double?> carbs100 = const Value.absent(),
                 Value<String?> nutritionSource = const Value.absent(),
                 Value<String?> nutritionRef = const Value.absent(),
+                Value<double?> unitGrams = const Value.absent(),
+                Value<String?> unitGramsSource = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FoodsCompanion.insert(
                 id: id,
@@ -25664,6 +25810,8 @@ class $$FoodsTableTableManager
                 carbs100: carbs100,
                 nutritionSource: nutritionSource,
                 nutritionRef: nutritionRef,
+                unitGrams: unitGrams,
+                unitGramsSource: unitGramsSource,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
