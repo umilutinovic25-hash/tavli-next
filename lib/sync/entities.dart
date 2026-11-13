@@ -964,6 +964,12 @@ class FoodEntity extends SyncEntity<$FoodsTable, FoodRow> {
     'name': r.name,
     'category': r.category,
     'base_unit': r.baseUnit,
+    'kcal_100': r.kcal100,
+    'protein_100': r.protein100,
+    'fat_100': r.fat100,
+    'carbs_100': r.carbs100,
+    'nutrition_source': r.nutritionSource,
+    'nutrition_ref': r.nutritionRef,
   };
 
   @override
@@ -973,6 +979,12 @@ class FoodEntity extends SyncEntity<$FoodsTable, FoodRow> {
     name: Value(j['name']! as String),
     category: Value(j['category']! as String),
     baseUnit: Value(j['base_unit']! as String),
+    kcal100: Value((j['kcal_100'] as num?)?.toDouble()),
+    protein100: Value((j['protein_100'] as num?)?.toDouble()),
+    fat100: Value((j['fat_100'] as num?)?.toDouble()),
+    carbs100: Value((j['carbs_100'] as num?)?.toDouble()),
+    nutritionSource: Value(j['nutrition_source'] as String?),
+    nutritionRef: Value(j['nutrition_ref'] as String?),
   );
 }
 

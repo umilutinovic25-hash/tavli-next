@@ -431,6 +431,31 @@ void main() {
       (r) {
         expect(r['household_id'], isNull);
         expect(r['base_unit'], 'kom');
+        expect(r['kcal_100'], isNull);
+      },
+    );
+    await roundTrip(
+      const FoodEntity(),
+      FoodsCompanion.insert(
+        id: 'f_jaje2',
+        name: 'jaje2',
+        category: 'mlečni proizvodi i jaja',
+        baseUnit: 'kom',
+        kcal100: const Value(143),
+        protein100: const Value(12.56),
+        fat100: const Value(9.51),
+        carbs100: const Value(0.72),
+        nutritionSource: const Value('usda-sr-legacy-2018-04'),
+        nutritionRef: const Value('171287'),
+      ),
+      'f_jaje2',
+      (r) {
+        expect(r['kcal_100'], 143);
+        expect(r['protein_100'], 12.56);
+        expect(r['fat_100'], 9.51);
+        expect(r['carbs_100'], 0.72);
+        expect(r['nutrition_source'], 'usda-sr-legacy-2018-04');
+        expect(r['nutrition_ref'], '171287');
       },
     );
     await roundTrip(

@@ -30,7 +30,7 @@ void main() {
     final row = (await after.select(after.shoppingItems).get()).single;
     expect(row.name, 'Mleko');
     expect(row.priceSelectionJson, isNull);
-    expect(after.schemaVersion, 20);
+    expect(after.schemaVersion, 21);
   });
 
   test('migracija 19 → 20 dodaje oznaku približno doprinosu', () async {
@@ -58,7 +58,36 @@ void main() {
       expect(approximate.read<int>('notnull'), 1, reason: table);
       expect(approximate.read<String>('dflt_value'), '0', reason: table);
     }
-    expect(after.schemaVersion, 20);
+    expect(after.schemaVersion, 21);
+  });
+
+  test('migracija 20 → 21 dodaje nutritivne kolone namirnici', () async {
+    final dir = await Directory.systemTemp.createTemp('tavli-v20-nutrition-');
+    addTearDown(() => dir.delete(recursive: true));
+    final file = File('${dir.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      "INSERT INTO foods (id, name, category, base_unit) VALUES ('f_jaje', 'jaje', 'ostalo', 'kom')",
+    );
+    for (final c in [
+      'kcal100',
+      'protein100',
+      'fat100',
+      'carbs100',
+      'nutrition_source',
+      'nutrition_ref',
+    ]) {
+      await before.customStatement('ALTER TABLE foods DROP COLUMN $c');
+    }
+    await before.customStatement('PRAGMA user_version = 20');
+    await before.close();
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final row = (await after.select(after.foods).get()).single;
+    expect(row.name, 'jaje');
+    expect(row.kcal100, isNull);
+    expect(row.nutritionSource, isNull);
+    expect(after.schemaVersion, 21);
   });
 
   test('migracija 5 → 14 čuva podatke i pravi tabelu šablona', () async {
@@ -232,7 +261,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 20);
+    expect(db.schemaVersion, 21);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -921,7 +950,7 @@ void main() {
         (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
           'user_version',
         ),
-        20,
+        21,
       );
     },
   );

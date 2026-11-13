@@ -584,6 +584,16 @@ class Foods extends Table {
   /// `BaseUnit.name`: kom, g ili ml.
   TextColumn get baseUnit => text()();
 
+  /// Nutritivne vrednosti na 100 g (045). Sve ili ništa; null = nepoznato.
+  RealColumn get kcal100 => real().nullable()();
+  RealColumn get protein100 => real().nullable()();
+  RealColumn get fat100 => real().nullable()();
+  RealColumn get carbs100 => real().nullable()();
+
+  /// Izvor i oznaka zapisa u izvoru (npr. `usda-sr-legacy-2018-04`, FDC id).
+  TextColumn get nutritionSource => text().nullable()();
+  TextColumn get nutritionRef => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -664,7 +674,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -871,6 +881,20 @@ class AppDatabase extends _$AppDatabase {
         ).get();
         if (!itemColumns.any((c) => c.read<String>('name') == 'approximate')) {
           await m.addColumn(shoppingItems, shoppingItems.approximate);
+        }
+      }
+      if (from < 21) {
+        final columns = await customSelect('PRAGMA table_info(foods)').get();
+        final have = {for (final c in columns) c.read<String>('name')};
+        for (final (name, column) in <(String, GeneratedColumn<Object>)>[
+          ('kcal100', foods.kcal100),
+          ('protein100', foods.protein100),
+          ('fat100', foods.fat100),
+          ('carbs100', foods.carbs100),
+          ('nutrition_source', foods.nutritionSource),
+          ('nutrition_ref', foods.nutritionRef),
+        ]) {
+          if (!have.contains(name)) await m.addColumn(foods, column);
         }
       }
     },
