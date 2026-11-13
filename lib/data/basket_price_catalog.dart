@@ -38,12 +38,14 @@ class BasketPriceCatalog {
     Dio? dio,
     Future<Directory> Function()? cacheDirectory,
     DateTime Function()? clock,
+    this.requestTimeout = const Duration(seconds: 45),
   }) : _dio = dio ?? Dio(),
        _cacheDirectory = cacheDirectory ?? getApplicationSupportDirectory,
        _clock = clock ?? DateTime.now;
   final Dio _dio;
   final Future<Directory> Function() _cacheDirectory;
   final DateTime Function() _clock;
+  final Duration requestTimeout;
   static final sources = <String, Uri>{
     'Delhaize': Uri.parse(
       'https://tsmdelhaizeserbia.delhaize.rs/PublicDoc/cene_proizvoda_Delhaize.csv',
@@ -63,8 +65,6 @@ class BasketPriceCatalog {
   };
 
   Future<PriceCatalog> fetch() async {
-    final products = <PriceProduct>[];
-    final statuses = <PriceSourceStatus>[];
     Directory? directory;
     try {
       directory = await _cacheDirectory();
@@ -72,82 +72,91 @@ class BasketPriceCatalog {
     } on Exception {
       directory = null;
     }
-    for (final entry in sources.entries) {
-      final file = directory == null
-          ? null
-          : File('${directory.path}/tavli_prices_${entry.key}.csv');
-      List<PriceProduct>? parsed;
-      DateTime? fetchedAt;
-      var failed = false;
-      try {
-        final response = await _dio.getUri<List<int>>(
-          entry.value,
-          options: Options(
-            responseType: ResponseType.bytes,
-            receiveTimeout: const Duration(seconds: 30),
-            sendTimeout: const Duration(seconds: 15),
-          ),
-        );
-        final bytes = response.data;
-        if (bytes == null || bytes.length > 40 * 1024 * 1024) {
-          throw const FormatException();
-        }
-        final now = _clock();
-        parsed = await Isolate.run(
-          () => parsePrices(
-            utf8.decode(bytes, allowMalformed: false),
-            entry.value,
-            now,
-          ),
-        );
-        if (parsed?.isEmpty ?? true) throw const FormatException();
-        fetchedAt = _clock();
-        if (file != null) {
-          try {
-            final temp = File('${file.path}.tmp');
-            await temp.writeAsBytes(bytes, flush: true);
-            await temp.rename(file.path);
-          } on Exception {
-            // Rezultat ostaje dostupan za ovu sesiju i ako nema mesta za keš.
-          }
-        }
-      } on Exception {
-        failed = true;
+    final results = await Future.wait(
+      sources.entries.map((entry) async {
+        final file = directory == null
+            ? null
+            : File('${directory.path}/tavli_prices_${entry.key}.csv');
+        List<PriceProduct>? parsed;
+        DateTime? fetchedAt;
+        var failed = false;
         try {
-          if (file != null &&
-              await file.exists() &&
-              await file.length() <= 40 * 1024 * 1024) {
-            final bytes = await file.readAsBytes();
-            final now = _clock();
-            parsed = await Isolate.run(
-              () => parsePrices(
-                utf8.decode(bytes, allowMalformed: false),
+          final cancel = CancelToken();
+          final response = await _dio
+              .getUri<List<int>>(
                 entry.value,
-                now,
-              ),
-            );
-            if (parsed?.isEmpty ?? true) parsed = null;
-            fetchedAt = await file.lastModified();
+                cancelToken: cancel,
+                options: Options(
+                  responseType: ResponseType.bytes,
+                  receiveTimeout: const Duration(seconds: 30),
+                  sendTimeout: const Duration(seconds: 15),
+                ),
+              )
+              .timeout(
+                requestTimeout,
+                onTimeout: () {
+                  cancel.cancel();
+                  throw const FormatException('Isteklo vreme za preuzimanje');
+                },
+              );
+          final bytes = response.data;
+          if (bytes == null || bytes.length > 40 * 1024 * 1024) {
+            throw const FormatException();
+          }
+          final now = _clock();
+          parsed = await _parseInIsolate(bytes, entry.value, now);
+          if (parsed.isEmpty) throw const FormatException();
+          fetchedAt = _clock();
+          if (file != null) {
+            try {
+              final temp = File('${file.path}.tmp');
+              await temp.writeAsBytes(bytes, flush: true);
+              await temp.rename(file.path);
+            } on Exception {
+              // Rezultat ostaje dostupan za ovu sesiju i ako nema mesta za keš.
+            }
           }
         } on Exception {
-          parsed = null;
+          failed = true;
+          try {
+            if (file != null &&
+                await file.exists() &&
+                await file.length() <= 40 * 1024 * 1024) {
+              final bytes = await file.readAsBytes();
+              final now = _clock();
+              parsed = await _parseInIsolate(bytes, entry.value, now);
+              if (parsed.isEmpty) parsed = null;
+              fetchedAt = await file.lastModified();
+            }
+          } on Exception {
+            parsed = null;
+          }
         }
-      }
-      if (parsed != null && fetchedAt != null) {
-        products.addAll(parsed);
-      }
-      statuses.add(
-        PriceSourceStatus(
-          name: entry.key,
-          source: entry.value,
-          fetchedAt: parsed == null ? null : fetchedAt,
-          failed: failed,
-        ),
-      );
-    }
-    return PriceCatalog(products, statuses);
+        return (
+          parsed != null && fetchedAt != null ? parsed : <PriceProduct>[],
+          PriceSourceStatus(
+            name: entry.key,
+            source: entry.value,
+            fetchedAt: parsed == null ? null : fetchedAt,
+            failed: failed,
+          ),
+        );
+      }),
+    );
+    return PriceCatalog(
+      [for (final result in results) ...result.$1],
+      [for (final result in results) result.$2],
+    );
   }
 }
+
+Future<List<PriceProduct>> _parseInIsolate(
+  List<int> bytes,
+  Uri source,
+  DateTime now,
+) => Isolate.run(
+  () => parsePrices(utf8.decode(bytes, allowMalformed: false), source, now),
+);
 
 /// CSV sa navodnicima i novim redovima unutar polja.
 Iterable<List<String>> csvRows(String text) sync* {

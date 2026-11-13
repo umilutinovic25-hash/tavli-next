@@ -176,6 +176,12 @@ class _BasketPriceScreenState extends State<BasketPriceScreen> {
     );
   }
 
+  void refreshCatalog() {
+    setState(() {
+      catalog = (widget.loadCatalog ?? BasketPriceCatalog().fetch)();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -183,6 +189,20 @@ class _BasketPriceScreenState extends State<BasketPriceScreen> {
       body: FutureBuilder<PriceCatalog>(
         future: catalog,
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Cenovnike nije moguće učitati.'),
+                  OutlinedButton(
+                    onPressed: refreshCatalog,
+                    child: const Text('Pokušaj ponovo'),
+                  ),
+                ],
+              ),
+            );
+          }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -240,10 +260,7 @@ class _BasketPriceScreenState extends State<BasketPriceScreen> {
                 'https://data.gov.rs/sr/datasets/r/29c4eed9-d650-465e-a679-70011480cd83',
               ),
               OutlinedButton(
-                onPressed: () => setState(
-                  () => catalog =
-                      (widget.loadCatalog ?? BasketPriceCatalog().fetch)(),
-                ),
+                onPressed: refreshCatalog,
                 child: const Text('Osveži cenovnike'),
               ),
               for (final item in widget.items.where((i) => !i.isBought)) ...[

@@ -6,6 +6,27 @@ import 'package:tavli/domain/basket_comparison.dart';
 import 'package:tavli/features/shopping/basket_price_screen.dart';
 
 void main() {
+  testWidgets('greška pri učitavanju nudi ponovni pokušaj', (tester) async {
+    var attempts = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BasketPriceScreen(
+          items: const [],
+          loadCatalog: () async {
+            attempts++;
+            if (attempts == 1) throw StateError('nedostupan izvor');
+            return const PriceCatalog([], []);
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Cenovnike nije moguće učitati.'), findsOneWidget);
+    await tester.tap(find.text('Pokušaj ponovo'));
+    await tester.pumpAndSettle();
+    expect(attempts, 2);
+    expect(find.text('Cenovnici nisu dostupni.'), findsOneWidget);
+  });
   testWidgets('Univerexport koristi samo izabranu i sačuvanu kategoriju', (
     tester,
   ) async {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -100,4 +101,39 @@ void main() {
     expect(data.sources[2].fetchedAt, DateTime(2026, 11, 13, 12));
     expect(data.sources[2].failed, isFalse);
   });
+
+  test('spor izvor ne blokira ostale i prestaje po isteku roka', () async {
+    final dir = await Directory.systemTemp.createTemp('tavli-price-timeout');
+    addTearDown(() => dir.delete(recursive: true));
+    final dio = Dio()..httpClientAdapter = _SlowFirstAdapter();
+    final data = await BasketPriceCatalog(
+      dio: dio,
+      cacheDirectory: () async => dir,
+      requestTimeout: const Duration(milliseconds: 100),
+    ).fetch();
+    expect(data.sources.first.failed, isTrue);
+    expect(data.sources.first.fetchedAt, isNull);
+    expect(data.sources.skip(1).every((s) => !s.failed), isTrue);
+    expect(data.products, hasLength(4));
+  });
+}
+
+class _SlowFirstAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? stream,
+    Future<void>? cancelFuture,
+  ) async {
+    if (options.uri == BasketPriceCatalog.sources['Delhaize']) {
+      return Completer<ResponseBody>().future;
+    }
+    const csv =
+        'k;n;n;b;b;j;t;d;c;c;s;od;do;p;v\n'
+        '1;Mleko;Mleko;B;123;kom;Maxi;01-01-2020;120.00;120.00;;;;20;VAZECI_CENOVNIK\n';
+    return ResponseBody.fromString(csv, 200);
+  }
+
+  @override
+  void close({bool force = false}) {}
 }
