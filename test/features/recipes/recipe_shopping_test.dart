@@ -31,6 +31,21 @@ Finder checkboxOf(String text) => find.descendant(
 );
 
 void main() {
+  testTavli('recept bez koraka ulazi u nabavku sa tačnim količinama', (
+    tester,
+  ) async {
+    final app = await pumpTavli(
+      tester,
+      location: '/recipes/r1',
+      recipes: [sampleRecipe('r1', 'Užina').copyWith(steps: [])],
+    );
+    await openReview(tester);
+    await tester.tap(find.text('biber'));
+    await tester.pump();
+    await tapButton(tester, 'Dodaj u nabavku (1)');
+    expect(await shopping(app.db), ['kupus 500.0 g']);
+  });
+
   testTavli('recept bez plana: pregled ne čuva ništa; dodaje se samo ono '
       'što fali, ponovo samo razlika', (tester) async {
     final app = await pumpTavli(

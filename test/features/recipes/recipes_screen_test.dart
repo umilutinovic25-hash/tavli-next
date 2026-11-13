@@ -78,6 +78,15 @@ void main() {
     expect(find.text('Umotati.'), findsOneWidget);
   });
 
+  testTavli('recept sa koracima prikazuje deo Priprema', (tester) async {
+    await pumpTavli(
+      tester,
+      location: '/recipes/a',
+      recipes: [sampleRecipe('a', 'Sarma')],
+    );
+    expect(find.text('Priprema'), findsOneWidget);
+  });
+
   testTavli('recept bez koraka i ručno unet', (tester) async {
     await pumpTavli(
       tester,
@@ -94,7 +103,8 @@ void main() {
       ],
     );
 
-    expect(find.text('Koraci pripreme nisu uneti.'), findsOneWidget);
+    expect(find.text('Priprema'), findsNothing);
+    expect(find.text('Koraci pripreme nisu uneti.'), findsNothing);
     expect(find.text('Ručno unet'), findsOneWidget);
     expect(find.text('1 porcija'), findsOneWidget);
   });

@@ -149,17 +149,11 @@ class RecipeView extends StatelessWidget {
               ),
             ),
           ),
-        const SizedBox(height: 20),
-        Text('Priprema', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
-        if (recipe.steps.isEmpty)
-          Text(
-            'Koraci pripreme nisu uneti.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          )
-        else
+        // Obrok bez koraka (npr. užina sa gramažom) nema prazan deo „Priprema“.
+        if (recipe.steps.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Text('Priprema', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
           for (final (n, step) in recipe.steps.indexed)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -188,6 +182,7 @@ class RecipeView extends StatelessWidget {
                 ],
               ),
             ),
+        ],
         if (recipe.sourceUrl case final sourceUrl?) ...[
           const SizedBox(height: 16),
           SelectableText('Izvor: $sourceUrl', style: theme.textTheme.bodySmall),
