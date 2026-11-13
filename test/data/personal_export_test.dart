@@ -68,7 +68,7 @@ void main() {
       'supplyAllocations',
       'allergies',
     ]);
-    expect(personalExportFormatVersion, 5);
+    expect(personalExportFormatVersion, 6);
     expect(sections['membership'], isNull);
     expect(sections['tasteProfile'], isNull);
     expect(sections['allergies'], isNull);
@@ -96,6 +96,7 @@ void main() {
       isManual: true,
       fromRecipeIdsJson: '[]',
       priceSelectionJson: '{"barcode":"123","package":"1000"}',
+      approximate: true,
     );
     final export = buildPersonalExport(
       exportedAt: _at,
@@ -104,6 +105,7 @@ void main() {
     );
     final rows =
         (export['sections']! as Map)['shoppingItems']! as List<Object?>;
+    expect((rows.single! as Map)['approximate'], true);
     expect((rows.single! as Map)['priceSelection'], {
       'barcode': '123',
       'package': '1000',
@@ -415,6 +417,7 @@ void main() {
                 name: 'jaje',
                 category: 'ostalo',
                 notesJson: const Value('["sveža"]'),
+                approximate: const Value(true),
                 householdId: Value(hh),
               ),
             );
@@ -522,6 +525,7 @@ void main() {
       expect(first('householdPreferences')['allergies'], ['kikiriki']);
       expect(first('shoppingSources')['recipeSnapshot'], {'title': 'Snimak'});
       expect(first('shoppingContributions')['notes'], ['sveža']);
+      expect(first('shoppingContributions')['approximate'], true);
 
       // Drugi članovi i druga domaćinstva nisu u fajlu.
       final text = jsonEncode(export);

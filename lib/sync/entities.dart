@@ -367,6 +367,7 @@ class ShoppingItemEntity
     'photo_path': photoFileName(r.photoPath),
     'food_id': r.foodId,
     'price_selection': _decodeOrNull(r.priceSelectionJson),
+    'approximate': r.approximate,
   };
 
   @override
@@ -388,6 +389,7 @@ class ShoppingItemEntity
         photoPath: Value(photoLocalPath(j['photo_path'] as String?)),
         foodId: Value(j['food_id'] as String?),
         priceSelectionJson: Value(_jsonOrNull(j['price_selection'])),
+        approximate: Value(j['approximate'] as bool? ?? false),
       );
 }
 
@@ -786,6 +788,7 @@ class ShoppingContributionEntity
     'name': r.name,
     'category': r.category,
     'notes': jsonDecode(r.notesJson),
+    'approximate': r.approximate,
   };
 
   @override
@@ -802,6 +805,7 @@ class ShoppingContributionEntity
         name: Value(j['name']! as String),
         category: Value(j['category']! as String),
         notesJson: Value(_json(j['notes'] ?? const [])),
+        approximate: Value(j['approximate'] as bool? ?? false),
       );
 }
 

@@ -247,6 +247,7 @@ void main() {
         note: const Value('Napomena'),
         photoPath: const Value('recipe_photos/proizvod.jpg'),
         priceSelectionJson: const Value('{"barcode":"123","package":"1000"}'),
+        approximate: const Value(true),
         householdId: const Value('h1'),
       ),
       'i1',
@@ -257,6 +258,7 @@ void main() {
         expect(r['note'], 'Napomena');
         expect(r['photo_path'], 'proizvod.jpg');
         expect(r['price_selection'], {'barcode': '123', 'package': '1000'});
+        expect(r['approximate'], true);
       },
     );
   });
@@ -689,12 +691,14 @@ void main() {
         name: 'Kupus',
         category: 'voće i povrće',
         notesJson: const Value('["kiseli"]'),
+        approximate: const Value(true),
         householdId: const Value('h1'),
       ),
       'c1',
       (r) {
         expect(r['micros'], 1500000000);
         expect(r['notes'], ['kiseli']);
+        expect(r['approximate'], true);
       },
     );
     await roundTrip(

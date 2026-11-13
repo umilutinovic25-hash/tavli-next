@@ -10,6 +10,7 @@ import 'package:tavli/data/recipe_photo_store.dart';
 import 'package:tavli/data/shopping_repository.dart';
 import 'package:tavli/domain/plan_calendar.dart';
 import 'package:tavli/domain/recipe.dart';
+import 'package:tavli/domain/shopping_demand.dart';
 import 'package:tavli/domain/shopping_source.dart';
 import 'package:tavli/sync/synced_writer.dart';
 import 'package:tavli/sync/uploader.dart';
@@ -274,12 +275,16 @@ void main() {
       );
     });
 
-    RecipeSnapshot snapshot(List<Ingredient> ingredients, {int servings = 2}) =>
-        RecipeSnapshot(
-          title: 'Sarma',
-          baseServings: servings,
-          ingredients: ingredients,
-        );
+    RecipeSnapshot snapshot(
+      List<Ingredient> ingredients, {
+      int servings = 2,
+      int dictionaryVersion = 0,
+    }) => RecipeSnapshot(
+      title: 'Sarma',
+      baseServings: servings,
+      ingredients: ingredients,
+      dictionaryVersion: dictionaryVersion,
+    );
 
     Future<void> plan(
       String id,
@@ -309,6 +314,7 @@ void main() {
       int baseServings = 2,
       String? recipeId,
       bool cooked = false,
+      int dictionaryVersion = 0,
     }) => db
         .into(db.mealPlanEntries)
         .insertOnConflictUpdate(
@@ -322,7 +328,11 @@ void main() {
             isCooked: Value(cooked),
             recipeSnapshotJson: Value(
               jsonEncode(
-                snapshot(ingredients, servings: baseServings).toJson(),
+                snapshot(
+                  ingredients,
+                  servings: baseServings,
+                  dictionaryVersion: dictionaryVersion,
+                ).toJson(),
               ),
             ),
             householdId: const Value('home-one'),
@@ -746,7 +756,7 @@ void main() {
         expect(
           (jsonDecode(source.recipeSnapshotJson!)
               as Map<String, dynamic>)['dictionaryVersion'],
-          2,
+          3,
         );
         final current = lines.where((c) => c.sourceId == source.id).toList();
         expect(current, hasLength(2));
@@ -888,6 +898,31 @@ void main() {
           isEmpty,
           reason: 'poništena kupovina više nije zaliha',
         );
+        expect(await shop.listItems(w2), hasLength(1));
+      },
+    );
+
+    test(
+      '043: poništena kupovina stavke u dl vraća istu stavku (v3)',
+      () async {
+        final end = mon.addDays(13);
+        await plan('p1', mon, end);
+        await entry(
+          'e1',
+          mon.addDays(8),
+          ingredients: const [
+            Ingredient(name: 'Mleko', quantity: 2, unit: 'dl'),
+          ],
+          dictionaryVersion: 3,
+        );
+        await shop.reconcilePlan('p1');
+        final weeks = weekPeriods(DateRange(mon, end));
+        final w2 = await shop.weekList('p1', weeks[1]);
+        final milk = await item(w2, 'Mleko');
+        expect(await shop.setBought([milk.id], bought: true), 1);
+        expect(await shop.setBought([milk.id], bought: false), 1);
+        final back = await item(w2, 'Mleko');
+        expect(back.id, milk.id);
         expect(await shop.listItems(w2), hasLength(1));
       },
     );
@@ -1248,13 +1283,48 @@ void main() {
       final source = (await db.select(db.shoppingSources).get()).single;
       final json =
           jsonDecode(source.recipeSnapshotJson!) as Map<String, dynamic>;
-      expect(json['dictionaryVersion'], 2);
+      expect(json['dictionaryVersion'], 3);
       final ingredient =
           (json['ingredients'] as List).single as Map<String, dynamic>;
       expect(ingredient['foodId'], 'f_jaje');
       expect(ingredient['name'], 'Jaja');
       final c = (await db.select(db.shoppingContributions).get()).single;
       expect(c.ingredientKey, 'food:f_jaje');
+    });
+
+    test('043: čaša i ml su jedan doprinos od 350 ml sa oznakom ~', () async {
+      await repo.addRecipePreparation(
+        snapshot: dish('Kolač', 2, const [
+          Ingredient(name: 'jogurt', quantity: 1, unit: 'čaša'),
+          Ingredient(name: 'jogurt', quantity: 150, unit: 'ml'),
+        ]),
+        servings: 2,
+        originKey: 'kolac',
+      );
+      final c = (await db.select(db.shoppingContributions).get()).single;
+      expect(c.micros, 350 * microsPerUnit);
+      expect(c.baseUnit, 'ml');
+      expect(c.approximate, true);
+      final item = (await db.select(db.shoppingItems).get()).single;
+      expect((item.quantity, item.unit), (350, 'ml'));
+      expect(item.approximate, true);
+    });
+
+    test('043: kg i g su tačan zbir bez oznake ~', () async {
+      await repo.addRecipePreparation(
+        snapshot: dish('Testo', 2, const [
+          Ingredient(name: 'brašno', quantity: 1, unit: 'kg'),
+          Ingredient(name: 'brašno', quantity: 500, unit: 'g'),
+        ]),
+        servings: 2,
+        originKey: 'testo',
+      );
+      final c = (await db.select(db.shoppingContributions).get()).single;
+      expect(c.micros, 1500 * microsPerUnit);
+      expect(c.approximate, false);
+      final item = (await db.select(db.shoppingItems).get()).single;
+      expect((item.quantity, item.unit), (1.5, 'kg'));
+      expect(item.approximate, false);
     });
 
     test('SC-001: jedna stavka „jaje“ 1,5 kom posle zalihe „jajce“', () async {
@@ -1363,6 +1433,7 @@ void main() {
     test('totalsOf grupiše po namirnici', () {
       ShoppingItemRow row(String id, String name, String? foodId) =>
           ShoppingItemRow(
+            approximate: false,
             id: id,
             listId: 'l',
             name: name,

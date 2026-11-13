@@ -29,6 +29,7 @@ class PlanTotal {
     required this.hasUnknown,
     required this.itemIds,
     required this.listIds,
+    this.approximate = false,
   });
 
   final String ingredient;
@@ -45,6 +46,9 @@ class PlanTotal {
   final bool hasUnknown;
   final List<String> itemIds;
   final List<String> listIds;
+
+  /// Bar jedna stavka sadrži približnu meru (v3): količina nosi znak ~.
+  final bool approximate;
 }
 
 /// Stavka nedeljne liste plana sa početkom te nedelje.
@@ -1048,6 +1052,7 @@ class ShoppingRepository {
           hasUnknown: rows.any((r) => !r.isBought && r.quantity == null),
           itemIds: [for (final r in rows) r.id],
           listIds: {for (final r in rows) r.listId}.toList(),
+          approximate: rows.any((r) => r.approximate),
         ),
     ];
   }
@@ -1195,6 +1200,7 @@ class ShoppingRepository {
             prev.name == line.name &&
             prev.category == line.category &&
             prev.baseUnit == line.baseUnit &&
+            prev.approximate == line.approximate &&
             prev.notesJson == notes) {
           continue;
         }
@@ -1210,6 +1216,7 @@ class ShoppingRepository {
           name: Value(line.name),
           category: Value(line.category),
           notesJson: Value(notes),
+          approximate: Value(line.approximate),
         );
         await _db.into(_db.shoppingContributions).insertOnConflictUpdate(row);
         contributions[row.id.value] = await (_db.select(
@@ -1549,6 +1556,7 @@ class ShoppingRepository {
         unit: Value(group == unknownGroup ? null : amount?.unit),
         category: Value(cs.first.category),
         fromRecipeIdsJson: Value(jsonEncode(recipeIds)),
+        approximate: Value(open.any((c) => c.approximate)),
       );
       String itemId;
       if (current == null) {
@@ -1570,6 +1578,7 @@ class ShoppingRepository {
             current.unit != row.unit.value ||
             current.category != row.category.value ||
             current.foodId != row.foodId.value ||
+            current.approximate != row.approximate.value ||
             current.fromRecipeIdsJson != row.fromRecipeIdsJson.value) {
           await (_db.update(
             _db.shoppingItems,

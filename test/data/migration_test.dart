@@ -30,7 +30,35 @@ void main() {
     final row = (await after.select(after.shoppingItems).get()).single;
     expect(row.name, 'Mleko');
     expect(row.priceSelectionJson, isNull);
-    expect(after.schemaVersion, 19);
+    expect(after.schemaVersion, 20);
+  });
+
+  test('migracija 19 → 20 dodaje oznaku približno doprinosu', () async {
+    final dir = await Directory.systemTemp.createTemp('tavli-v19-approx-');
+    addTearDown(() => dir.delete(recursive: true));
+    final file = File('${dir.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      'ALTER TABLE shopping_contributions DROP COLUMN approximate',
+    );
+    await before.customStatement(
+      'ALTER TABLE shopping_items DROP COLUMN approximate',
+    );
+    await before.customStatement('PRAGMA user_version = 19');
+    await before.close();
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    for (final table in ['shopping_contributions', 'shopping_items']) {
+      final columns = await after
+          .customSelect('PRAGMA table_info($table)')
+          .get();
+      final approximate = columns.singleWhere(
+        (c) => c.read<String>('name') == 'approximate',
+      );
+      expect(approximate.read<int>('notnull'), 1, reason: table);
+      expect(approximate.read<String>('dflt_value'), '0', reason: table);
+    }
+    expect(after.schemaVersion, 20);
   });
 
   test('migracija 5 → 14 čuva podatke i pravi tabelu šablona', () async {
@@ -204,7 +232,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 19);
+    expect(db.schemaVersion, 20);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -893,7 +921,7 @@ void main() {
         (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
           'user_version',
         ),
-        19,
+        20,
       );
     },
   );
