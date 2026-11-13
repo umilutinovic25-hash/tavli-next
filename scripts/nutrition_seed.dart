@@ -3,6 +3,7 @@
 // odbija mapiranje čiji se opis ne poklapa sa USDA zapisom.
 // USDA fajlove (food.csv, food_nutrient.csv) preuzmi sa
 // https://fdc.nal.usda.gov/download-datasets (SR Legacy, CSV) i raspakuj van repoa.
+// Pravi i migraciju težine komada i gustine (kom/ml namirnice) iz food_portion.csv.
 // Usage: dart run scripts/nutrition_seed.dart <usda-direktorijum> [izlaz.sql]
 import 'dart:io';
 
@@ -37,6 +38,16 @@ void main(List<String> args) {
       '${rows.length} od ${catalog.length} namirnica '
       '(${(100 * rows.length / catalog.length).toStringAsFixed(0)}%) → $output',
     );
+    const weightsPath = 'supabase/catalog/unit_weights.csv';
+    const weightsOutput =
+        'supabase/migrations/20261113200100_food_unit_weights_seed.sql';
+    final weights = buildUnitWeightRows(
+      weightsCsv: File(weightsPath).readAsStringSync(),
+      baseUnits: {for (final e in catalog) e.food.id: e.food.baseUnit.name},
+      usdaPortionCsv: File('$usda/food_portion.csv').readAsStringSync(),
+    );
+    File(weightsOutput).writeAsStringSync(unitWeightSeedSql(weights));
+    stdout.writeln('${weights.length} težina → $weightsOutput');
   } on FormatException catch (e) {
     stderr.writeln('$mapPath: ${e.message}');
     exitCode = 1;

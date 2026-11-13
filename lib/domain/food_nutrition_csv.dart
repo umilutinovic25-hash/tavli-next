@@ -134,6 +134,119 @@ String nutritionSeedSql(List<NutritionRow> rows) {
   return b.toString();
 }
 
+const unitWeightsHeader = ['food_id', 'fdc_id', 'usda_portion', 'volume_ml'];
+
+/// Težina jedne osnovne jedinice namirnice u gramima: za `kom` težina komada,
+/// za `ml` gustina (g po ml). Računa se iz reda `food_portion.csv`.
+class UnitWeightRow {
+  const UnitWeightRow({
+    required this.foodId,
+    required this.fdcId,
+    required this.portion,
+    required this.gramsPerUnit,
+  });
+
+  final String foodId;
+  final int fdcId;
+  final String portion;
+
+  /// Decimalni zapis sa 4 cifre (npr. `50.0000`).
+  final String gramsPerUnit;
+}
+
+/// Čita `unit_weights.csv` i USDA `food_portion.csv`. `kom` namirnica daje
+/// težinu komada, `ml` namirnica gustinu (red sa zapreminom u `volume_ml`);
+/// `g` namirnica ne dolazi u obzir. Baca [FormatException] na prvu grešku.
+List<UnitWeightRow> buildUnitWeightRows({
+  required String weightsCsv,
+  required Map<String, String> baseUnits,
+  required String usdaPortionCsv,
+}) {
+  final lines = _lines(weightsCsv);
+  if (lines.isEmpty || !_sameList(_fields(lines.first), unitWeightsHeader)) {
+    throw const FormatException('red 1: zaglavlje nije ispravno');
+  }
+  final entries = <(String, int, String, double?)>[];
+  final seen = <String>{};
+  for (var i = 1; i < lines.length; i++) {
+    final row = i + 1;
+    Never fail(String what) => throw FormatException('red $row: $what');
+    final f = _fields(lines[i]);
+    if (f.length != unitWeightsHeader.length) {
+      fail('očekivano ${unitWeightsHeader.length} kolona, ima ${f.length}');
+    }
+    final [foodId, fdc, portion, volume] = f;
+    final unit = baseUnits[foodId];
+    if (unit == null) fail('namirnice „$foodId“ nema u katalogu');
+    if (!seen.add(foodId)) fail('namirnica „$foodId“ se ponavlja');
+    final fdcId = int.tryParse(fdc);
+    if (fdcId == null) fail('fdc_id „$fdc“ nije broj');
+    double? volumeMl;
+    switch (unit) {
+      case 'kom':
+        if (volume.isNotEmpty) fail('komad „$foodId“ ne sme da ima zapreminu');
+      case 'ml':
+        volumeMl = double.tryParse(volume);
+        if (volumeMl == null || volumeMl <= 0) {
+          fail('ml namirnica „$foodId“ traži zapreminu reda');
+        }
+      default:
+        fail('namirnica „$foodId“ je u gramima i nema težinu po jedinici');
+    }
+    entries.add((foodId, fdcId, portion, volumeMl));
+  }
+
+  final wanted = {for (final e in entries) '${e.$2}'};
+  // fdc_id → (opis → (količina, gram_weight)).
+  final portions = <String, Map<String, (String, String)>>{};
+  for (final line in _lines(usdaPortionCsv).skip(1)) {
+    final f = _fields(line);
+    if (f.length < 8 || !wanted.contains(f[1])) continue;
+    final label = (f[5].isNotEmpty ? f[5] : f[6]).trim();
+    portions.putIfAbsent(f[1], () => {})[label] = (f[3], f[7]);
+  }
+  return [
+    for (final (foodId, fdcId, portion, volumeMl) in entries)
+      () {
+        Never fail(String what) => throw FormatException('$foodId: $what');
+        final p = portions['$fdcId']?[portion];
+        if (p == null) {
+          fail('USDA zapis $fdcId nema porciju „$portion“');
+        }
+        final amount = double.tryParse(p.$1);
+        final grams = double.tryParse(p.$2);
+        if (amount == null || amount <= 0 || grams == null || grams <= 0) {
+          fail('porcija „$portion“ nema ispravnu količinu i težinu');
+        }
+        return UnitWeightRow(
+          foodId: foodId,
+          fdcId: fdcId,
+          portion: portion,
+          gramsPerUnit: (grams / amount / (volumeMl ?? 1)).toStringAsFixed(4),
+        );
+      }(),
+  ];
+}
+
+/// SQL migracija: samo zajedničke namirnice koje još nemaju težinu.
+String unitWeightSeedSql(List<UnitWeightRow> rows) {
+  final b = StringBuffer(
+    '-- Težina komada (kom) i gustina (ml) iz USDA FoodData Central porcija\n'
+    '-- (SR Legacy 2018-04, CC0). Generisano: dart run scripts/nutrition_seed.dart\n',
+  );
+  for (final r in rows) {
+    final source =
+        "$nutritionSourceId:${r.fdcId}:${r.portion.replaceAll("'", "''")}";
+    b.writeln(
+      'update public.foods set unit_grams = ${r.gramsPerUnit}, '
+      "unit_grams_source = '$source' "
+      "where id = '${r.foodId}' and household_id is null "
+      'and unit_grams is null;',
+    );
+  }
+  return b.toString();
+}
+
 List<String> _lines(String csv) => [
   for (final line in csv.split(RegExp(r'\r?\n')))
     if (line.trim().isNotEmpty) line,

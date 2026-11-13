@@ -1,0 +1,32 @@
+food_id,fdc_id,usda_portion,volume_ml
+f_limun,167746,"fruit (2-1/8"" dia)",
+f_limeta,168155,"fruit (2"" dia)",
+f_pomorandza,169097,"fruit (2-5/8"" dia)",
+f_jabuka,171688,"medium (3"" dia)",
+f_kruska,169118,medium,
+f_banana,173944,"medium (7"" to 7-7/8"" long)",
+f_breskva,169928,"medium (2-2/3"" dia)",
+f_kajsija,171697,apricot,
+f_avokado,171705,"avocado, NS as to Florida or California",
+f_jaje,171287,large,
+f_mleko,171265,fl oz,29.5735
+f_kiselo_mleko,170874,fl oz,29.5735
+f_slatka_pavlaka,170859,"cup, fluid (yields 2 cups whipped)",236.5882
+f_lepinja,174915,"pita, large (6-1/2"" dia)",
+f_kifla,172793,"roll (hamburger, frankfurter, onion roll, bun, large roll)",
+f_tortilja,167535,tortilla,
+f_sirce,172237,cup,236.5882
+f_balzamiko,172241,cup,236.5882
+f_soja_sos,174277,cup,236.5882
+f_ulje,171025,cup,236.5882
+f_maslinovo_ulje,171413,cup,236.5882
+f_ljuti_sos,171186,tsp,4.9289
+f_kokosovo_mleko,170173,cup,236.5882
+f_voda,173647,fl oz,29.5735
+f_mineralna_voda,173233,fl oz,29.5735
+f_belo_vino,174837,fl oz,29.5735
+f_crno_vino,173190,fl oz,29.5735
+f_pivo,168746,fl oz,29.5735
+f_sok_od_limuna,167747,fl oz,29.5735
+f_sok_od_pomorandze,169098,fl oz,29.5735
+f_supa_kocka,171562,cube,
