@@ -246,6 +246,7 @@ void main() {
         brand: const Value('Brend'),
         note: const Value('Napomena'),
         photoPath: const Value('recipe_photos/proizvod.jpg'),
+        priceSelectionJson: const Value('{"barcode":"123","package":"1000"}'),
         householdId: const Value('h1'),
       ),
       'i1',
@@ -255,6 +256,7 @@ void main() {
         expect(r['brand'], 'Brend');
         expect(r['note'], 'Napomena');
         expect(r['photo_path'], 'proizvod.jpg');
+        expect(r['price_selection'], {'barcode': '123', 'package': '1000'});
       },
     );
   });

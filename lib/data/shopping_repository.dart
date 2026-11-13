@@ -706,6 +706,24 @@ class ShoppingRepository {
         return true;
       });
 
+  /// Čuva potvrđen proizvod uz stavku i u istom poslu dodaje sinhronizaciju.
+  Future<bool> updatePriceSelection(String id, String? selectionJson) =>
+      _db.transaction(() async {
+        final item = await _item(id);
+        if (item == null) return false;
+        if (selectionJson != null && selectionJson.length > 3000) {
+          throw ArgumentError('Izbor proizvoda je predugačak');
+        }
+        await (_db.update(_db.shoppingItems)..where(
+              (t) => t.id.equals(id) & t.householdId.equals(_scope.householdId),
+            ))
+            .write(
+              ShoppingItemsCompanion(priceSelectionJson: Value(selectionJson)),
+            );
+        await _writer.upsert(_shoppingItem, id);
+        return true;
+      });
+
   /// Menja samo opis proizvoda, bez uticaja na obračun nabavke.
   Future<bool> updateDetails(
     String id, {

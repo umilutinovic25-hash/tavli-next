@@ -12,6 +12,7 @@ import '../../providers.dart';
 import '../foods/unconfirmed_mark.dart';
 import '../planning/plan_format.dart';
 import '../recipes/recipe_providers.dart';
+import 'basket_price_screen.dart';
 import 'shopping_details.dart';
 import 'shopping_providers.dart';
 
@@ -139,6 +140,21 @@ class ShoppingItemsList extends ConsumerWidget {
           CategoryHeader(categoryLabel(category)),
           for (final i in list) ShoppingItemTile(item: i),
         ],
+        if (open.isNotEmpty)
+          OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => BasketPriceScreen(
+                  items: open,
+                  saveSelection: ref
+                      .read(shoppingRepositoryProvider)
+                      .updatePriceSelection,
+                ),
+              ),
+            ),
+            icon: const Icon(Icons.compare_arrows),
+            label: const Text('Uporedi cene korpe'),
+          ),
         if (bought.isNotEmpty) ...[
           const Divider(height: 32),
           Row(

@@ -388,6 +388,11 @@ void main() {
     await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(
+      find.byTooltip('Ukloni iz nabavke'),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tapIn(tester, find.byTooltip('Ukloni iz nabavke'));
     expect(find.text('Recepti u nabavci'), findsNothing);
     expect(find.text('mleko'), findsNothing);

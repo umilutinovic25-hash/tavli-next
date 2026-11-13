@@ -37,6 +37,27 @@ void main() {
 
   tearDown(() => db.close());
 
+  test('izbor cene je izolovan po domaćinstvu i ide u outbox', () async {
+    final list = await repo.recipeList();
+    final id = await repo.addManual(list, 'Mleko', quantity: 2, unit: 'l');
+    const selection =
+        '{"barcode":"123","name":"Mleko","unit":"ml","package":"1000"}';
+    expect(await repo.updatePriceSelection(id, selection), isTrue);
+    expect((await repo.listItems(list)).single.priceSelectionJson, selection);
+    final other = ShoppingRepository(
+      db,
+      scope: const AccountScope(userId: 'two', householdId: 'home-two'),
+      writer: SyncedWriter(db, accountId: 'two'),
+    );
+    expect(await other.updatePriceSelection(id, null), isFalse);
+    expect(
+      (await db.select(db.syncOutbox).get()).any(
+        (row) => row.entity == 'shopping_item' && row.recordId == id,
+      ),
+      isTrue,
+    );
+  });
+
   test(
     'detalji su izolovani, menjaju se kroz outbox i ne diraju količinu',
     () async {

@@ -156,6 +156,9 @@ class ShoppingItems extends Table {
   /// Namirnica iz kataloga (036); null = nepotvrđeno, `name` je prikaz.
   TextColumn get foodId => text().nullable()();
 
+  /// Potvrđen proizvod i pakovanje za poređenje cena.
+  TextColumn get priceSelectionJson => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -655,7 +658,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -837,6 +840,15 @@ class AppDatabase extends _$AppDatabase {
           "AND name = 'member_allergies'",
         ).get();
         if (existing.isEmpty) await m.createTable(memberAllergies);
+      }
+      if (from < 19) {
+        final columns = await customSelect('PRAGMA table_info(shopping_items)')
+            .get();
+        if (!columns.any(
+          (c) => c.read<String>('name') == 'price_selection_json',
+        )) {
+          await m.addColumn(shoppingItems, shoppingItems.priceSelectionJson);
+        }
       }
     },
   );

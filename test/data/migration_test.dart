@@ -9,6 +9,30 @@ import '../helpers/v3_schema.dart';
 import '../helpers/v4_schema.dart';
 
 void main() {
+  test('migracija 18 → 19 čuva stavku i dodaje izbor proizvoda', () async {
+    final dir = await Directory.systemTemp.createTemp('tavli-v18-price-');
+    addTearDown(() => dir.delete(recursive: true));
+    final file = File('${dir.path}/cache.sqlite');
+    final before = AppDatabase(NativeDatabase(file));
+    await before.customStatement(
+      "INSERT INTO shopping_lists (id, name, created_at, household_id) VALUES ('l', 'Lista', 1, 'home')",
+    );
+    await before.customStatement(
+      "INSERT INTO shopping_items (id, list_id, name, category, household_id) VALUES ('i', 'l', 'Mleko', 'ostalo', 'home')",
+    );
+    await before.customStatement(
+      'ALTER TABLE shopping_items DROP COLUMN price_selection_json',
+    );
+    await before.customStatement('PRAGMA user_version = 18');
+    await before.close();
+    final after = AppDatabase(NativeDatabase(file));
+    addTearDown(after.close);
+    final row = (await after.select(after.shoppingItems).get()).single;
+    expect(row.name, 'Mleko');
+    expect(row.priceSelectionJson, isNull);
+    expect(after.schemaVersion, 19);
+  });
+
   test('migracija 5 → 14 čuva podatke i pravi tabelu šablona', () async {
     final directory = await Directory.systemTemp.createTemp(
       'tavli-v5-template-',
@@ -180,7 +204,7 @@ void main() {
     final db = AppDatabase(executor);
     addTearDown(db.close);
 
-    expect(db.schemaVersion, 18);
+    expect(db.schemaVersion, 19);
 
     final recipes = await db.select(db.recipes).get();
     expect(recipes.map((r) => r.id), unorderedEquals(['r1', 'r2']));
@@ -869,7 +893,7 @@ void main() {
         (await after.customSelect('PRAGMA user_version').getSingle()).read<int>(
           'user_version',
         ),
-        18,
+        19,
       );
     },
   );

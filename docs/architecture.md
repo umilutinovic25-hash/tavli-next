@@ -167,7 +167,7 @@ flowchart LR
   recipes with an allergen are not offered; new summaries retry once, then the
   slots stay empty. Photo and link imports are not rejected; preview, form and
   detail show "Sadrži alergen člana" or "Nepotvrđeno, proveri alergene".
-  Personal export format 4 adds the person's own allergies.
+  Personal export format 5 also includes confirmed shopping product selections; format 4 added the person's own allergies.
 
 ## Local development backend
 
