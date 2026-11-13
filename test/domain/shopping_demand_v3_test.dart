@@ -31,6 +31,16 @@ void main() {
       expect(approx('dkg', 3), false);
     });
 
+    test('oblici sa tačkom važe kao i bez nje (dl., kašika., čaša.)', () {
+      expect(v3('dl.').group, 'volume');
+      expect(v3('dl.').factor, 100);
+      expect(v3('dkg.').factor, 10);
+      expect(v3('kašika.').factor, 15);
+      expect(approx('kašika.', 3), true);
+      expect(approx('dl.', 3), false);
+      expect(v3(' Čaša. ').factor, 200);
+    });
+
     test('g, kg, ml, l i kom ostaju isti i tačni', () {
       expect(v3('kg').factor, 1000);
       expect(approx('kg', 3), false);

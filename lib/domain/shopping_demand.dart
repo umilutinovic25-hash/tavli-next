@@ -84,11 +84,20 @@ NormalizedUnit normalizeUnit(String? unit, {int dictionaryVersion = 0}) {
       : null;
   final canonical = alias ?? u;
   if (dictionaryVersion >= 3) {
-    final v3 = _unitsV3[_v3Aliases[canonical] ?? canonical];
+    final v3 = _unitsV3[_v3Canonical(canonical)];
     if (v3 != null) return v3;
   }
   return _units[canonical] ??
       (group: 'unit:$canonical', base: canonical, factor: 1);
+}
+
+/// Kanonski v3 naziv: bez završne tačke ("dl.", "kašika.") i bez razlike u
+/// obliku (množina, bez dijakritika). Zajedničko za pretvaranje i `~`.
+String _v3Canonical(String canonical) {
+  final c = canonical.length > 1 && canonical.endsWith('.')
+      ? canonical.substring(0, canonical.length - 1)
+      : canonical;
+  return _v3Aliases[c] ?? c;
 }
 
 /// Da li je pretvaranje jedinice približno (kuhinjska mera, samo v3); zbir
@@ -96,8 +105,7 @@ NormalizedUnit normalizeUnit(String? unit, {int dictionaryVersion = 0}) {
 bool unitIsApproximate(String? unit, {int dictionaryVersion = 0}) {
   if (dictionaryVersion < 3) return false;
   final u = (unit ?? '').trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
-  final canonical = const {'kasika': 'kašika'}[u] ?? u;
-  return _approximateV3.contains(_v3Aliases[canonical] ?? canonical);
+  return _approximateV3.contains(_v3Canonical(u));
 }
 
 /// V0 preserves the original matching rule. Published dictionaries are frozen.

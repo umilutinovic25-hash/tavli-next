@@ -275,12 +275,16 @@ void main() {
       );
     });
 
-    RecipeSnapshot snapshot(List<Ingredient> ingredients, {int servings = 2}) =>
-        RecipeSnapshot(
-          title: 'Sarma',
-          baseServings: servings,
-          ingredients: ingredients,
-        );
+    RecipeSnapshot snapshot(
+      List<Ingredient> ingredients, {
+      int servings = 2,
+      int dictionaryVersion = 0,
+    }) => RecipeSnapshot(
+      title: 'Sarma',
+      baseServings: servings,
+      ingredients: ingredients,
+      dictionaryVersion: dictionaryVersion,
+    );
 
     Future<void> plan(
       String id,
@@ -310,6 +314,7 @@ void main() {
       int baseServings = 2,
       String? recipeId,
       bool cooked = false,
+      int dictionaryVersion = 0,
     }) => db
         .into(db.mealPlanEntries)
         .insertOnConflictUpdate(
@@ -323,7 +328,11 @@ void main() {
             isCooked: Value(cooked),
             recipeSnapshotJson: Value(
               jsonEncode(
-                snapshot(ingredients, servings: baseServings).toJson(),
+                snapshot(
+                  ingredients,
+                  servings: baseServings,
+                  dictionaryVersion: dictionaryVersion,
+                ).toJson(),
               ),
             ),
             householdId: const Value('home-one'),
@@ -889,6 +898,31 @@ void main() {
           isEmpty,
           reason: 'poništena kupovina više nije zaliha',
         );
+        expect(await shop.listItems(w2), hasLength(1));
+      },
+    );
+
+    test(
+      '043: poništena kupovina stavke u dl vraća istu stavku (v3)',
+      () async {
+        final end = mon.addDays(13);
+        await plan('p1', mon, end);
+        await entry(
+          'e1',
+          mon.addDays(8),
+          ingredients: const [
+            Ingredient(name: 'Mleko', quantity: 2, unit: 'dl'),
+          ],
+          dictionaryVersion: 3,
+        );
+        await shop.reconcilePlan('p1');
+        final weeks = weekPeriods(DateRange(mon, end));
+        final w2 = await shop.weekList('p1', weeks[1]);
+        final milk = await item(w2, 'Mleko');
+        expect(await shop.setBought([milk.id], bought: true), 1);
+        expect(await shop.setBought([milk.id], bought: false), 1);
+        final back = await item(w2, 'Mleko');
+        expect(back.id, milk.id);
         expect(await shop.listItems(w2), hasLength(1));
       },
     );
