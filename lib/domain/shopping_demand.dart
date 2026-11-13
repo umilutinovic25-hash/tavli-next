@@ -35,6 +35,35 @@ const _units = <String, NormalizedUnit>{
   'kom.': (group: 'count:kom', base: 'kom', factor: 1),
 };
 
+/// Rečnik v3 (043): kuhinjske mere. dl i dkg su tačni, ostalo je približno.
+const _unitsV3 = <String, NormalizedUnit>{
+  'dl': (group: 'volume', base: 'ml', factor: 100),
+  'dkg': (group: 'mass', base: 'g', factor: 10),
+  'čaša': (group: 'volume', base: 'ml', factor: 200),
+  'šolja': (group: 'volume', base: 'ml', factor: 250),
+  'kašika': (group: 'volume', base: 'ml', factor: 15),
+  'kašičica': (group: 'volume', base: 'ml', factor: 5),
+};
+
+/// Kuhinjske mere sa približnom zapreminom; dl i dkg su tačni.
+const _approximateV3 = {'čaša', 'šolja', 'kašika', 'kašičica'};
+
+/// Oblici bez dijakritika i množina koji vode na kanonske v3 mere.
+const _v3Aliases = <String, String>{
+  'casa': 'čaša',
+  'čaše': 'čaša',
+  'case': 'čaša',
+  'solja': 'šolja',
+  'šolje': 'šolja',
+  'solje': 'šolja',
+  'kasika': 'kašika',
+  'kašike': 'kašika',
+  'kasike': 'kašika',
+  'kasicica': 'kašičica',
+  'kašičice': 'kašičica',
+  'kasicice': 'kašičica',
+};
+
 /// Samo g↔kg i ml↔l se pretvaraju; komadi se sabiraju sa komadima. Ostale
 /// jedinice su uporedive samo kad su iste (bez gustine i "kašika u ml").
 NormalizedUnit normalizeUnit(String? unit, {int dictionaryVersion = 0}) {
@@ -54,8 +83,21 @@ NormalizedUnit normalizeUnit(String? unit, {int dictionaryVersion = 0}) {
         }[u]
       : null;
   final canonical = alias ?? u;
+  if (dictionaryVersion >= 3) {
+    final v3 = _unitsV3[_v3Aliases[canonical] ?? canonical];
+    if (v3 != null) return v3;
+  }
   return _units[canonical] ??
       (group: 'unit:$canonical', base: canonical, factor: 1);
+}
+
+/// Da li je pretvaranje jedinice približno (kuhinjska mera, samo v3); zbir
+/// koji je sadrži nosi znak ~. Tačna pretvaranja (kg u g, dl u ml) ne.
+bool unitIsApproximate(String? unit, {int dictionaryVersion = 0}) {
+  if (dictionaryVersion < 3) return false;
+  final u = (unit ?? '').trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  final canonical = const {'kasika': 'kašika'}[u] ?? u;
+  return _approximateV3.contains(_v3Aliases[canonical] ?? canonical);
 }
 
 /// V0 preserves the original matching rule. Published dictionaries are frozen.
@@ -64,8 +106,8 @@ NormalizedUnit normalizeUnit(String? unit, {int dictionaryVersion = 0}) {
 String dictionaryIngredientKey(String name, int version, {String? foodId}) {
   final key = ingredientKey(name);
   if (version == 0) return key;
-  if (version == 2 && foodId != null) return 'food:$foodId';
-  if (version != 1 && version != 2) {
+  if (version >= 2 && foodId != null) return 'food:$foodId';
+  if (version < 1 || version > 3) {
     throw ArgumentError.value(version, 'version');
   }
   final canonical = const {'češnjak': 'beli luk'}[key] ?? key;

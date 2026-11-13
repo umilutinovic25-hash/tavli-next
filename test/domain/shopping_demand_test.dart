@@ -213,7 +213,7 @@ void main() {
       expect(dictionaryIngredientKey('Češnjak', 2), 'v1:beli luk');
       expect(dictionaryIngredientKey('Jaja', 1, foodId: 'f_jaje'), 'v1:jaja');
       expect(dictionaryIngredientKey('Jaja', 0, foodId: 'f_jaje'), 'jaja');
-      expect(() => dictionaryIngredientKey('x', 3), throwsArgumentError);
+      expect(() => dictionaryIngredientKey('x', 4), throwsArgumentError);
     });
 
     test('v2 jedinice kao v1', () {
