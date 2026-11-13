@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/recipe.dart';
 import '../../domain/shopping_source.dart';
 import '../foods/allergen_line.dart';
+import '../foods/nutrition_line.dart';
 import '../planning/planning_providers.dart';
 import 'cooking_screen.dart';
 import 'ingredient_review_sheet.dart';
@@ -228,7 +229,10 @@ class _DetailState extends ConsumerState<_Detail> {
                   const SizedBox(height: 16),
                   RecipeView(
                     recipe,
-                    ingredientsNote: AllergenLine(recipe),
+                    ingredientsNote: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [AllergenLine(recipe), NutritionLine(recipe)],
+                    ),
                     markUnconfirmed: true,
                   ),
                 ],

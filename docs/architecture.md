@@ -155,6 +155,12 @@ flowchart LR
   carbs per 100 g with a source (`usda-sr-legacy-2018-04`, FDC id); unknown stays
   null, never zero (`Food.nutrition`). Values are generated from USDA source
   files, never typed or produced by AI.
+- **Recipe nutrition (046)**: `recipeNutritionPerServing` (domain) turns ingredient
+  grams × food nutrition per 100 g into kcal and macros per serving, with coverage
+  ("counted for 7 of 8 ingredients"). Grams come from food conversions, mass units,
+  `unit_grams` (piece weight for `kom`, density for `ml`, from USDA portions).
+  Ingredients that cannot be converted stay out of the total; nothing is shown when
+  none is covered.
 - **Allergens**: shown only from confirmed foods ("Sadrži: …"), with
   "Podaci o alergenima nisu potpuni." while any ingredient is unconfirmed; the
   app never claims a recipe is allergen-free.
