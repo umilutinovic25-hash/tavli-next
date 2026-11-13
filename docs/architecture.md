@@ -151,6 +151,10 @@ flowchart LR
   `dictionaryVersion: 2`: identity `food:<id>` when the ingredient has a food,
   with food conversions (e.g. 1 čen garlic = 5 g) frozen in the snapshot.
   v0/v1 snapshots are never recomputed differently (golden test).
+- **Food nutrition (045)**: shared catalog foods carry kcal, protein, fat and
+  carbs per 100 g with a source (`usda-sr-legacy-2018-04`, FDC id); unknown stays
+  null, never zero (`Food.nutrition`). Values are generated from USDA source
+  files, never typed or produced by AI.
 - **Allergens**: shown only from confirmed foods ("Sadrži: …"), with
   "Podaci o alergenima nisu potpuni." while any ingredient is unconfirmed; the
   app never claims a recipe is allergen-free.

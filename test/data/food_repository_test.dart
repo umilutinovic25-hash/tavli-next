@@ -191,4 +191,45 @@ void main() {
     expect(seen.first, isFalse);
     expect(seen.last, isTrue);
   });
+
+  test(
+    'katalog nosi nutritivne vrednosti i izvor, ili ništa (nepoznato)',
+    () async {
+      await db
+          .into(db.foods)
+          .insert(
+            FoodsCompanion.insert(
+              id: 'f_nutri_jaje',
+              name: 'jaje',
+              category: 'mlečni proizvodi i jaja',
+              baseUnit: 'kom',
+              kcal100: const Value(143),
+              protein100: const Value(12.56),
+              fat100: const Value(9.51),
+              carbs100: const Value(0.72),
+              nutritionSource: const Value('usda-sr-legacy-2018-04'),
+              nutritionRef: const Value('171287'),
+            ),
+          );
+      await db
+          .into(db.foods)
+          .insert(
+            FoodsCompanion.insert(
+              id: 'f_nutri_bez',
+              name: 'kajmak',
+              category: 'mlečni proizvodi i jaja',
+              baseUnit: 'g',
+            ),
+          );
+      final catalog = await foods.catalog();
+      final egg = catalog.byId('f_nutri_jaje')!.nutrition!;
+      expect(
+        (egg.kcal, egg.protein, egg.fat, egg.carbs),
+        (143, 12.56, 9.51, 0.72),
+      );
+      expect(egg.source, 'usda-sr-legacy-2018-04');
+      expect(egg.ref, '171287');
+      expect(catalog.byId('f_nutri_bez')!.nutrition, isNull);
+    },
+  );
 }

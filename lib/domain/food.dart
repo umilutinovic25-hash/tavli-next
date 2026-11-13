@@ -5,6 +5,28 @@ import 'shopping_sync.dart';
 /// Osnovna jedinica namirnice: u njoj se meri zaliha i potreba.
 enum BaseUnit { kom, g, ml }
 
+/// Nutritivne vrednosti na 100 g sa izvorom (045). Nepoznato je odsustvo
+/// objekta ([Food.nutrition] == null), nikad nula.
+class Nutrition {
+  const Nutrition({
+    required this.kcal,
+    required this.protein,
+    required this.fat,
+    required this.carbs,
+    required this.source,
+    required this.ref,
+  });
+
+  final double kcal;
+  final double protein;
+  final double fat;
+  final double carbs;
+
+  /// Izvor, npr. `usda-sr-legacy-2018-04`, i oznaka zapisa u njemu (FDC id).
+  final String source;
+  final String ref;
+}
+
 /// Namirnica iz kataloga (036). [householdId] je null za zajednički katalog,
 /// inače je to sopstvena namirnica domaćinstva. Id se nikad ne menja.
 class Food {
@@ -14,10 +36,14 @@ class Food {
     required this.category,
     required this.baseUnit,
     this.householdId,
+    this.nutrition,
   });
 
   final String id;
   final String? householdId;
+
+  /// Vrednosti na 100 g; null kad su nepoznate.
+  final Nutrition? nutrition;
 
   /// Nominativ jednine, mala slova (prikaz).
   final String name;

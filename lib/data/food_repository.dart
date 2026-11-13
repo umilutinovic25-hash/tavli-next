@@ -45,6 +45,7 @@ Future<FoodCatalog> loadFoodCatalog(AppDatabase db, String householdId) async {
             name: f.name,
             category: f.category,
             baseUnit: unit,
+            nutrition: _nutritionOf(f),
           ),
     ],
     aliases: [
@@ -195,4 +196,27 @@ class FoodRepository {
         );
     await _writer.upsert('food_alias', id);
   }
+}
+
+/// Sve ili ništa: bez ijednog polja (ili bez izvora) vrednosti su nepoznate.
+Nutrition? _nutritionOf(FoodRow f) {
+  final kcal = f.kcal100, protein = f.protein100;
+  final fat = f.fat100, carbs = f.carbs100;
+  final source = f.nutritionSource, ref = f.nutritionRef;
+  if (kcal == null ||
+      protein == null ||
+      fat == null ||
+      carbs == null ||
+      source == null ||
+      ref == null) {
+    return null;
+  }
+  return Nutrition(
+    kcal: kcal,
+    protein: protein,
+    fat: fat,
+    carbs: carbs,
+    source: source,
+    ref: ref,
+  );
 }
