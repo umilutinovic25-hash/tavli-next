@@ -209,6 +209,10 @@ void main() {
               carbs100: const Value(0.72),
               nutritionSource: const Value('usda-sr-legacy-2018-04'),
               nutritionRef: const Value('171287'),
+              unitGrams: const Value(50),
+              unitGramsSource: const Value(
+                'usda-sr-legacy-2018-04:171287:large',
+              ),
             ),
           );
       await db
@@ -230,6 +234,8 @@ void main() {
       expect(egg.source, 'usda-sr-legacy-2018-04');
       expect(egg.ref, '171287');
       expect(catalog.byId('f_nutri_bez')!.nutrition, isNull);
+      expect(catalog.byId('f_nutri_jaje')!.unitGrams, 50);
+      expect(catalog.byId('f_nutri_bez')!.unitGrams, isNull);
     },
   );
 }

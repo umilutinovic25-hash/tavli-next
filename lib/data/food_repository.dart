@@ -46,6 +46,7 @@ Future<FoodCatalog> loadFoodCatalog(AppDatabase db, String householdId) async {
             category: f.category,
             baseUnit: unit,
             nutrition: _nutritionOf(f),
+            unitGrams: f.unitGrams,
           ),
     ],
     aliases: [

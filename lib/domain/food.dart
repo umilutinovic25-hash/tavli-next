@@ -37,6 +37,7 @@ class Food {
     required this.baseUnit,
     this.householdId,
     this.nutrition,
+    this.unitGrams,
   });
 
   final String id;
@@ -44,6 +45,10 @@ class Food {
 
   /// Vrednosti na 100 g; null kad su nepoznate.
   final Nutrition? nutrition;
+
+  /// Gramska težina osnovne jedinice: komad (kom) ili gustina g/ml (ml);
+  /// null za g namirnice (1 g je 1 g) i kad je nepoznata.
+  final double? unitGrams;
 
   /// Nominativ jednine, mala slova (prikaz).
   final String name;
