@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tavli/domain/food_nutrition_csv.dart';
 
@@ -29,6 +31,26 @@ List<NutritionRow> build(String mapBody) => buildNutritionRows(
 );
 
 void main() {
+  test(
+    'pregledano mapiranje ne koristi napitak ili drugo stanje namirnice',
+    () {
+      final lines = File('supabase/catalog/nutrition_map.csv')
+          .readAsLinesSync();
+      for (final (food, wrongRef) in [
+        ('f_kafa', '171890'),
+        ('f_caj', '173227'),
+        ('f_kokos', '170169'),
+        ('f_prezle', '174924'),
+        ('f_lisnato_testo', '172738'),
+      ]) {
+        expect(
+          lines.any((line) => line.startsWith('$food,$wrongRef,')),
+          isFalse,
+          reason: '$food nema odgovarajuće stanje u USDA zapisu $wrongRef',
+        );
+      }
+    },
+  );
   test('vrednosti dolaze iz izvora, bez zaokruživanja', () {
     final rows = build(
       'f_jaje,171287,"Egg, whole, raw, fresh"\n'
