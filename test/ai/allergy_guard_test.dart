@@ -85,6 +85,7 @@ final _catalog = FoodCatalog(
   List<List<String>> answers, {
   Set<String> codes = const {'peanuts', 'eggs'},
   List<String> custom = const ['jagode'],
+  List<String> legacy = const [],
 }) {
   final client = _Client(answers);
   final router = AIRouter(
@@ -100,7 +101,7 @@ final _catalog = FoodCatalog(
   final allergies = HouseholdAllergies.union([
     PersonAllergies(householdId: 'h1', userId: 'u1', codes: codes),
     PersonAllergies(householdId: 'h1', userId: 'u2', custom: custom),
-  ]);
+  ], legacy: legacy);
   return (
     RecipeAI(
       router,
@@ -111,6 +112,24 @@ final _catalog = FoodCatalog(
 }
 
 void main() {
+  test(
+    'kasna legacy alergija se proverava i kad AI zanemari uputstvo',
+    () async {
+      final (ai, client) = _ai(
+        [
+          ['kikiriki'],
+        ],
+        codes: const {},
+        custom: const [],
+        legacy: const ['kikiriki'],
+      );
+      await expectLater(
+        ai.fromDishName('Kolač'),
+        throwsA(isA<AllergenViolation>()),
+      );
+      expect(client.prompts, hasLength(2));
+    },
+  );
   test('upit po nazivu nosi uniju alergija svih članova', () async {
     final (ai, client) = _ai([
       ['brašno'],
