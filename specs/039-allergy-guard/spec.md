@@ -27,6 +27,7 @@ Za sastojak se namirnica uzima iz `foodId`, inače iz tačnog aliasa (`FoodCatal
 6. AI upit dobija uniju alergija (EU nazivi na engleskom + slobodan unos), kao i do sada prvu i zabranjenu.
 7. Član koji napusti domaćinstvo (ili bude uklonjen) više ne nosi alergije u njega: server briše njegov red.
 8. Lični izvoz sadrži sopstvene alergije (`allergies`), format 3 → 4.
+9. Kasni upis starog klijenta ili njegovog outbox-a u zajedničke alergije i dalje ulazi u uniju i zaštitnu proveru. Poznati alergen i nepotvrđen sastojak istovremeno prikazuju oba upozorenja.
 
 ## Novi tekst
 „Moje alergije“, „Važi za sve obroke kad kuvaš za domaćinstvo. Ostali članovi vide tvoje alergije.“, „Ostalo“, „Npr. jagode. Proverava se po nazivu sastojka.“, „Dodaj alergiju“, „Važi za sve obroke: …“, „Niko u domaćinstvu nije upisao alergije.“, „Sadrži alergen člana: …“, „Nepotvrđeno, proveri alergene“, „Nije pronađen recept bez alergena članova domaćinstva (…). Promeni zahtev i pokušaj ponovo.“; politika privatnosti (obraćanje sa „vi“ kao u ostatku politike): „alergije (zdravstveni podatak). Alergije koje upišete vide ostali članovi domaćinstva, da bi aplikacija mogla da proveri recepte za sve,“

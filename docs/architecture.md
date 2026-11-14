@@ -14,8 +14,9 @@ flowchart TD
   F["Feature façades — RecipeAI (fromImage, fromDishName, refine)"]
   D["Domain — lib/domain (Recipe, Ingredient, categories)<br/>pure Dart"]
   R["AIRouter — chains, cooldowns, retries"]
-  C["ChatClient — OpenAICompatibleClient (dio)"]
-  K["KeySource — LayeredKeySource<br/>own keys (Keychain / Keystore) → built-in (secrets.json)"]
+  C["ChatClient — RoutingChatClient<br/>BYOK: OpenAICompatibleClient · built-in: GatewayChatClient"]
+  K["KeySource — LayeredKeySource<br/>own keys (Keychain / Keystore) → gateway marker"]
+  GW["Supabase Edge — ai-complete<br/>provider secrets · per-account limits"]
   S["ModelStatusStore — DriftModelStatusStore"]
   DB[("drift / SQLite — lib/data/database.dart<br/>offline cache + outbox")]
   SY["Sync — lib/sync<br/>SyncedWriter · Uploader · Downloader · PhotoSync · LegacyMover · SyncEngine"]
@@ -29,6 +30,8 @@ flowchart TD
   F --> D
   R --> C
   R --> K
+  C --> GW
+  GW --> SB
   R --> S
   S --> DB
   UI --> D
@@ -155,6 +158,10 @@ flowchart LR
   carbs per 100 g with a source (`usda-sr-legacy-2018-04`, FDC id); unknown stays
   null, never zero (`Food.nutrition`). Values are generated from USDA source
   files, never typed or produced by AI.
+  Incompatible food-state mappings were withdrawn in a new migration: ground
+  coffee/tea versus brewed drinks, coconut flour versus raw coconut, dry bread
+  crumbs versus soft bread and unbaked versus baked puff pastry. These five foods
+  remain unknown until a matching source is reviewed (161/171 foods covered).
 - **Recipe nutrition (046)**: `recipeNutritionPerServing` (domain) turns ingredient
   grams × food nutrition per 100 g into kcal and macros per serving, with coverage
   ("counted for 7 of 8 ingredients"). Grams come from food conversions, mass units,
@@ -181,7 +188,10 @@ flowchart LR
   `AllergenViolation` (chat edit rejects only new allergens). Meal plan: library
   recipes with an allergen are not offered; new summaries retry once, then the
   slots stay empty. Photo and link imports are not rejected; preview, form and
-  detail show "Sadrži alergen člana" or "Nepotvrđeno, proveri alergene".
+  detail show "Sadrži alergen člana" and, independently when needed,
+  "Nepotvrđeno, proveri alergene". Late legacy allergy writes from older clients
+  or pending outboxes join the household union for prompts, guards and warnings;
+  they are not assigned to an arbitrary person's allergy row.
   Personal export format 6 also includes the approximate-quantity flag on shopping items and contributions (043); format 5 added confirmed shopping product selections; format 4 added the person's own allergies.
 
 ## Local development backend
@@ -296,11 +306,18 @@ service are tried in add order, then the built-in key; pauses and rejections
 are tracked per key (`keyOrigin` column holds `user:<id>` / `builtIn`). The UI
 shows only the last 4 characters. Nothing secret is in the repo.
 
-Built-in keys (spec 002) come from a local, gitignored `secrets.json` passed
-with `--dart-define-from-file=secrets.json` (see `secrets.example.json`), read
-by `BuiltInKeys.fromEnvironment()`. User-entered keys take priority. The
-built-in key is never shown in the UI. Later a Cloudflare Worker proxy replaces
-`BuiltInKeys` behind the same `KeySource` seam, so the app ships without keys.
+Built-in Tavli AI (037) uses `GatewayChatClient` and the Supabase Edge Function
+`ai-complete`. The server verifies the account, accepts only allowlisted models
+and at most 6 MiB, and applies an atomic per-account limit of 20 attempts per
+minute and 300 per UTC day before calling a provider. Attempts are counted per
+model, including fallback and invalid-JSON retries. Provider keys stay in server
+secrets; an expired session (401) is transient to the router. BYOK still goes
+directly through `OpenAICompatibleClient` and takes priority.
+
+`builtInKeysFor` supplies gateway markers for signed-in release builds;
+build-time provider keys are used only for local development. The earlier
+spec 002 `BuiltInKeys.fromEnvironment()` path remains available in debug builds.
+The proposed Cloudflare proxy was replaced by the implemented Supabase gateway.
 
 ## Themes and animations
 

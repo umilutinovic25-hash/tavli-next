@@ -95,4 +95,48 @@ void main() {
     expect(result.complete, isTrue);
     expect(result.subtotalInParas, 12000);
   });
+
+  const milk = BasketLine(
+    id: '1',
+    name: 'mleko',
+    quantity: 1000,
+    unit: BasketUnit.milliliter,
+    barcode: '1',
+    packageQuantity: 1000,
+  );
+
+  test('svaka protivrečna najnovija ponuda čini cenu nepokrivenom', () {
+    for (final prices in [
+      [10000, 10000, 12000],
+      [10000, 12000, 10000],
+      [12000, 10000, 10000],
+    ]) {
+      final result = compareBasket(
+        [milk],
+        [for (final p in prices) offer('A', '1', p)],
+      ).single;
+      expect(result.complete, isFalse, reason: '$prices');
+      expect(result.covered, isEmpty);
+      expect(result.uncovered, [milk]);
+    }
+  });
+
+  test('saglasni najnoviji duplikati imaju prednost nad starijom cenom', () {
+    final result = compareBasket(
+      [milk],
+      [
+        offer('A', '1', 12000),
+        offer('A', '1', 12000),
+        BasketOffer(
+          store: 'A',
+          barcode: '1',
+          priceInParas: 10000,
+          priceDate: date.subtract(const Duration(days: 1)),
+          source: source,
+        ),
+      ],
+    ).single;
+    expect(result.complete, isTrue);
+    expect(result.subtotalInParas, 12000);
+  });
 }

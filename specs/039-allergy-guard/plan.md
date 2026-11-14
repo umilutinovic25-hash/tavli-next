@@ -7,7 +7,7 @@
 - Okidač na `household_members` after delete briše red tog člana (napuštanje, uklanjanje).
 - Migracija podataka: za `household_preferences.allergies` ≠ []: osoba = `updated_by` ako je član, inače vlasnik; srpski EU nazivi (`jaja`, `kikiriki`, …) → kodovi, ostalo → `custom`; zatim `allergies = '[]'`. Kolona ostaje zbog starijih klijenata.
 - drift 17 → 18: `PersonAllergies` (id, householdId, userId, codesJson, customJson); `SyncEntity` scope household.
-- Ranija polja ostaju: `UserPreferences.allergies` se više ne prikazuje; upit uzima uniju. Izmena posle implementacije (Convergence 1): stari zajednički spisak se i dalje **dodaje** upitu, jer ga stariji klijenti pišu (bezbednije da ga AI vidi); kod ga ne proverava.
+- Ranija polja ostaju: `UserPreferences.allergies` se više ne uređuje u „Moje alergije“. Kasni zajednički upisi starijih klijenata i postojećeg outbox-a ulaze u uniju, AI uputstva, zaštitnu proveru i upozorenja. EU nazivi postaju kodovi kao u serverskom prenosu, ostalo je slobodan unos. Zajednički unos se ne pripisuje proizvoljnoj osobi; vidi se u „Važi za sve obroke“.
 
 ## Domen (`lib/domain/allergy.dart`)
 `PersonAllergies` (validacija), `HouseholdAllergies.union`, `checkAllergens(ingredients, catalog, allergies) → AllergyCheck(hits, unconfirmed)`, `AllergyHit(ingredient, label)`, `AllergenViolation` (izuzetak sa srpskom porukom).
@@ -25,4 +25,4 @@
 I srpski UI ✅ · II RLS, GRANT, pgTAP sa dva naloga, drift bump + test, outbox ✅ · III AI kroz AIRouter ✅ · IV bez tajni ✅ · V testovi prvi (domen, AI, pgTAP) ✅ · VI uska i široka širina (postojeći ekran) ✅
 
 ## Rizik
-Mešovite verzije: stariji klijent i dalje piše `household_preferences.allergies` i ne vidi `member_allergies`; posle ažuriranja migracija se ne ponavlja. Isto upozorenje kao 018/036, u PR-u.
+Mešovite verzije: stariji klijent i dalje piše `household_preferences.allergies` i ne vidi `member_allergies`. Jednokratna migracija se ne ponavlja; novi klijent zato prati obe tabele. Izolacija domaćinstva i lični izvoz ostaju kao ranije.

@@ -40,13 +40,26 @@ class AllergyRepository {
         ..where((t) => t.householdId.equals(_scope.householdId));
 
   /// Unija svih članova aktivnog domaćinstva.
-  Stream<HouseholdAllergies> watchHousehold() => _household().watch().map(
-    (rows) => HouseholdAllergies.union(rows.map(_fromRow)),
-  );
+  Stream<HouseholdAllergies> watchHousehold() => _db
+      .customSelect(
+        'SELECT 1',
+        readsFrom: {_db.memberAllergies, _db.householdPreferences},
+      )
+      .watch()
+      .asyncMap((_) => current());
 
   /// Jednokratno čitanje, za proveru AI recepata.
-  Future<HouseholdAllergies> current() async =>
-      HouseholdAllergies.union((await _household().get()).map(_fromRow));
+  Future<HouseholdAllergies> current() async {
+    final rows = await _household().get();
+    final legacy =
+        await (_db.select(_db.householdPreferences)
+              ..where((t) => t.householdId.equals(_scope.householdId)))
+            .getSingleOrNull();
+    return HouseholdAllergies.union(
+      rows.map(_fromRow),
+      legacy: legacy == null ? const [] : _strings(legacy.allergiesJson),
+    );
+  }
 
   /// Čuva moje alergije (ceo red). [PersonAllergies] proverava vrednosti,
   /// pa se ništa neispravno ne upisuje.
@@ -86,15 +99,16 @@ class AllergyRepository {
 
   /// Red sa servera: nepoznat kod (noviji klijent) se preskače.
   static PersonAllergies _fromRow(MemberAllergyRow row) {
-    List<String> strings(String json) => [
-      for (final v in jsonDecode(json) as List<dynamic>)
-        if (v is String) v,
-    ];
     return PersonAllergies(
       householdId: row.householdId ?? '',
       userId: row.userId,
-      codes: strings(row.codesJson).where(euAllergens.containsKey),
-      custom: strings(row.customJson),
+      codes: _strings(row.codesJson).where(euAllergens.containsKey),
+      custom: _strings(row.customJson),
     );
   }
+
+  static List<String> _strings(String json) => [
+    for (final v in jsonDecode(json) as List<dynamic>)
+      if (v is String) v,
+  ];
 }

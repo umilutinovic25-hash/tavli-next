@@ -88,14 +88,25 @@ class MemberAllergenWarning extends StatelessWidget {
           Icon(Icons.warning_amber_rounded, size: 18, color: color),
           const SizedBox(width: 6),
           Expanded(
-            child: Text(
-              hit
-                  ? 'Sadrži alergen člana: ${check.allergens.join(', ')}'
-                  : 'Nepotvrđeno, proveri alergene',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: color,
-                fontWeight: hit ? FontWeight.w600 : null,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (hit)
+                  Text(
+                    'Sadrži alergen člana: ${check.allergens.join(', ')}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                if (check.unconfirmed)
+                  Text(
+                    'Nepotvrđeno, proveri alergene',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

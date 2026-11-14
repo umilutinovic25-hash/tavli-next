@@ -138,6 +138,27 @@ void main() {
   });
 
   group('HouseholdAllergies', () {
+    test('legacy nazivi postaju EU kodovi, ostalo ostaje slobodan unos', () {
+      final hh = HouseholdAllergies.union(
+        [],
+        legacy: [
+          ' Jaje ',
+          'orasasti plodovi',
+          'senf',
+          'mekusci',
+          'milk',
+          'Jagode',
+        ],
+      );
+      expect(hh.codes, {'eggs', 'nuts', 'mustard', 'molluscs', 'milk'});
+      expect(hh.custom, ['jagode']);
+      final check = checkAllergens(
+        const [Ingredient(name: 'nešto', foodId: 'f_jaje')],
+        _catalog,
+        hh,
+      );
+      expect(check.allergens, ['jaja']);
+    });
     test('unija svih članova, EU po redosledu Uredbe, pa ostalo', () {
       final hh = HouseholdAllergies.union([
         PersonAllergies(

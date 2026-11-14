@@ -63,7 +63,10 @@ String memberAllergyId(String householdId, String userId) =>
 class HouseholdAllergies {
   const HouseholdAllergies._(this.codes, this.custom);
 
-  factory HouseholdAllergies.union(Iterable<PersonAllergies> members) {
+  factory HouseholdAllergies.union(
+    Iterable<PersonAllergies> members, {
+    Iterable<String> legacy = const [],
+  }) {
     final codes = <String>{};
     // Stavke su već normalizovane po osobi; ograničenje od 30 važi po
     // osobi, ne za uniju.
@@ -71,6 +74,16 @@ class HouseholdAllergies {
     for (final m in members) {
       codes.addAll(m.codes);
       custom.addAll(m.custom);
+    }
+    // Stariji klijenti i njihov outbox i dalje šalju zajedničke alergije.
+    // Isti EU nazivi kao u serverskom prenosu; ostalo je slobodan unos.
+    for (final term in normalizeItems(legacy)) {
+      final code = _legacyAllergenCodes[term];
+      if (code == null) {
+        custom.add(term);
+      } else {
+        codes.add(code);
+      }
     }
     return HouseholdAllergies._(
       Set.unmodifiable(codes),
@@ -99,6 +112,16 @@ class HouseholdAllergies {
     ...custom,
   ];
 }
+
+final _legacyAllergenCodes = <String, String>{
+  for (final e in euAllergens.entries) e.key: e.key,
+  for (final e in euAllergens.entries) e.value: e.key,
+  'jaje': 'eggs',
+  'orasasti plodovi': 'nuts',
+  'slacica': 'mustard',
+  'senf': 'mustard',
+  'mekusci': 'molluscs',
+};
 
 /// Sastojak koji pogađa alergiju; [allergen] je naziv za prikaz.
 class AllergyHit {

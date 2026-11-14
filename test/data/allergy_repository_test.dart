@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tavli/account/auth_controller.dart';
 import 'package:tavli/data/allergy_repository.dart';
 import 'package:tavli/data/database.dart';
+import 'package:tavli/data/preferences_repository.dart';
+import 'package:tavli/domain/user_preferences.dart';
 import 'package:tavli/sync/synced_writer.dart';
 
 const scope = AccountScope(userId: 'u1', householdId: 'h1');
@@ -76,5 +80,51 @@ void main() {
   test('nepoznat kod sa servera se preskače, ne ruši čitanje', () async {
     await insert('h1', 'u2', '["peanuts","novi_kod"]', '[]');
     expect((await repo.current()).codes, {'peanuts'});
+  });
+
+  test('kasni legacy upis ulazi u zaštitu uz alergije članova', () async {
+    await insert('h1', 'u2', '["milk"]', '["kivi"]');
+    final prefs = PreferencesRepository(
+      db,
+      scope: scope,
+      writer: SyncedWriter(db, accountId: scope.userId),
+    );
+    await prefs.save(
+      UserPreferences(allergies: ['Kikiriki', 'jaja', 'jagode']),
+    );
+    await db
+        .into(db.householdPreferences)
+        .insert(
+          HouseholdPreferencesCompanion.insert(
+            id: 'h2',
+            householdId: const Value('h2'),
+            allergiesJson: const Value('["riba"]'),
+          ),
+        );
+
+    final current = await repo.current();
+    expect(current.codes, {'milk', 'peanuts', 'eggs'});
+    expect(current.custom, ['kivi', 'jagode']);
+    expect((await repo.watchHousehold().first).labels, current.labels);
+    expect((await repo.watchMine().first).isEmpty, isTrue);
+    expect((await prefs.current()).allergies, ['kikiriki', 'jaja', 'jagode']);
+  });
+
+  test('unija prati i kasne izmene legacy alergija', () async {
+    final prefs = PreferencesRepository(
+      db,
+      scope: scope,
+      writer: SyncedWriter(db, accountId: scope.userId),
+    );
+    final values = StreamIterator(repo.watchHousehold());
+    addTearDown(values.cancel);
+    expect(await values.moveNext(), isTrue);
+    expect(values.current.isEmpty, isTrue);
+    await prefs.save(UserPreferences(allergies: ['kikiriki']));
+    expect(await values.moveNext(), isTrue);
+    expect(values.current.codes, {'peanuts'});
+    await prefs.save(UserPreferences());
+    expect(await values.moveNext(), isTrue);
+    expect(values.current.isEmpty, isTrue);
   });
 }
