@@ -186,6 +186,33 @@ void main() {
       expect(find.text('Nepotvrđeno, proveri alergene'), findsNothing);
     });
 
+    for (final width in [320.0, 1200.0]) {
+      testDbWidgets('poznati alergen ne skriva nepotvrđen sastojak ($width)', (
+        tester,
+      ) async {
+        tester.view.physicalSize = Size(width, 800);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await allergic('["eggs"]');
+        await pumpWidget(
+          tester,
+          MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: AllergenLine(
+              recipeWith(const [
+                Ingredient(name: 'jaja', foodId: 'f_jaje'),
+                Ingredient(name: 'tajni začin'),
+              ]),
+            ),
+          ),
+        );
+        expect(find.text('Sadrži alergen člana: jaja'), findsOneWidget);
+        expect(find.text('Nepotvrđeno, proveri alergene'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
+
     testDbWidgets(
       'detalj: uz alergije i nepotvrđen sastojak → „Nepotvrđeno, proveri alergene“',
       (tester) async {
