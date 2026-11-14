@@ -29,7 +29,8 @@ Historical specs retain their delivered acceptance criteria.
   chain test that generates a sample recipe and shows the attempt log.
 - **Built-in Tavli AI keys** (`specs/002-builtin-ai-keys`): local gitignored
   `secrets.json` via `--dart-define-from-file`; own key first, built-in second
-  per model; cooldowns per key. Cloudflare proxy remains a later phase.
+  per model; cooldowns per key. This was the original development path; release
+  builds now use the Supabase gateway (037), which replaced the Cloudflare proposal.
 - **Phase 2 — recipe screens** (`specs/003-recipe-screens`): recipe list with
   search and detail (list–detail on wide windows); add from a photo, a dish
   name or manually with a preview before saving; AI chat edits with version

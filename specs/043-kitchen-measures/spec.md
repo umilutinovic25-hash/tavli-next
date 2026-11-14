@@ -1,6 +1,6 @@
 # 043 — Kuhinjske mere u sabiranju nabavke
 
-**Status**: Implementirano (čeka PR). **Grana**: `043-kitchen-measures`. Trello: „Kuhinjske mere u sabiranju nabavke“ (Dev 1).
+**Status**: Implementirano i spojeno. **Grana**: `043-kitchen-measures`. Trello: „Kuhinjske mere u sabiranju nabavke“ (Dev 1).
 
 Čaša (200 ml), šolja (250 ml), kašika (15 ml), kašičica (5 ml), dl (100 ml) i
 dkg (10 g) se pretvaraju u ml i g, pa se iste namirnice u nabavci sabiraju u
