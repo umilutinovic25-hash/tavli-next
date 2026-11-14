@@ -6,7 +6,13 @@ select * from no_plan();
 
 select tests.create_user('a@test.local') as ua \gset
 select tests.household_of(:'ua') as ha \gset
+select tests.create_user('mapping-other@test.local') as ub \gset
+select tests.household_of(:'ub') as hb \gset
 select tests.clear_auth();
+
+-- Test ostaje izolovan i kad u lokalnoj bazi već postoji drugi nalog.
+insert into public.recipes (id, household_id, title, servings, source, ingredients, steps, updated_by)
+values ('mapping-other', :'hb', 'Drugi nalog', 1, 'manual', '[]', '[]', :'ub');
 
 -- Sopstvena namirnica domaćinstva se ne koristi za mapiranje.
 insert into public.foods (id, household_id, name, category, base_unit)
@@ -82,9 +88,13 @@ select is((select md5(string_agg(t::text, '|' order by id)) from public.recipe_v
 select is((select md5(string_agg(t::text, '|' order by id)) from public.shopping_sources t),
   (select sources from before_hash), 'shopping_sources nepromenjeni');
 select is((select count(*) from (
-    select updated_by from public.recipes union all select updated_by from public.pantry_items
-    union all select updated_by from public.shopping_items) u where updated_by is distinct from :'ua'::uuid),
+    select updated_by from public.recipes where household_id = :'ha'
+    union all select updated_by from public.pantry_items where household_id = :'ha'
+    union all select updated_by from public.shopping_items where household_id = :'ha'
+  ) u where updated_by is distinct from :'ua'::uuid),
   0::bigint, 'updated_by zadržan');
+select is((select updated_by from public.recipes where id = 'mapping-other'),
+  :'ub'::uuid, 'updated_by drugog naloga ostaje njegov');
 
 select lives_ok('select private.map_food_ids()', 'ponovno pokretanje je bezbedno');
 select is((select updated_at from public.recipes where id = 'r2'), (select r2_updated from before_hash),
