@@ -120,9 +120,11 @@ List<StoreComparison> compareBasket(
                   .toList()
                 ..sort((a, b) => b.priceDate.compareTo(a.priceDate));
           if (matches.isEmpty ||
-              (matches.length > 1 &&
-                  matches[0].priceDate == matches[1].priceDate &&
-                  matches[0].priceInParas != matches[1].priceInParas)) {
+              matches.any(
+                (offer) =>
+                    offer.priceDate == matches.first.priceDate &&
+                    offer.priceInParas != matches.first.priceInParas,
+              )) {
             uncovered.add(line);
             continue;
           }
