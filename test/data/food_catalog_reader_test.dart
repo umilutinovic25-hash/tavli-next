@@ -71,6 +71,49 @@ void main() {
     expect(matchedId(await find('Jaja')), 'f-jaje');
   });
 
+  test('čita nutritivnu referencu samo uz poreklo izvora', () async {
+    await db
+        .into(db.foods)
+        .insert(
+          FoodsCompanion.insert(
+            id: 'f-nutrition',
+            slug: 'krompir',
+            name: 'krompir',
+            category: 'voće i povrće',
+            baseUnit: 'gram',
+            kcalPer100g: const Value(77),
+            proteinGramsPer100g: const Value(2),
+            fatGramsPer100g: const Value(0.1),
+            carbsGramsPer100g: const Value(17),
+            nutritionSource: const Value('USDA FoodData Central'),
+            nutritionSourceVersion: const Value('SR Legacy 2018-04'),
+            nutritionSourceRef: const Value('FDC 170026'),
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    final matched = await find('krompir') as Matched;
+    expect(matched.food.nutrition?.kcalPer100g, 77);
+    expect(matched.food.nutrition?.sourceVersion, 'SR Legacy 2018-04');
+
+    await db
+        .into(db.foods)
+        .insert(
+          FoodsCompanion.insert(
+            id: 'f-unattributed',
+            slug: 'nepoznato poreklo',
+            name: 'nepoznato poreklo',
+            category: 'ostalo',
+            baseUnit: 'gram',
+            kcalPer100g: const Value(1),
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    final unattributed = await find('nepoznato poreklo') as Matched;
+    expect(unattributed.food.nutrition, isNull);
+  });
+
   test('tuđe domaćinstvo i nepoznata jedinica se ne vide', () async {
     await food('f-tudja', household: 'h2');
     await alias('a1', 'f-tudja', 'ajvar', household: 'h2');

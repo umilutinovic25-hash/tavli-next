@@ -7740,6 +7740,84 @@ class $FoodsTable extends Foods with TableInfo<$FoodsTable, FoodRow> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _kcalPer100gMeta = const VerificationMeta(
+    'kcalPer100g',
+  );
+  @override
+  late final GeneratedColumn<double> kcalPer100g = GeneratedColumn<double>(
+    'kcal_per100g',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _proteinGramsPer100gMeta =
+      const VerificationMeta('proteinGramsPer100g');
+  @override
+  late final GeneratedColumn<double> proteinGramsPer100g =
+      GeneratedColumn<double>(
+        'protein_grams_per100g',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _fatGramsPer100gMeta = const VerificationMeta(
+    'fatGramsPer100g',
+  );
+  @override
+  late final GeneratedColumn<double> fatGramsPer100g = GeneratedColumn<double>(
+    'fat_grams_per100g',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _carbsGramsPer100gMeta = const VerificationMeta(
+    'carbsGramsPer100g',
+  );
+  @override
+  late final GeneratedColumn<double> carbsGramsPer100g =
+      GeneratedColumn<double>(
+        'carbs_grams_per100g',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _nutritionSourceMeta = const VerificationMeta(
+    'nutritionSource',
+  );
+  @override
+  late final GeneratedColumn<String> nutritionSource = GeneratedColumn<String>(
+    'nutrition_source',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nutritionSourceVersionMeta =
+      const VerificationMeta('nutritionSourceVersion');
+  @override
+  late final GeneratedColumn<String> nutritionSourceVersion =
+      GeneratedColumn<String>(
+        'nutrition_source_version',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _nutritionSourceRefMeta =
+      const VerificationMeta('nutritionSourceRef');
+  @override
+  late final GeneratedColumn<String> nutritionSourceRef =
+      GeneratedColumn<String>(
+        'nutrition_source_ref',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _reviewedAtMeta = const VerificationMeta(
     'reviewedAt',
   );
@@ -7793,6 +7871,13 @@ class $FoodsTable extends Foods with TableInfo<$FoodsTable, FoodRow> {
     category,
     baseUnit,
     source,
+    kcalPer100g,
+    proteinGramsPer100g,
+    fatGramsPer100g,
+    carbsGramsPer100g,
+    nutritionSource,
+    nutritionSourceVersion,
+    nutritionSourceRef,
     reviewedAt,
     withdrawnAt,
     createdAt,
@@ -7860,6 +7945,69 @@ class $FoodsTable extends Foods with TableInfo<$FoodsTable, FoodRow> {
       context.handle(
         _sourceMeta,
         source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    }
+    if (data.containsKey('kcal_per100g')) {
+      context.handle(
+        _kcalPer100gMeta,
+        kcalPer100g.isAcceptableOrUnknown(
+          data['kcal_per100g']!,
+          _kcalPer100gMeta,
+        ),
+      );
+    }
+    if (data.containsKey('protein_grams_per100g')) {
+      context.handle(
+        _proteinGramsPer100gMeta,
+        proteinGramsPer100g.isAcceptableOrUnknown(
+          data['protein_grams_per100g']!,
+          _proteinGramsPer100gMeta,
+        ),
+      );
+    }
+    if (data.containsKey('fat_grams_per100g')) {
+      context.handle(
+        _fatGramsPer100gMeta,
+        fatGramsPer100g.isAcceptableOrUnknown(
+          data['fat_grams_per100g']!,
+          _fatGramsPer100gMeta,
+        ),
+      );
+    }
+    if (data.containsKey('carbs_grams_per100g')) {
+      context.handle(
+        _carbsGramsPer100gMeta,
+        carbsGramsPer100g.isAcceptableOrUnknown(
+          data['carbs_grams_per100g']!,
+          _carbsGramsPer100gMeta,
+        ),
+      );
+    }
+    if (data.containsKey('nutrition_source')) {
+      context.handle(
+        _nutritionSourceMeta,
+        nutritionSource.isAcceptableOrUnknown(
+          data['nutrition_source']!,
+          _nutritionSourceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('nutrition_source_version')) {
+      context.handle(
+        _nutritionSourceVersionMeta,
+        nutritionSourceVersion.isAcceptableOrUnknown(
+          data['nutrition_source_version']!,
+          _nutritionSourceVersionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('nutrition_source_ref')) {
+      context.handle(
+        _nutritionSourceRefMeta,
+        nutritionSourceRef.isAcceptableOrUnknown(
+          data['nutrition_source_ref']!,
+          _nutritionSourceRefMeta,
+        ),
       );
     }
     if (data.containsKey('reviewed_at')) {
@@ -7930,6 +8078,34 @@ class $FoodsTable extends Foods with TableInfo<$FoodsTable, FoodRow> {
         DriftSqlType.string,
         data['${effectivePrefix}source'],
       ),
+      kcalPer100g: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}kcal_per100g'],
+      ),
+      proteinGramsPer100g: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}protein_grams_per100g'],
+      ),
+      fatGramsPer100g: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}fat_grams_per100g'],
+      ),
+      carbsGramsPer100g: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}carbs_grams_per100g'],
+      ),
+      nutritionSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nutrition_source'],
+      ),
+      nutritionSourceVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nutrition_source_version'],
+      ),
+      nutritionSourceRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nutrition_source_ref'],
+      ),
       reviewedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}reviewed_at'],
@@ -7965,6 +8141,13 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
   /// `piece`, `gram` ili `milliliter` (čuva se kako je stiglo).
   final String baseUnit;
   final String? source;
+  final double? kcalPer100g;
+  final double? proteinGramsPer100g;
+  final double? fatGramsPer100g;
+  final double? carbsGramsPer100g;
+  final String? nutritionSource;
+  final String? nutritionSourceVersion;
+  final String? nutritionSourceRef;
   final DateTime? reviewedAt;
   final DateTime? withdrawnAt;
   final DateTime createdAt;
@@ -7977,6 +8160,13 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     required this.category,
     required this.baseUnit,
     this.source,
+    this.kcalPer100g,
+    this.proteinGramsPer100g,
+    this.fatGramsPer100g,
+    this.carbsGramsPer100g,
+    this.nutritionSource,
+    this.nutritionSourceVersion,
+    this.nutritionSourceRef,
     this.reviewedAt,
     this.withdrawnAt,
     required this.createdAt,
@@ -7995,6 +8185,29 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     map['base_unit'] = Variable<String>(baseUnit);
     if (!nullToAbsent || source != null) {
       map['source'] = Variable<String>(source);
+    }
+    if (!nullToAbsent || kcalPer100g != null) {
+      map['kcal_per100g'] = Variable<double>(kcalPer100g);
+    }
+    if (!nullToAbsent || proteinGramsPer100g != null) {
+      map['protein_grams_per100g'] = Variable<double>(proteinGramsPer100g);
+    }
+    if (!nullToAbsent || fatGramsPer100g != null) {
+      map['fat_grams_per100g'] = Variable<double>(fatGramsPer100g);
+    }
+    if (!nullToAbsent || carbsGramsPer100g != null) {
+      map['carbs_grams_per100g'] = Variable<double>(carbsGramsPer100g);
+    }
+    if (!nullToAbsent || nutritionSource != null) {
+      map['nutrition_source'] = Variable<String>(nutritionSource);
+    }
+    if (!nullToAbsent || nutritionSourceVersion != null) {
+      map['nutrition_source_version'] = Variable<String>(
+        nutritionSourceVersion,
+      );
+    }
+    if (!nullToAbsent || nutritionSourceRef != null) {
+      map['nutrition_source_ref'] = Variable<String>(nutritionSourceRef);
     }
     if (!nullToAbsent || reviewedAt != null) {
       map['reviewed_at'] = Variable<DateTime>(reviewedAt);
@@ -8020,6 +8233,27 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
       source: source == null && nullToAbsent
           ? const Value.absent()
           : Value(source),
+      kcalPer100g: kcalPer100g == null && nullToAbsent
+          ? const Value.absent()
+          : Value(kcalPer100g),
+      proteinGramsPer100g: proteinGramsPer100g == null && nullToAbsent
+          ? const Value.absent()
+          : Value(proteinGramsPer100g),
+      fatGramsPer100g: fatGramsPer100g == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fatGramsPer100g),
+      carbsGramsPer100g: carbsGramsPer100g == null && nullToAbsent
+          ? const Value.absent()
+          : Value(carbsGramsPer100g),
+      nutritionSource: nutritionSource == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nutritionSource),
+      nutritionSourceVersion: nutritionSourceVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nutritionSourceVersion),
+      nutritionSourceRef: nutritionSourceRef == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nutritionSourceRef),
       reviewedAt: reviewedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(reviewedAt),
@@ -8044,6 +8278,21 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
       category: serializer.fromJson<String>(json['category']),
       baseUnit: serializer.fromJson<String>(json['baseUnit']),
       source: serializer.fromJson<String?>(json['source']),
+      kcalPer100g: serializer.fromJson<double?>(json['kcalPer100g']),
+      proteinGramsPer100g: serializer.fromJson<double?>(
+        json['proteinGramsPer100g'],
+      ),
+      fatGramsPer100g: serializer.fromJson<double?>(json['fatGramsPer100g']),
+      carbsGramsPer100g: serializer.fromJson<double?>(
+        json['carbsGramsPer100g'],
+      ),
+      nutritionSource: serializer.fromJson<String?>(json['nutritionSource']),
+      nutritionSourceVersion: serializer.fromJson<String?>(
+        json['nutritionSourceVersion'],
+      ),
+      nutritionSourceRef: serializer.fromJson<String?>(
+        json['nutritionSourceRef'],
+      ),
       reviewedAt: serializer.fromJson<DateTime?>(json['reviewedAt']),
       withdrawnAt: serializer.fromJson<DateTime?>(json['withdrawnAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -8061,6 +8310,15 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
       'category': serializer.toJson<String>(category),
       'baseUnit': serializer.toJson<String>(baseUnit),
       'source': serializer.toJson<String?>(source),
+      'kcalPer100g': serializer.toJson<double?>(kcalPer100g),
+      'proteinGramsPer100g': serializer.toJson<double?>(proteinGramsPer100g),
+      'fatGramsPer100g': serializer.toJson<double?>(fatGramsPer100g),
+      'carbsGramsPer100g': serializer.toJson<double?>(carbsGramsPer100g),
+      'nutritionSource': serializer.toJson<String?>(nutritionSource),
+      'nutritionSourceVersion': serializer.toJson<String?>(
+        nutritionSourceVersion,
+      ),
+      'nutritionSourceRef': serializer.toJson<String?>(nutritionSourceRef),
       'reviewedAt': serializer.toJson<DateTime?>(reviewedAt),
       'withdrawnAt': serializer.toJson<DateTime?>(withdrawnAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -8076,6 +8334,13 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     String? category,
     String? baseUnit,
     Value<String?> source = const Value.absent(),
+    Value<double?> kcalPer100g = const Value.absent(),
+    Value<double?> proteinGramsPer100g = const Value.absent(),
+    Value<double?> fatGramsPer100g = const Value.absent(),
+    Value<double?> carbsGramsPer100g = const Value.absent(),
+    Value<String?> nutritionSource = const Value.absent(),
+    Value<String?> nutritionSourceVersion = const Value.absent(),
+    Value<String?> nutritionSourceRef = const Value.absent(),
     Value<DateTime?> reviewedAt = const Value.absent(),
     Value<DateTime?> withdrawnAt = const Value.absent(),
     DateTime? createdAt,
@@ -8088,6 +8353,25 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     category: category ?? this.category,
     baseUnit: baseUnit ?? this.baseUnit,
     source: source.present ? source.value : this.source,
+    kcalPer100g: kcalPer100g.present ? kcalPer100g.value : this.kcalPer100g,
+    proteinGramsPer100g: proteinGramsPer100g.present
+        ? proteinGramsPer100g.value
+        : this.proteinGramsPer100g,
+    fatGramsPer100g: fatGramsPer100g.present
+        ? fatGramsPer100g.value
+        : this.fatGramsPer100g,
+    carbsGramsPer100g: carbsGramsPer100g.present
+        ? carbsGramsPer100g.value
+        : this.carbsGramsPer100g,
+    nutritionSource: nutritionSource.present
+        ? nutritionSource.value
+        : this.nutritionSource,
+    nutritionSourceVersion: nutritionSourceVersion.present
+        ? nutritionSourceVersion.value
+        : this.nutritionSourceVersion,
+    nutritionSourceRef: nutritionSourceRef.present
+        ? nutritionSourceRef.value
+        : this.nutritionSourceRef,
     reviewedAt: reviewedAt.present ? reviewedAt.value : this.reviewedAt,
     withdrawnAt: withdrawnAt.present ? withdrawnAt.value : this.withdrawnAt,
     createdAt: createdAt ?? this.createdAt,
@@ -8104,6 +8388,27 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
       category: data.category.present ? data.category.value : this.category,
       baseUnit: data.baseUnit.present ? data.baseUnit.value : this.baseUnit,
       source: data.source.present ? data.source.value : this.source,
+      kcalPer100g: data.kcalPer100g.present
+          ? data.kcalPer100g.value
+          : this.kcalPer100g,
+      proteinGramsPer100g: data.proteinGramsPer100g.present
+          ? data.proteinGramsPer100g.value
+          : this.proteinGramsPer100g,
+      fatGramsPer100g: data.fatGramsPer100g.present
+          ? data.fatGramsPer100g.value
+          : this.fatGramsPer100g,
+      carbsGramsPer100g: data.carbsGramsPer100g.present
+          ? data.carbsGramsPer100g.value
+          : this.carbsGramsPer100g,
+      nutritionSource: data.nutritionSource.present
+          ? data.nutritionSource.value
+          : this.nutritionSource,
+      nutritionSourceVersion: data.nutritionSourceVersion.present
+          ? data.nutritionSourceVersion.value
+          : this.nutritionSourceVersion,
+      nutritionSourceRef: data.nutritionSourceRef.present
+          ? data.nutritionSourceRef.value
+          : this.nutritionSourceRef,
       reviewedAt: data.reviewedAt.present
           ? data.reviewedAt.value
           : this.reviewedAt,
@@ -8125,6 +8430,13 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
           ..write('category: $category, ')
           ..write('baseUnit: $baseUnit, ')
           ..write('source: $source, ')
+          ..write('kcalPer100g: $kcalPer100g, ')
+          ..write('proteinGramsPer100g: $proteinGramsPer100g, ')
+          ..write('fatGramsPer100g: $fatGramsPer100g, ')
+          ..write('carbsGramsPer100g: $carbsGramsPer100g, ')
+          ..write('nutritionSource: $nutritionSource, ')
+          ..write('nutritionSourceVersion: $nutritionSourceVersion, ')
+          ..write('nutritionSourceRef: $nutritionSourceRef, ')
           ..write('reviewedAt: $reviewedAt, ')
           ..write('withdrawnAt: $withdrawnAt, ')
           ..write('createdAt: $createdAt, ')
@@ -8142,6 +8454,13 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
     category,
     baseUnit,
     source,
+    kcalPer100g,
+    proteinGramsPer100g,
+    fatGramsPer100g,
+    carbsGramsPer100g,
+    nutritionSource,
+    nutritionSourceVersion,
+    nutritionSourceRef,
     reviewedAt,
     withdrawnAt,
     createdAt,
@@ -8158,6 +8477,13 @@ class FoodRow extends DataClass implements Insertable<FoodRow> {
           other.category == this.category &&
           other.baseUnit == this.baseUnit &&
           other.source == this.source &&
+          other.kcalPer100g == this.kcalPer100g &&
+          other.proteinGramsPer100g == this.proteinGramsPer100g &&
+          other.fatGramsPer100g == this.fatGramsPer100g &&
+          other.carbsGramsPer100g == this.carbsGramsPer100g &&
+          other.nutritionSource == this.nutritionSource &&
+          other.nutritionSourceVersion == this.nutritionSourceVersion &&
+          other.nutritionSourceRef == this.nutritionSourceRef &&
           other.reviewedAt == this.reviewedAt &&
           other.withdrawnAt == this.withdrawnAt &&
           other.createdAt == this.createdAt &&
@@ -8172,6 +8498,13 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
   final Value<String> category;
   final Value<String> baseUnit;
   final Value<String?> source;
+  final Value<double?> kcalPer100g;
+  final Value<double?> proteinGramsPer100g;
+  final Value<double?> fatGramsPer100g;
+  final Value<double?> carbsGramsPer100g;
+  final Value<String?> nutritionSource;
+  final Value<String?> nutritionSourceVersion;
+  final Value<String?> nutritionSourceRef;
   final Value<DateTime?> reviewedAt;
   final Value<DateTime?> withdrawnAt;
   final Value<DateTime> createdAt;
@@ -8185,6 +8518,13 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     this.category = const Value.absent(),
     this.baseUnit = const Value.absent(),
     this.source = const Value.absent(),
+    this.kcalPer100g = const Value.absent(),
+    this.proteinGramsPer100g = const Value.absent(),
+    this.fatGramsPer100g = const Value.absent(),
+    this.carbsGramsPer100g = const Value.absent(),
+    this.nutritionSource = const Value.absent(),
+    this.nutritionSourceVersion = const Value.absent(),
+    this.nutritionSourceRef = const Value.absent(),
     this.reviewedAt = const Value.absent(),
     this.withdrawnAt = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -8199,6 +8539,13 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     required String category,
     required String baseUnit,
     this.source = const Value.absent(),
+    this.kcalPer100g = const Value.absent(),
+    this.proteinGramsPer100g = const Value.absent(),
+    this.fatGramsPer100g = const Value.absent(),
+    this.carbsGramsPer100g = const Value.absent(),
+    this.nutritionSource = const Value.absent(),
+    this.nutritionSourceVersion = const Value.absent(),
+    this.nutritionSourceRef = const Value.absent(),
     this.reviewedAt = const Value.absent(),
     this.withdrawnAt = const Value.absent(),
     required DateTime createdAt,
@@ -8219,6 +8566,13 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     Expression<String>? category,
     Expression<String>? baseUnit,
     Expression<String>? source,
+    Expression<double>? kcalPer100g,
+    Expression<double>? proteinGramsPer100g,
+    Expression<double>? fatGramsPer100g,
+    Expression<double>? carbsGramsPer100g,
+    Expression<String>? nutritionSource,
+    Expression<String>? nutritionSourceVersion,
+    Expression<String>? nutritionSourceRef,
     Expression<DateTime>? reviewedAt,
     Expression<DateTime>? withdrawnAt,
     Expression<DateTime>? createdAt,
@@ -8233,6 +8587,16 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
       if (category != null) 'category': category,
       if (baseUnit != null) 'base_unit': baseUnit,
       if (source != null) 'source': source,
+      if (kcalPer100g != null) 'kcal_per100g': kcalPer100g,
+      if (proteinGramsPer100g != null)
+        'protein_grams_per100g': proteinGramsPer100g,
+      if (fatGramsPer100g != null) 'fat_grams_per100g': fatGramsPer100g,
+      if (carbsGramsPer100g != null) 'carbs_grams_per100g': carbsGramsPer100g,
+      if (nutritionSource != null) 'nutrition_source': nutritionSource,
+      if (nutritionSourceVersion != null)
+        'nutrition_source_version': nutritionSourceVersion,
+      if (nutritionSourceRef != null)
+        'nutrition_source_ref': nutritionSourceRef,
       if (reviewedAt != null) 'reviewed_at': reviewedAt,
       if (withdrawnAt != null) 'withdrawn_at': withdrawnAt,
       if (createdAt != null) 'created_at': createdAt,
@@ -8249,6 +8613,13 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     Value<String>? category,
     Value<String>? baseUnit,
     Value<String?>? source,
+    Value<double?>? kcalPer100g,
+    Value<double?>? proteinGramsPer100g,
+    Value<double?>? fatGramsPer100g,
+    Value<double?>? carbsGramsPer100g,
+    Value<String?>? nutritionSource,
+    Value<String?>? nutritionSourceVersion,
+    Value<String?>? nutritionSourceRef,
     Value<DateTime?>? reviewedAt,
     Value<DateTime?>? withdrawnAt,
     Value<DateTime>? createdAt,
@@ -8263,6 +8634,14 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
       category: category ?? this.category,
       baseUnit: baseUnit ?? this.baseUnit,
       source: source ?? this.source,
+      kcalPer100g: kcalPer100g ?? this.kcalPer100g,
+      proteinGramsPer100g: proteinGramsPer100g ?? this.proteinGramsPer100g,
+      fatGramsPer100g: fatGramsPer100g ?? this.fatGramsPer100g,
+      carbsGramsPer100g: carbsGramsPer100g ?? this.carbsGramsPer100g,
+      nutritionSource: nutritionSource ?? this.nutritionSource,
+      nutritionSourceVersion:
+          nutritionSourceVersion ?? this.nutritionSourceVersion,
+      nutritionSourceRef: nutritionSourceRef ?? this.nutritionSourceRef,
       reviewedAt: reviewedAt ?? this.reviewedAt,
       withdrawnAt: withdrawnAt ?? this.withdrawnAt,
       createdAt: createdAt ?? this.createdAt,
@@ -8295,6 +8674,31 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
     if (source.present) {
       map['source'] = Variable<String>(source.value);
     }
+    if (kcalPer100g.present) {
+      map['kcal_per100g'] = Variable<double>(kcalPer100g.value);
+    }
+    if (proteinGramsPer100g.present) {
+      map['protein_grams_per100g'] = Variable<double>(
+        proteinGramsPer100g.value,
+      );
+    }
+    if (fatGramsPer100g.present) {
+      map['fat_grams_per100g'] = Variable<double>(fatGramsPer100g.value);
+    }
+    if (carbsGramsPer100g.present) {
+      map['carbs_grams_per100g'] = Variable<double>(carbsGramsPer100g.value);
+    }
+    if (nutritionSource.present) {
+      map['nutrition_source'] = Variable<String>(nutritionSource.value);
+    }
+    if (nutritionSourceVersion.present) {
+      map['nutrition_source_version'] = Variable<String>(
+        nutritionSourceVersion.value,
+      );
+    }
+    if (nutritionSourceRef.present) {
+      map['nutrition_source_ref'] = Variable<String>(nutritionSourceRef.value);
+    }
     if (reviewedAt.present) {
       map['reviewed_at'] = Variable<DateTime>(reviewedAt.value);
     }
@@ -8323,6 +8727,13 @@ class FoodsCompanion extends UpdateCompanion<FoodRow> {
           ..write('category: $category, ')
           ..write('baseUnit: $baseUnit, ')
           ..write('source: $source, ')
+          ..write('kcalPer100g: $kcalPer100g, ')
+          ..write('proteinGramsPer100g: $proteinGramsPer100g, ')
+          ..write('fatGramsPer100g: $fatGramsPer100g, ')
+          ..write('carbsGramsPer100g: $carbsGramsPer100g, ')
+          ..write('nutritionSource: $nutritionSource, ')
+          ..write('nutritionSourceVersion: $nutritionSourceVersion, ')
+          ..write('nutritionSourceRef: $nutritionSourceRef, ')
           ..write('reviewedAt: $reviewedAt, ')
           ..write('withdrawnAt: $withdrawnAt, ')
           ..write('createdAt: $createdAt, ')
@@ -18995,6 +19406,13 @@ typedef $$FoodsTableCreateCompanionBuilder = FoodsCompanion Function({
   required String category,
   required String baseUnit,
   Value<String?> source,
+  Value<double?> kcalPer100g,
+  Value<double?> proteinGramsPer100g,
+  Value<double?> fatGramsPer100g,
+  Value<double?> carbsGramsPer100g,
+  Value<String?> nutritionSource,
+  Value<String?> nutritionSourceVersion,
+  Value<String?> nutritionSourceRef,
   Value<DateTime?> reviewedAt,
   Value<DateTime?> withdrawnAt,
   required DateTime createdAt,
@@ -19009,6 +19427,13 @@ typedef $$FoodsTableUpdateCompanionBuilder = FoodsCompanion Function({
   Value<String> category,
   Value<String> baseUnit,
   Value<String?> source,
+  Value<double?> kcalPer100g,
+  Value<double?> proteinGramsPer100g,
+  Value<double?> fatGramsPer100g,
+  Value<double?> carbsGramsPer100g,
+  Value<String?> nutritionSource,
+  Value<String?> nutritionSourceVersion,
+  Value<String?> nutritionSourceRef,
   Value<DateTime?> reviewedAt,
   Value<DateTime?> withdrawnAt,
   Value<DateTime> createdAt,
@@ -19056,6 +19481,41 @@ class $$FoodsTableFilterComposer extends Composer<_$AppDatabase, $FoodsTable> {
 
   ColumnFilters<String> get source => $composableBuilder(
     column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get kcalPer100g => $composableBuilder(
+    column: $table.kcalPer100g,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get proteinGramsPer100g => $composableBuilder(
+    column: $table.proteinGramsPer100g,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get fatGramsPer100g => $composableBuilder(
+    column: $table.fatGramsPer100g,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get carbsGramsPer100g => $composableBuilder(
+    column: $table.carbsGramsPer100g,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nutritionSource => $composableBuilder(
+    column: $table.nutritionSource,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nutritionSourceVersion => $composableBuilder(
+    column: $table.nutritionSourceVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nutritionSourceRef => $composableBuilder(
+    column: $table.nutritionSourceRef,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -19124,6 +19584,41 @@ class $$FoodsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get kcalPer100g => $composableBuilder(
+    column: $table.kcalPer100g,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get proteinGramsPer100g => $composableBuilder(
+    column: $table.proteinGramsPer100g,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get fatGramsPer100g => $composableBuilder(
+    column: $table.fatGramsPer100g,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get carbsGramsPer100g => $composableBuilder(
+    column: $table.carbsGramsPer100g,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nutritionSource => $composableBuilder(
+    column: $table.nutritionSource,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nutritionSourceVersion => $composableBuilder(
+    column: $table.nutritionSourceVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nutritionSourceRef => $composableBuilder(
+    column: $table.nutritionSourceRef,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get reviewedAt => $composableBuilder(
     column: $table.reviewedAt,
     builder: (column) => ColumnOrderings(column),
@@ -19177,6 +19672,41 @@ class $$FoodsTableAnnotationComposer
   GeneratedColumn<String> get source =>
       $composableBuilder(column: $table.source, builder: (column) => column);
 
+  GeneratedColumn<double> get kcalPer100g => $composableBuilder(
+    column: $table.kcalPer100g,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get proteinGramsPer100g => $composableBuilder(
+    column: $table.proteinGramsPer100g,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get fatGramsPer100g => $composableBuilder(
+    column: $table.fatGramsPer100g,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get carbsGramsPer100g => $composableBuilder(
+    column: $table.carbsGramsPer100g,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nutritionSource => $composableBuilder(
+    column: $table.nutritionSource,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nutritionSourceVersion => $composableBuilder(
+    column: $table.nutritionSourceVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nutritionSourceRef => $composableBuilder(
+    column: $table.nutritionSourceRef,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get reviewedAt => $composableBuilder(
     column: $table.reviewedAt,
     builder: (column) => column,
@@ -19229,6 +19759,13 @@ class $$FoodsTableTableManager
                 Value<String> category = const Value.absent(),
                 Value<String> baseUnit = const Value.absent(),
                 Value<String?> source = const Value.absent(),
+                Value<double?> kcalPer100g = const Value.absent(),
+                Value<double?> proteinGramsPer100g = const Value.absent(),
+                Value<double?> fatGramsPer100g = const Value.absent(),
+                Value<double?> carbsGramsPer100g = const Value.absent(),
+                Value<String?> nutritionSource = const Value.absent(),
+                Value<String?> nutritionSourceVersion = const Value.absent(),
+                Value<String?> nutritionSourceRef = const Value.absent(),
                 Value<DateTime?> reviewedAt = const Value.absent(),
                 Value<DateTime?> withdrawnAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -19242,6 +19779,13 @@ class $$FoodsTableTableManager
                 category: category,
                 baseUnit: baseUnit,
                 source: source,
+                kcalPer100g: kcalPer100g,
+                proteinGramsPer100g: proteinGramsPer100g,
+                fatGramsPer100g: fatGramsPer100g,
+                carbsGramsPer100g: carbsGramsPer100g,
+                nutritionSource: nutritionSource,
+                nutritionSourceVersion: nutritionSourceVersion,
+                nutritionSourceRef: nutritionSourceRef,
                 reviewedAt: reviewedAt,
                 withdrawnAt: withdrawnAt,
                 createdAt: createdAt,
@@ -19257,6 +19801,13 @@ class $$FoodsTableTableManager
                 required String category,
                 required String baseUnit,
                 Value<String?> source = const Value.absent(),
+                Value<double?> kcalPer100g = const Value.absent(),
+                Value<double?> proteinGramsPer100g = const Value.absent(),
+                Value<double?> fatGramsPer100g = const Value.absent(),
+                Value<double?> carbsGramsPer100g = const Value.absent(),
+                Value<String?> nutritionSource = const Value.absent(),
+                Value<String?> nutritionSourceVersion = const Value.absent(),
+                Value<String?> nutritionSourceRef = const Value.absent(),
                 Value<DateTime?> reviewedAt = const Value.absent(),
                 Value<DateTime?> withdrawnAt = const Value.absent(),
                 required DateTime createdAt,
@@ -19270,6 +19821,13 @@ class $$FoodsTableTableManager
                 category: category,
                 baseUnit: baseUnit,
                 source: source,
+                kcalPer100g: kcalPer100g,
+                proteinGramsPer100g: proteinGramsPer100g,
+                fatGramsPer100g: fatGramsPer100g,
+                carbsGramsPer100g: carbsGramsPer100g,
+                nutritionSource: nutritionSource,
+                nutritionSourceVersion: nutritionSourceVersion,
+                nutritionSourceRef: nutritionSourceRef,
                 reviewedAt: reviewedAt,
                 withdrawnAt: withdrawnAt,
                 createdAt: createdAt,

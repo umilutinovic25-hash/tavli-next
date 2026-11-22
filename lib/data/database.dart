@@ -331,6 +331,13 @@ class Foods extends Table {
   /// `piece`, `gram` ili `milliliter` (čuva se kako je stiglo).
   TextColumn get baseUnit => text()();
   TextColumn get source => text().nullable()();
+  RealColumn get kcalPer100g => real().nullable()();
+  RealColumn get proteinGramsPer100g => real().nullable()();
+  RealColumn get fatGramsPer100g => real().nullable()();
+  RealColumn get carbsGramsPer100g => real().nullable()();
+  TextColumn get nutritionSource => text().nullable()();
+  TextColumn get nutritionSourceVersion => text().nullable()();
+  TextColumn get nutritionSourceRef => text().nullable()();
   DateTimeColumn get reviewedAt => dateTime().nullable()();
   DateTimeColumn get withdrawnAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
@@ -545,7 +552,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -567,6 +574,7 @@ class AppDatabase extends _$AppDatabase {
       if (from < 8) await transaction(_migrateToRecipeRatings);
       if (from < 9) await transaction(() => _migrateToFoodCatalog(m));
       if (from < 10) await transaction(() => _migrateToMemberPlanning(m));
+      if (from < 11) await transaction(() => _migrateToFoodNutrition(m));
     },
   );
 
@@ -575,6 +583,26 @@ class AppDatabase extends _$AppDatabase {
   Future<void> _migrateToMemberPlanning(Migrator m) async {
     await m.createTable(userAllergenSelections);
     await m.createTable(userFavorites);
+  }
+
+  /// v11: attributed nutrition reference values on shared foods. Existing
+  /// catalog rows stay unknown until reviewed values are loaded.
+  Future<void> _migrateToFoodNutrition(Migrator m) async {
+    final foodsExists = await customSelect(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'foods'",
+    ).getSingleOrNull();
+    if (foodsExists == null) return;
+    for (final column in [
+      foods.kcalPer100g,
+      foods.proteinGramsPer100g,
+      foods.fatGramsPer100g,
+      foods.carbsGramsPer100g,
+      foods.nutritionSource,
+      foods.nutritionSourceVersion,
+      foods.nutritionSourceRef,
+    ]) {
+      await _addMissingColumn(m, foods, column);
+    }
   }
 
   /// v6: oznake recepta. Postojeći recepti ostaju neoznačeni (null).

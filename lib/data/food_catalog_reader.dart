@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../domain/food_matcher.dart';
+import '../domain/food_nutrition.dart';
 import '../sync/catalog_status.dart';
 import 'database.dart';
 
@@ -49,6 +50,7 @@ class FoodCatalogReader {
           name: r.name,
           category: r.category,
           baseUnit: unit,
+          nutrition: _nutrition(r),
         ),
         householdId: r.householdId,
         withdrawn: r.withdrawnAt != null,
@@ -64,5 +66,27 @@ class FoodCatalogReader {
             withdrawn: a.withdrawnAt != null,
           ),
     ], foods: foods.values.toList());
+  }
+
+  FoodNutrition? _nutrition(FoodRow row) {
+    final hasValues =
+        row.kcalPer100g != null ||
+        row.proteinGramsPer100g != null ||
+        row.fatGramsPer100g != null ||
+        row.carbsGramsPer100g != null;
+    if (!hasValues) return null;
+    final source = row.nutritionSource;
+    final version = row.nutritionSourceVersion;
+    final ref = row.nutritionSourceRef;
+    if (source == null || version == null || ref == null) return null;
+    return FoodNutrition(
+      kcalPer100g: row.kcalPer100g,
+      proteinGramsPer100g: row.proteinGramsPer100g,
+      fatGramsPer100g: row.fatGramsPer100g,
+      carbsGramsPer100g: row.carbsGramsPer100g,
+      source: source,
+      sourceVersion: version,
+      sourceRef: ref,
+    );
   }
 }

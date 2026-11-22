@@ -6,6 +6,11 @@
 begin;
 select * from no_plan();
 
+-- The migration seed is covered by test 11; this suite owns an isolated
+-- catalog fixture so its duplicate and permission cases stay deterministic.
+delete from public.food_aliases where household_id is null;
+delete from public.foods where household_id is null;
+
 select tests.create_user('a@test.local') as ua \gset
 select tests.create_user('b@test.local') as ub \gset
 select tests.household_of(:'ua') as ha \gset
@@ -60,7 +65,10 @@ select throws_ok($$select count(*) from public.food_aliases$$, '42501', null, 'a
 
 -- A čita deljeno i svoje, ne i od B.
 select tests.authenticate_as(:'ua');
-select is((select count(*) from public.foods where household_id is null), 2::bigint, 'A čita deljene namirnice');
+select is((select count(*) from public.foods where household_id is null and id in (
+  '00000000-0000-4000-8000-000000000001',
+  '00000000-0000-4000-8000-000000000002'
+)), 2::bigint, 'A čita testne deljene namirnice');
 select is((select count(*) from public.food_aliases where household_id is null), 2::bigint, 'A čita deljene aliase (i povučen)');
 select is((select count(*) from public.foods where household_id = :'hb'), 0::bigint, 'A ne vidi namirnice od B');
 
@@ -174,7 +182,10 @@ select tests.clear_auth();
 select public.delete_account_data(:'ua');
 select is((select count(*) from public.foods where household_id = :'ha'), 0::bigint, 'brisanje naloga briše kućne namirnice');
 select is((select count(*) from public.food_aliases where household_id = :'ha'), 0::bigint, 'brisanje naloga briše kućne aliase');
-select is((select count(*) from public.foods where household_id is null), 2::bigint, 'deljeni katalog ostaje');
+select is((select count(*) from public.foods where household_id is null and id in (
+  '00000000-0000-4000-8000-000000000001',
+  '00000000-0000-4000-8000-000000000002'
+)), 2::bigint, 'testne deljene namirnice ostaju');
 
 select * from finish();
 rollback;

@@ -1,3 +1,4 @@
+import 'food_nutrition.dart';
 import 'shopping_sync.dart';
 
 /// Osnovna jedinica namirnice (ugovor o identitetu sastojka, verzija 1).
@@ -11,6 +12,7 @@ final class FoodIdentity {
     required this.name,
     required this.category,
     required this.baseUnit,
+    this.nutrition,
   });
 
   final String id;
@@ -18,6 +20,7 @@ final class FoodIdentity {
   final String name;
   final String category;
   final FoodBaseUnit baseUnit;
+  final FoodNutrition? nutrition;
 
   @override
   bool operator ==(Object other) => other is FoodIdentity && other.id == id;

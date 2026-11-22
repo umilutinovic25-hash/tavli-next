@@ -1,9 +1,10 @@
 # Nutrition reference and portion-calculation research
 
-**Status:** Independent research, not an approved source mapping or shipped
-feature. Dev 1 evidence for D1-011, D1-015 and D1-016 / FR-001–003 in
-[spec 023](spec.md). No nutrition data, diary record or application code is
-added by this report.
+**Status:** USDA source mapping is integrated into the shared catalog seed for
+Trello #24 after Uroš confirmed the manual catalog review was complete on
+2026-11-23. This covers reference values only; it does not ship a diary,
+recipe-calculation or nutrition-display feature. Dev 1 evidence for D1-011,
+D1-015 and D1-016 / FR-001–003 in [spec 023](spec.md).
 
 ## Reference-source observations
 
@@ -20,6 +21,40 @@ describes reuse under an Open Licence and conditions including preserving
 meaning and identifying source and version. No Ciqual data was imported here;
 the relevant team reviewer must assess source terms and version before any use.
 No claim is made that either source provides personalized dietary advice.
+
+## SR Legacy extraction
+
+The review worksheet's proposed FDC IDs were joined to the official
+[FoodData Central SR Legacy April 2018 CSV release](https://fdc.nal.usda.gov/download-datasets/).
+The reproducible extraction command is:
+
+```sh
+python3 scripts/build_nutrition_reference_csv.py \
+  specs/018-ingredient-catalog/research/catalog-review-worksheet.csv \
+  /path/to/FoodData_Central_sr_legacy_food_csv_2018-04.zip \
+  specs/023-optional-nutrition/research/nutrition-values-sr-legacy-2018.csv
+```
+
+Observed result: 334 worksheet rows; 308 rows (92.2%) have all four requested
+nutrients (energy kcal, protein, total fat and carbohydrate). The remaining 26
+have no complete USDA record and stay unknown. Values are copied by exact FDC ID
+from the dataset's nutrient records, not inferred from food names. The generated
+[review artifact](nutrition-values-sr-legacy-2018.csv) records the source,
+release, FDC reference and CC0 1.0 for complete rows. The artifact does not
+alter the worksheet's identity or source review state and is not an application
+seed. It does not include Ciqual values.
+
+The extractor test uses a synthetic two-food archive to prove ID-based joining,
+unknown preservation and source attribution. Its local result passes. Coverage
+is measured against the 334 reviewed worksheet identities. They and 326
+unambiguous legacy aliases are seeded by
+[`20261123090000_initial_food_catalog_seed.sql`](../../supabase/migrations/20261123090000_initial_food_catalog_seed.sql).
+The companion pgTAP test asserts 334 shared foods, 308 fully attributed USDA
+records and 26 foods with unknown nutrition. Two historical flour aliases are
+omitted because the worksheet maps them to distinct foods. The worksheet's
+archival status column still says `pending`; the seed follows Uroš's explicit
+confirmation that the catalog review is complete. No allergen data is inferred
+or added by this seed.
 
 ## Earlier prototype evidence
 

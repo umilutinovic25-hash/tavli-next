@@ -1,0 +1,335 @@
+candidate_name,category_hint,proposed_base_unit,identity_status,usda_reviewer,usda_fdc_id,usda_description,kcal_per_100g,protein_grams_per_100g,fat_grams_per_100g,carbs_grams_per_100g,nutrition_source,nutrition_source_version,nutrition_source_ref,license
+dunja,voće i povrće,g,pending,,168163,"Quinces, raw",57,0.4,0.1,15.3,USDA FoodData Central,SR Legacy 2018-04,FDC 168163,CC0 1.0
+nar,voće i povrće,g,pending,,169134,"Pomegranates, raw",83,1.67,1.17,18.7,USDA FoodData Central,SR Legacy 2018-04,FDC 169134,CC0 1.0
+mandarina,voće i povrće,g,pending,,169105,"Tangerines, (mandarin oranges), raw",53,0.81,0.31,13.34,USDA FoodData Central,SR Legacy 2018-04,FDC 169105,CC0 1.0
+grejpfrut,voće i povrće,g,pending,,174676,"Grapefruit, raw, white, all areas",33,0.69,0.1,8.41,USDA FoodData Central,SR Legacy 2018-04,FDC 174676,CC0 1.0
+mango,voće i povrće,g,pending,,169910,"Mangos, raw",60,0.82,0.38,14.98,USDA FoodData Central,SR Legacy 2018-04,FDC 169910,CC0 1.0
+ananas,voće i povrće,g,pending,,169124,"Pineapple, raw, all varieties",50,0.54,0.12,13.12,USDA FoodData Central,SR Legacy 2018-04,FDC 169124,CC0 1.0
+kivi,voće i povrće,g,pending,,168153,"Kiwifruit, green, raw",61,1.14,0.52,14.66,USDA FoodData Central,SR Legacy 2018-04,FDC 168153,CC0 1.0
+višnja,voće i povrće,g,pending,,173954,"Cherries, sour, red, raw",50,1,0.3,12.18,USDA FoodData Central,SR Legacy 2018-04,FDC 173954,CC0 1.0
+trešnja,voće i povrće,g,pending,,171719,"Cherries, sweet, raw",63,1.06,0.2,16.01,USDA FoodData Central,SR Legacy 2018-04,FDC 171719,CC0 1.0
+kupina,voće i povrće,g,pending,,173946,"Blackberries, raw",43,1.39,0.49,9.61,USDA FoodData Central,SR Legacy 2018-04,FDC 173946,CC0 1.0
+ribizla,voće i povrće,g,pending,,173964,"Currants, red and white, raw",56,1.4,0.2,13.8,USDA FoodData Central,SR Legacy 2018-04,FDC 173964,CC0 1.0
+sveža brusnica,voće i povrće,g,pending,,171722,"Cranberries, raw",46,0.46,0.13,11.97,USDA FoodData Central,SR Legacy 2018-04,FDC 171722,CC0 1.0
+sveža smokva,voće i povrće,g,pending,,173021,"Figs, raw",74,0.75,0.3,19.18,USDA FoodData Central,SR Legacy 2018-04,FDC 173021,CC0 1.0
+sveža urma,voće i povrće,g,pending,,168191,"Dates, medjool",277,1.81,0.15,74.97,USDA FoodData Central,SR Legacy 2018-04,FDC 168191,CC0 1.0
+dinja,voće i povrće,g,pending,,169911,"Melons, honeydew, raw",36,0.54,0.14,9.09,USDA FoodData Central,SR Legacy 2018-04,FDC 169911,CC0 1.0
+lubenica,voće i povrće,g,pending,,167765,"Watermelon, raw",30,0.61,0.15,7.55,USDA FoodData Central,SR Legacy 2018-04,FDC 167765,CC0 1.0
+nektarina,voće i povrće,g,pending,,169914,"Nectarines, raw",44,1.06,0.32,10.55,USDA FoodData Central,SR Legacy 2018-04,FDC 169914,CC0 1.0
+papaja,voće i povrće,g,pending,,169926,"Papayas, raw",43,0.47,0.26,10.82,USDA FoodData Central,SR Legacy 2018-04,FDC 169926,CC0 1.0
+marakuja,voće i povrće,g,pending,,169108,"Passion-fruit, (granadilla), purple, raw",97,2.2,0.7,23.38,USDA FoodData Central,SR Legacy 2018-04,FDC 169108,CC0 1.0
+kaki,voće i povrće,g,pending,,169941,"Persimmons, japanese, raw",70,0.58,0.19,18.59,USDA FoodData Central,SR Legacy 2018-04,FDC 169941,CC0 1.0
+guava,voće i povrće,g,pending,,173044,"Guavas, common, raw",68,2.55,0.95,14.32,USDA FoodData Central,SR Legacy 2018-04,FDC 173044,CC0 1.0
+karambola,voće i povrće,g,pending,,171715,"Carambola, (starfruit), raw",31,1.04,0.33,6.73,USDA FoodData Central,SR Legacy 2018-04,FDC 171715,CC0 1.0
+liči,voće i povrće,g,pending,,169086,"Litchis, raw",66,0.83,0.44,16.53,USDA FoodData Central,SR Legacy 2018-04,FDC 169086,CC0 1.0
+kumkvat,voće i povrće,g,pending,,168154,"Kumquats, raw",71,1.88,0.86,15.9,USDA FoodData Central,SR Legacy 2018-04,FDC 168154,CC0 1.0
+kelj,voće i povrće,g,pending,,168421,"Kale, raw",35,2.92,1.49,4.42,USDA FoodData Central,SR Legacy 2018-04,FDC 168421,CC0 1.0
+prokelj,voće i povrće,g,pending,,170383,"Brussels sprouts, raw",43,3.38,0.3,8.95,USDA FoodData Central,SR Legacy 2018-04,FDC 170383,CC0 1.0
+crveni kupus,voće i povrće,g,pending,,169977,"Cabbage, red, raw",31,1.43,0.16,7.37,USDA FoodData Central,SR Legacy 2018-04,FDC 169977,CC0 1.0
+kineski kupus,voće i povrće,g,pending,,169979,"Cabbage, chinese (pe-tsai), raw",16,1.2,0.2,3.23,USDA FoodData Central,SR Legacy 2018-04,FDC 169979,CC0 1.0
+bela rotkva,voće i povrće,g,pending,,168451,"Radishes, oriental, raw",18,0.6,0.1,4.1,USDA FoodData Central,SR Legacy 2018-04,FDC 168451,CC0 1.0
+crna rotkva,voće i povrće,g,pending,,,,,,,,,,,
+paškanat,voće i povrće,g,pending,,170417,"Parsnips, raw",75,1.2,0.3,17.99,USDA FoodData Central,SR Legacy 2018-04,FDC 170417,CC0 1.0
+koren peršuna,voće i povrće,g,pending,,,,,,,,,,,
+batat,voće i povrće,g,pending,,168482,"Sweet potato, raw, unprepared (Includes foods for USDA's Food Distribution Program)",86,1.57,0.05,20.12,USDA FoodData Central,SR Legacy 2018-04,FDC 168482,CC0 1.0
+čičoka,voće i povrće,g,pending,,169236,"Jerusalem-artichokes, raw",73,2,0.01,17.44,USDA FoodData Central,SR Legacy 2018-04,FDC 169236,CC0 1.0
+bela repa,voće i povrće,g,pending,,170465,"Turnips, raw",28,0.9,0.1,6.43,USDA FoodData Central,SR Legacy 2018-04,FDC 170465,CC0 1.0
+korabica,voće i povrće,g,pending,,168424,"Kohlrabi, raw",27,1.7,0.1,6.2,USDA FoodData Central,SR Legacy 2018-04,FDC 168424,CC0 1.0
+komorač,voće i povrće,g,pending,,169385,"Fennel, bulb, raw",31,1.24,0.2,7.3,USDA FoodData Central,SR Legacy 2018-04,FDC 169385,CC0 1.0
+artičoka,voće i povrće,g,pending,,169205,"Artichokes, (globe or french), raw",47,3.27,0.15,10.51,USDA FoodData Central,SR Legacy 2018-04,FDC 169205,CC0 1.0
+špargla,voće i povrće,g,pending,,168389,"Asparagus, raw",20,2.2,0.12,3.88,USDA FoodData Central,SR Legacy 2018-04,FDC 168389,CC0 1.0
+bamija,voće i povrće,g,pending,,169260,"Okra, raw",33,1.93,0.19,7.45,USDA FoodData Central,SR Legacy 2018-04,FDC 169260,CC0 1.0
+endivija,voće i povrće,g,pending,,168412,"Endive, raw",17,1.25,0.2,3.35,USDA FoodData Central,SR Legacy 2018-04,FDC 168412,CC0 1.0
+radič,voće i povrće,g,pending,,168564,"Radicchio, raw",23,1.43,0.25,4.48,USDA FoodData Central,SR Legacy 2018-04,FDC 168564,CC0 1.0
+matovilac,voće i povrće,g,pending,,169219,"Cornsalad, raw",21,2,0.4,3.6,USDA FoodData Central,SR Legacy 2018-04,FDC 169219,CC0 1.0
+blitva,voće i povrće,g,pending,,169991,"Chard, swiss, raw",19,1.8,0.2,3.74,USDA FoodData Central,SR Legacy 2018-04,FDC 169991,CC0 1.0
+potočarka,voće i povrće,g,pending,,170068,"Watercress, raw",11,2.3,0.1,1.29,USDA FoodData Central,SR Legacy 2018-04,FDC 170068,CC0 1.0
+list maslačka,voće i povrće,g,pending,,169226,"Dandelion greens, raw",45,2.7,0.7,9.2,USDA FoodData Central,SR Legacy 2018-04,FDC 169226,CC0 1.0
+list korabice,voće i povrće,g,pending,,,,,,,,,,,
+list cvekle,voće i povrće,g,pending,,170375,"Beet greens, raw",22,2.2,0.13,4.33,USDA FoodData Central,SR Legacy 2018-04,FDC 170375,CC0 1.0
+cvet tikvice,voće i povrće,g,pending,,169270,"Pumpkin flowers, raw",15,1.03,0.07,3.28,USDA FoodData Central,SR Legacy 2018-04,FDC 169270,CC0 1.0
+teleći file,meso i riba,g,pending,,173826,"Veal, loin, separable lean only, raw",114,21.85,2.9,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173826,CC0 1.0
+svinjski file,meso i riba,g,pending,,168249,"Pork, fresh, loin, tenderloin, separable lean only, raw",109,20.95,2.17,0,USDA FoodData Central,SR Legacy 2018-04,FDC 168249,CC0 1.0
+pileća krilca,meso i riba,g,pending,,172390,"Chicken, broilers or fryers, wing, meat and skin, raw",191,17.52,12.85,0,USDA FoodData Central,SR Legacy 2018-04,FDC 172390,CC0 1.0
+pileća džigerica,meso i riba,g,pending,,171060,"Chicken, liver, all classes, raw",119,16.92,4.83,0.73,USDA FoodData Central,SR Legacy 2018-04,FDC 171060,CC0 1.0
+juneća džigerica,meso i riba,g,pending,,169451,"Beef, variety meats and by-products, liver, raw",135,20.36,3.63,3.89,USDA FoodData Central,SR Legacy 2018-04,FDC 169451,CC0 1.0
+ćureći file,meso i riba,g,pending,,171098,"Turkey, whole, breast, meat only, raw",114,23.66,1.48,0.14,USDA FoodData Central,SR Legacy 2018-04,FDC 171098,CC0 1.0
+goveđi rep,meso i riba,g,pending,,,,,,,,,,,
+pačje meso,meso i riba,g,pending,,172410,"Duck, domesticated, meat only, raw",135,18.28,5.95,0.94,USDA FoodData Central,SR Legacy 2018-04,FDC 172410,CC0 1.0
+guščje meso,meso i riba,g,pending,,172413,"Goose, domesticated, meat only, raw",161,22.75,7.13,0,USDA FoodData Central,SR Legacy 2018-04,FDC 172413,CC0 1.0
+zečetina,meso i riba,g,pending,,172521,"Game meat, rabbit, domesticated, composite of cuts, raw",136,20.05,5.55,0,USDA FoodData Central,SR Legacy 2018-04,FDC 172521,CC0 1.0
+meso prepelice,meso i riba,g,pending,,172419,"Quail, meat only, raw",134,21.76,4.53,0,USDA FoodData Central,SR Legacy 2018-04,FDC 172419,CC0 1.0
+jareće meso,meso i riba,g,pending,,175303,"Game meat, goat, raw",109,20.6,2.31,0,USDA FoodData Central,SR Legacy 2018-04,FDC 175303,CC0 1.0
+srnetina,meso i riba,g,pending,,173855,"Game meat, deer, raw",120,22.96,2.42,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173855,CC0 1.0
+meso divlje svinje,meso i riba,g,pending,,175297,"Game meat, boar, wild, raw",122,21.51,3.33,0,USDA FoodData Central,SR Legacy 2018-04,FDC 175297,CC0 1.0
+fazan,meso i riba,g,pending,,174473,"Pheasant, raw, meat only",133,23.57,3.64,0,USDA FoodData Central,SR Legacy 2018-04,FDC 174473,CC0 1.0
+pileća srca,meso i riba,g,pending,,171458,"Chicken, heart, all classes, raw",153,15.55,9.33,0.71,USDA FoodData Central,SR Legacy 2018-04,FDC 171458,CC0 1.0
+smuđ,meso i riba,g,pending,,173678,"Fish, perch, mixed species, raw",91,19.39,0.92,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173678,CC0 1.0
+šaran,meso i riba,g,pending,,171952,"Fish, carp, raw",127,17.83,5.6,0,USDA FoodData Central,SR Legacy 2018-04,FDC 171952,CC0 1.0
+som,meso i riba,g,pending,,175165,"Fish, catfish, channel, farmed, raw",119,15.23,5.94,0,USDA FoodData Central,SR Legacy 2018-04,FDC 175165,CC0 1.0
+orada,meso i riba,g,pending,,,,,,,,,,,
+brancin,meso i riba,g,pending,,175142,"Fish, sea bass, mixed species, raw",97,18.43,2,0,USDA FoodData Central,SR Legacy 2018-04,FDC 175142,CC0 1.0
+grdobina,meso i riba,g,pending,,173676,"Fish, monkfish, raw",76,14.48,1.52,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173676,CC0 1.0
+bakalar,meso i riba,g,pending,,171955,"Fish, cod, Atlantic, raw",82,17.81,0.67,0,USDA FoodData Central,SR Legacy 2018-04,FDC 171955,CC0 1.0
+haringa,meso i riba,g,pending,,175116,"Fish, herring, Atlantic, raw",158,17.96,9.04,0,USDA FoodData Central,SR Legacy 2018-04,FDC 175116,CC0 1.0
+inćun,meso i riba,g,pending,,174182,"Fish, anchovy, european, raw",131,20.35,4.84,0,USDA FoodData Central,SR Legacy 2018-04,FDC 174182,CC0 1.0
+papalina,meso i riba,g,pending,,,,,,,,,,,
+dagnja,meso i riba,g,pending,,174216,"Mollusks, mussel, blue, raw",86,11.9,2.24,3.69,USDA FoodData Central,SR Legacy 2018-04,FDC 174216,CC0 1.0
+ostriga,meso i riba,g,pending,,171978,"Mollusks, oyster, eastern, wild, raw",51,5.71,1.71,2.72,USDA FoodData Central,SR Legacy 2018-04,FDC 171978,CC0 1.0
+jakobova kapica,meso i riba,g,pending,,174220,"Mollusks, scallop, mixed species, raw",69,12.06,0.49,3.18,USDA FoodData Central,SR Legacy 2018-04,FDC 174220,CC0 1.0
+hobotnica,meso i riba,g,pending,,174218,"Mollusks, octopus, common, raw",82,14.91,1.04,2.2,USDA FoodData Central,SR Legacy 2018-04,FDC 174218,CC0 1.0
+sipa,meso i riba,g,pending,,174215,"Mollusks, cuttlefish, mixed species, raw",79,16.24,0.7,0.82,USDA FoodData Central,SR Legacy 2018-04,FDC 174215,CC0 1.0
+rečni rak,meso i riba,g,pending,,174206,"Crustaceans, crayfish, mixed species, wild, raw",77,15.97,0.95,0,USDA FoodData Central,SR Legacy 2018-04,FDC 174206,CC0 1.0
+proso,suvi proizvodi,g,pending,,169702,"Millet, raw",378,11.02,4.22,72.85,USDA FoodData Central,SR Legacy 2018-04,FDC 169702,CC0 1.0
+raž,suvi proizvodi,g,pending,,168884,Rye grain,338,10.34,1.63,75.86,USDA FoodData Central,SR Legacy 2018-04,FDC 168884,CC0 1.0
+raženo brašno,suvi proizvodi,g,pending,,168886,"Rye flour, medium",349,10.88,1.52,75.43,USDA FoodData Central,SR Legacy 2018-04,FDC 168886,CC0 1.0
+speltino brašno,suvi proizvodi,g,pending,,,,,,,,,,,
+pirinčano brašno,suvi proizvodi,g,pending,,169714,"Rice flour, white, unenriched",366,5.95,1.42,80.13,USDA FoodData Central,SR Legacy 2018-04,FDC 169714,CC0 1.0
+ovseno brašno,suvi proizvodi,g,pending,,169741,"Oat flour, partially debranned",404,14.66,9.12,65.7,USDA FoodData Central,SR Legacy 2018-04,FDC 169741,CC0 1.0
+heljdino brašno,suvi proizvodi,g,pending,,170687,"Buckwheat flour, whole-groat",335,12.62,3.1,70.59,USDA FoodData Central,SR Legacy 2018-04,FDC 170687,CC0 1.0
+leblebijino brašno,suvi proizvodi,g,pending,,174288,Chickpea flour (besan),387,22.39,6.69,57.82,USDA FoodData Central,SR Legacy 2018-04,FDC 174288,CC0 1.0
+bademovo brašno,suvi proizvodi,g,pending,,,,,,,,,,,
+ječmeno brašno,suvi proizvodi,g,pending,,169739,Barley flour or meal,345,10.5,1.6,74.52,USDA FoodData Central,SR Legacy 2018-04,FDC 169739,CC0 1.0
+tapioka,suvi proizvodi,g,pending,,169717,"Tapioca, pearl, dry",358,0.19,0.02,88.69,USDA FoodData Central,SR Legacy 2018-04,FDC 169717,CC0 1.0
+kuskus,suvi proizvodi,g,pending,,169699,"Couscous, dry",376,12.76,0.64,77.43,USDA FoodData Central,SR Legacy 2018-04,FDC 169699,CC0 1.0
+bulgur,suvi proizvodi,g,pending,,170688,"Bulgur, dry",342,12.29,1.33,75.87,USDA FoodData Central,SR Legacy 2018-04,FDC 170688,CC0 1.0
+amarant,suvi proizvodi,g,pending,,170682,"Amaranth grain, uncooked",371,13.56,7.02,65.25,USDA FoodData Central,SR Legacy 2018-04,FDC 170682,CC0 1.0
+mak,suvi proizvodi,g,pending,,171330,"Spices, poppy seed",525,17.99,41.56,28.13,USDA FoodData Central,SR Legacy 2018-04,FDC 171330,CC0 1.0
+seme lana,suvi proizvodi,g,pending,,169414,"Seeds, flaxseed",534,18.29,42.16,28.88,USDA FoodData Central,SR Legacy 2018-04,FDC 169414,CC0 1.0
+seme bundeve,suvi proizvodi,g,pending,,170556,"Seeds, pumpkin and squash seed kernels, dried",559,30.23,49.05,10.71,USDA FoodData Central,SR Legacy 2018-04,FDC 170556,CC0 1.0
+seme suncokreta,suvi proizvodi,g,pending,,170562,"Seeds, sunflower seed kernels, dried",584,20.78,51.46,20,USDA FoodData Central,SR Legacy 2018-04,FDC 170562,CC0 1.0
+čija seme,suvi proizvodi,g,pending,,170554,"Seeds, chia seeds, dried",486,16.54,30.74,42.12,USDA FoodData Central,SR Legacy 2018-04,FDC 170554,CC0 1.0
+makadamija,suvi proizvodi,g,pending,,170178,"Nuts, macadamia nuts, raw",718,7.91,75.77,13.82,USDA FoodData Central,SR Legacy 2018-04,FDC 170178,CC0 1.0
+brazilski orah,suvi proizvodi,g,pending,,170569,"Nuts, brazilnuts, dried, unblanched",659,14.32,67.1,11.74,USDA FoodData Central,SR Legacy 2018-04,FDC 170569,CC0 1.0
+pekan orah,suvi proizvodi,g,pending,,170182,"Nuts, pecans",691,9.17,71.97,13.86,USDA FoodData Central,SR Legacy 2018-04,FDC 170182,CC0 1.0
+pistać,suvi proizvodi,g,pending,,170184,"Nuts, pistachio nuts, raw",560,20.16,45.32,27.17,USDA FoodData Central,SR Legacy 2018-04,FDC 170184,CC0 1.0
+indijski orah,suvi proizvodi,g,pending,,170162,"Nuts, cashew nuts, raw",553,18.22,43.85,30.19,USDA FoodData Central,SR Legacy 2018-04,FDC 170162,CC0 1.0
+zrno pšenice,suvi proizvodi,g,pending,,168890,"Wheat, hard red winter",327,12.61,1.54,71.18,USDA FoodData Central,SR Legacy 2018-04,FDC 168890,CC0 1.0
+integralni pirinač,suvi proizvodi,g,pending,,169703,"Rice, brown, long-grain, raw (Includes foods for USDA's Food Distribution Program)",367,7.54,3.2,76.25,USDA FoodData Central,SR Legacy 2018-04,FDC 169703,CC0 1.0
+divlji pirinač,suvi proizvodi,g,pending,,169726,"Wild rice, raw",357,14.73,1.08,74.9,USDA FoodData Central,SR Legacy 2018-04,FDC 169726,CC0 1.0
+crni pasulj,suvi proizvodi,g,pending,,173734,"Beans, black, mature seeds, raw",341,21.6,1.42,62.36,USDA FoodData Central,SR Legacy 2018-04,FDC 173734,CC0 1.0
+crveni pasulj,suvi proizvodi,g,pending,,173744,"Beans, kidney, red, mature seeds, raw",337,22.53,1.06,61.29,USDA FoodData Central,SR Legacy 2018-04,FDC 173744,CC0 1.0
+crno sočivo,suvi proizvodi,g,pending,,172420,"Lentils, raw",352,24.63,1.06,63.35,USDA FoodData Central,SR Legacy 2018-04,FDC 172420,CC0 1.0
+žuti grašak,suvi proizvodi,g,pending,,172428,"Peas, green, split, mature seeds, raw",364,23.12,3.89,61.63,USDA FoodData Central,SR Legacy 2018-04,FDC 172428,CC0 1.0
+mungo pasulj,suvi proizvodi,g,pending,,174256,"Mung beans, mature seeds, raw",347,23.86,1.15,62.62,USDA FoodData Central,SR Legacy 2018-04,FDC 174256,CC0 1.0
+hranjivi kvasac,suvi proizvodi,g,pending,,,,,,,,,,,
+ovčije mleko,mlečni proizvodi i jaja,ml,pending,,170882,"Milk, sheep, fluid",108,5.98,7,5.36,USDA FoodData Central,SR Legacy 2018-04,FDC 170882,CC0 1.0
+kozje mleko,mlečni proizvodi i jaja,ml,pending,,171278,"Milk, goat, fluid, with added vitamin D",69,3.56,4.14,4.45,USDA FoodData Central,SR Legacy 2018-04,FDC 171278,CC0 1.0
+bivolje mleko,mlečni proizvodi i jaja,ml,pending,,171280,"Milk, indian buffalo, fluid",97,3.75,6.89,5.18,USDA FoodData Central,SR Legacy 2018-04,FDC 171280,CC0 1.0
+kefir,mlečni proizvodi i jaja,ml,pending,,,,,,,,,,,
+rikota,mlečni proizvodi i jaja,g,pending,,170851,"Cheese, ricotta, whole milk",150,7.54,10.18,7.27,USDA FoodData Central,SR Legacy 2018-04,FDC 170851,CC0 1.0
+maskarpone,mlečni proizvodi i jaja,g,pending,,,,,,,,,,,
+ementaler,mlečni proizvodi i jaja,g,pending,,171251,"Cheese, swiss",393,26.96,30.99,1.44,USDA FoodData Central,SR Legacy 2018-04,FDC 171251,CC0 1.0
+gorgonzola,mlečni proizvodi i jaja,g,pending,,172175,"Cheese, blue",353,21.4,28.74,2.34,USDA FoodData Central,SR Legacy 2018-04,FDC 172175,CC0 1.0
+gauda,mlečni proizvodi i jaja,g,pending,,171241,"Cheese, gouda",356,24.94,27.44,2.22,USDA FoodData Central,SR Legacy 2018-04,FDC 171241,CC0 1.0
+čedar,mlečni proizvodi i jaja,g,pending,,170899,"Cheese, cheddar, sharp, sliced",410,24.25,33.82,2.13,USDA FoodData Central,SR Legacy 2018-04,FDC 170899,CC0 1.0
+edamer,mlečni proizvodi i jaja,g,pending,,173419,"Cheese, edam",357,24.99,28.57,1.43,USDA FoodData Central,SR Legacy 2018-04,FDC 173419,CC0 1.0
+feta,mlečni proizvodi i jaja,g,pending,,173420,"Cheese, feta",265,14.21,21.49,3.88,USDA FoodData Central,SR Legacy 2018-04,FDC 173420,CC0 1.0
+halumi,mlečni proizvodi i jaja,g,pending,,,,,,,,,,,
+skir,mlečni proizvodi i jaja,g,pending,,,,,,,,,,,
+kozji sir,mlečni proizvodi i jaja,g,pending,,173435,"Cheese, goat, soft type",264,18.52,21.08,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173435,CC0 1.0
+ovčiji sir,mlečni proizvodi i jaja,g,pending,,,,,,,,,,,
+bivolji sir,mlečni proizvodi i jaja,g,pending,,,,,,,,,,,
+provolone,mlečni proizvodi i jaja,g,pending,,170850,"Cheese, provolone",351,25.58,26.62,2.14,USDA FoodData Central,SR Legacy 2018-04,FDC 170850,CC0 1.0
+grujer,mlečni proizvodi i jaja,g,pending,,171242,"Cheese, gruyere",413,29.81,32.34,0.36,USDA FoodData Central,SR Legacy 2018-04,FDC 171242,CC0 1.0
+mančego,mlečni proizvodi i jaja,g,pending,,,,,,,,,,,
+pačje jaje,mlečni proizvodi i jaja,kom,pending,,172189,"Egg, duck, whole, fresh, raw",185,12.81,13.77,1.45,USDA FoodData Central,SR Legacy 2018-04,FDC 172189,CC0 1.0
+prepeličje jaje,mlečni proizvodi i jaja,kom,pending,,172191,"Egg, quail, whole, fresh, raw",158,13.05,11.09,0.41,USDA FoodData Central,SR Legacy 2018-04,FDC 172191,CC0 1.0
+kardamom,začini i sosovi,g,pending,,170919,"Spices, cardamom",311,10.76,6.7,68.47,USDA FoodData Central,SR Legacy 2018-04,FDC 170919,CC0 1.0
+anis,začini i sosovi,g,pending,,171316,"Spices, anise seed",337,17.6,15.9,50.02,USDA FoodData Central,SR Legacy 2018-04,FDC 171316,CC0 1.0
+zvezdasti anis,začini i sosovi,g,pending,,,,,,,,,,,
+karanfilić,začini i sosovi,g,pending,,171321,"Spices, cloves, ground",274,5.97,13,65.53,USDA FoodData Central,SR Legacy 2018-04,FDC 171321,CC0 1.0
+vanila štapić,začini i sosovi,kom,pending,,,,,,,,,,,
+seme korijandera,začini i sosovi,g,pending,,170922,"Spices, coriander seed",298,12.37,17.77,54.99,USDA FoodData Central,SR Legacy 2018-04,FDC 170922,CC0 1.0
+list korijandera,začini i sosovi,g,pending,,169997,"Coriander (cilantro) leaves, raw",23,2.13,0.52,3.67,USDA FoodData Central,SR Legacy 2018-04,FDC 169997,CC0 1.0
+žalfija,začini i sosovi,g,pending,,170935,"Spices, sage, ground",315,10.63,12.75,60.73,USDA FoodData Central,SR Legacy 2018-04,FDC 170935,CC0 1.0
+estragon,začini i sosovi,g,pending,,170937,"Spices, tarragon, dried",295,22.77,7.24,50.22,USDA FoodData Central,SR Legacy 2018-04,FDC 170937,CC0 1.0
+nana,začini i sosovi,g,pending,,173475,"Spearmint, fresh",44,3.29,0.73,8.41,USDA FoodData Central,SR Legacy 2018-04,FDC 173475,CC0 1.0
+šafran,začini i sosovi,g,pending,,170934,"Spices, saffron",310,11.43,5.85,65.37,USDA FoodData Central,SR Legacy 2018-04,FDC 170934,CC0 1.0
+piment,začini i sosovi,g,pending,,171315,"Spices, allspice, ground",263,6.09,8.69,72.12,USDA FoodData Central,SR Legacy 2018-04,FDC 171315,CC0 1.0
+sumak,začini i sosovi,g,pending,,,,,,,,,,,
+sušeni đumbir,začini i sosovi,g,pending,,170926,"Spices, ginger, ground",335,8.98,4.24,71.62,USDA FoodData Central,SR Legacy 2018-04,FDC 170926,CC0 1.0
+beli biber,začini i sosovi,g,pending,,170933,"Spices, pepper, white",296,10.4,2.12,68.61,USDA FoodData Central,SR Legacy 2018-04,FDC 170933,CC0 1.0
+zeleni biber,začini i sosovi,g,pending,,,,,,,,,,,
+čili pahuljice,začini i sosovi,g,pending,,170932,"Spices, pepper, red or cayenne",318,12.01,17.27,56.63,USDA FoodData Central,SR Legacy 2018-04,FDC 170932,CC0 1.0
+seme slačice,začini i sosovi,g,pending,,170929,"Spices, mustard seed, ground",508,26.08,36.24,28.09,USDA FoodData Central,SR Legacy 2018-04,FDC 170929,CC0 1.0
+javorov sirup,začini i sosovi,ml,pending,,169661,"Syrups, maple",260,0.04,0.06,67.04,USDA FoodData Central,SR Legacy 2018-04,FDC 169661,CC0 1.0
+susamovo ulje,začini i sosovi,ml,pending,,171016,"Oil, sesame, salad or cooking",884,0,100,0,USDA FoodData Central,SR Legacy 2018-04,FDC 171016,CC0 1.0
+laneno ulje,začini i sosovi,ml,pending,,167702,"Oil, flaxseed, cold pressed",884,0.11,99.98,0,USDA FoodData Central,SR Legacy 2018-04,FDC 167702,CC0 1.0
+ulje od kikirikija,začini i sosovi,ml,pending,,171410,"Oil, peanut, salad or cooking",884,0,100,0,USDA FoodData Central,SR Legacy 2018-04,FDC 171410,CC0 1.0
+ulje avokada,začini i sosovi,ml,pending,,173573,"Oil, avocado",884,0,100,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173573,CC0 1.0
+pirinčano sirće,začini i sosovi,ml,pending,,,,,,,,,,,
+vinsko sirće,začini i sosovi,ml,pending,,172240,"Vinegar, red wine",19,0.04,0,0.27,USDA FoodData Central,SR Legacy 2018-04,FDC 172240,CC0 1.0
+brašno t-400,suvi proizvodi,g,pending,,168894,"Wheat flour, white, all-purpose, enriched, bleached",364,10.33,0.98,76.31,USDA FoodData Central,SR Legacy 2018-04,FDC 168894,CC0 1.0
+brašno t-500,suvi proizvodi,g,pending,,168894,"Wheat flour, white, all-purpose, enriched, bleached",364,10.33,0.98,76.31,USDA FoodData Central,SR Legacy 2018-04,FDC 168894,CC0 1.0
+krompir,voće i povrće,g,pending,,170026,"Potatoes, flesh and skin, raw",77,2.05,0.09,17.49,USDA FoodData Central,SR Legacy 2018-04,FDC 170026,CC0 1.0
+crni luk,voće i povrće,g,pending,,170000,"Onions, raw",40,1.1,0.1,9.34,USDA FoodData Central,SR Legacy 2018-04,FDC 170000,CC0 1.0
+beli luk,voće i povrće,g,pending,,169230,"Garlic, raw",149,6.36,0.5,33.06,USDA FoodData Central,SR Legacy 2018-04,FDC 169230,CC0 1.0
+mladi luk,voće i povrće,g,pending,,170005,"Onions, spring or scallions (includes tops and bulb), raw",32,1.83,0.19,7.34,USDA FoodData Central,SR Legacy 2018-04,FDC 170005,CC0 1.0
+praziluk,voće i povrće,g,pending,,169246,"Leeks, (bulb and lower leaf-portion), raw",61,1.5,0.3,14.15,USDA FoodData Central,SR Legacy 2018-04,FDC 169246,CC0 1.0
+šargarepa,voće i povrće,g,pending,,170393,"Carrots, raw",41,0.93,0.24,9.58,USDA FoodData Central,SR Legacy 2018-04,FDC 170393,CC0 1.0
+paradajz,voće i povrće,g,pending,,170457,"Tomatoes, red, ripe, raw, year round average",18,0.88,0.2,3.89,USDA FoodData Central,SR Legacy 2018-04,FDC 170457,CC0 1.0
+krastavac,voće i povrće,g,pending,,168409,"Cucumber, with peel, raw",15,0.65,0.11,3.63,USDA FoodData Central,SR Legacy 2018-04,FDC 168409,CC0 1.0
+paprika,voće i povrće,g,pending,,170108,"Peppers, sweet, red, raw",26,0.99,0.3,6.03,USDA FoodData Central,SR Legacy 2018-04,FDC 170108,CC0 1.0
+ljuta papričica,voće i povrće,g,pending,,170106,"Peppers, hot chili, red, raw",40,1.87,0.44,8.81,USDA FoodData Central,SR Legacy 2018-04,FDC 170106,CC0 1.0
+tikvica,voće i povrće,g,pending,,169291,"Squash, summer, zucchini, includes skin, raw",17,1.21,0.32,3.11,USDA FoodData Central,SR Legacy 2018-04,FDC 169291,CC0 1.0
+plavi patlidžan,voće i povrće,g,pending,,169228,"Eggplant, raw",25,0.98,0.18,5.88,USDA FoodData Central,SR Legacy 2018-04,FDC 169228,CC0 1.0
+kupus,voće i povrće,g,pending,,169975,"Cabbage, raw",25,1.28,0.1,5.8,USDA FoodData Central,SR Legacy 2018-04,FDC 169975,CC0 1.0
+kiseli kupus,konzerve i tegle,g,pending,,169279,"Sauerkraut, canned, solids and liquids",19,0.91,0.14,4.28,USDA FoodData Central,SR Legacy 2018-04,FDC 169279,CC0 1.0
+karfiol,voće i povrće,g,pending,,169986,"Cauliflower, raw",25,1.92,0.28,4.97,USDA FoodData Central,SR Legacy 2018-04,FDC 169986,CC0 1.0
+brokoli,voće i povrće,g,pending,,170379,"Broccoli, raw",34,2.82,0.37,6.64,USDA FoodData Central,SR Legacy 2018-04,FDC 170379,CC0 1.0
+spanać,voće i povrće,g,pending,,168462,"Spinach, raw",23,2.86,0.39,3.63,USDA FoodData Central,SR Legacy 2018-04,FDC 168462,CC0 1.0
+zelena salata,voće i povrće,g,pending,,169249,"Lettuce, green leaf, raw",15,1.36,0.15,2.87,USDA FoodData Central,SR Legacy 2018-04,FDC 169249,CC0 1.0
+rukola,voće i povrće,g,pending,,169387,"Arugula, raw",25,2.58,0.66,3.65,USDA FoodData Central,SR Legacy 2018-04,FDC 169387,CC0 1.0
+peršun,voće i povrće,g,pending,,170416,"Parsley, fresh",36,2.97,0.79,6.33,USDA FoodData Central,SR Legacy 2018-04,FDC 170416,CC0 1.0
+mirođija,voće i povrće,g,pending,,172233,"Dill weed, fresh",43,3.46,1.12,7.02,USDA FoodData Central,SR Legacy 2018-04,FDC 172233,CC0 1.0
+celer,voće i povrće,g,pending,,169988,"Celery, raw",14,0.69,0.17,2.97,USDA FoodData Central,SR Legacy 2018-04,FDC 169988,CC0 1.0
+pečurke,voće i povrće,g,pending,,169251,"Mushrooms, white, raw",22,3.09,0.34,3.26,USDA FoodData Central,SR Legacy 2018-04,FDC 169251,CC0 1.0
+grašak,voće i povrće,g,pending,,170419,"Peas, green, raw",81,5.42,0.4,14.45,USDA FoodData Central,SR Legacy 2018-04,FDC 170419,CC0 1.0
+boranija,voće i povrće,g,pending,,169961,"Beans, snap, green, raw",31,1.83,0.22,6.97,USDA FoodData Central,SR Legacy 2018-04,FDC 169961,CC0 1.0
+kukuruz šećerac,voće i povrće,g,pending,,169998,"Corn, sweet, yellow, raw",86,3.27,1.35,18.7,USDA FoodData Central,SR Legacy 2018-04,FDC 169998,CC0 1.0
+cvekla,voće i povrće,g,pending,,169145,"Beets, raw",43,1.61,0.17,9.56,USDA FoodData Central,SR Legacy 2018-04,FDC 169145,CC0 1.0
+rotkvica,voće i povrće,g,pending,,169276,"Radishes, raw",16,0.68,0.1,3.4,USDA FoodData Central,SR Legacy 2018-04,FDC 169276,CC0 1.0
+bundeva,voće i povrće,g,pending,,169295,"Squash, winter, butternut, raw",45,1,0.1,11.69,USDA FoodData Central,SR Legacy 2018-04,FDC 169295,CC0 1.0
+đumbir,voće i povrće,g,pending,,169231,"Ginger root, raw",80,1.82,0.75,17.77,USDA FoodData Central,SR Legacy 2018-04,FDC 169231,CC0 1.0
+limun,voće i povrće,kom,pending,,167746,"Lemons, raw, without peel",29,1.1,0.3,9.32,USDA FoodData Central,SR Legacy 2018-04,FDC 167746,CC0 1.0
+limeta,voće i povrće,kom,pending,,168155,"Limes, raw",30,0.7,0.2,10.54,USDA FoodData Central,SR Legacy 2018-04,FDC 168155,CC0 1.0
+pomorandža,voće i povrće,kom,pending,,169097,"Oranges, raw, all commercial varieties",47,0.94,0.12,11.75,USDA FoodData Central,SR Legacy 2018-04,FDC 169097,CC0 1.0
+jabuka,voće i povrće,kom,pending,,171688,"Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)",52,0.26,0.17,13.81,USDA FoodData Central,SR Legacy 2018-04,FDC 171688,CC0 1.0
+kruška,voće i povrće,kom,pending,,169118,"Pears, raw",57,0.36,0.14,15.23,USDA FoodData Central,SR Legacy 2018-04,FDC 169118,CC0 1.0
+banana,voće i povrće,kom,pending,,173944,"Bananas, raw",89,1.09,0.33,22.84,USDA FoodData Central,SR Legacy 2018-04,FDC 173944,CC0 1.0
+jagode,voće i povrće,g,pending,,167762,"Strawberries, raw",32,0.67,0.3,7.68,USDA FoodData Central,SR Legacy 2018-04,FDC 167762,CC0 1.0
+maline,voće i povrće,g,pending,,167755,"Raspberries, raw",52,1.2,0.65,11.94,USDA FoodData Central,SR Legacy 2018-04,FDC 167755,CC0 1.0
+borovnice,voće i povrće,g,pending,,171711,"Blueberries, raw",57,0.74,0.33,14.49,USDA FoodData Central,SR Legacy 2018-04,FDC 171711,CC0 1.0
+grožđe,voće i povrće,g,pending,,174683,"Grapes, red or green (European type, such as Thompson seedless), raw",69,0.72,0.16,18.1,USDA FoodData Central,SR Legacy 2018-04,FDC 174683,CC0 1.0
+šljive,voće i povrće,g,pending,,169949,"Plums, raw",46,0.7,0.28,11.42,USDA FoodData Central,SR Legacy 2018-04,FDC 169949,CC0 1.0
+breskva,voće i povrće,kom,pending,,169928,"Peaches, yellow, raw",39,0.91,0.25,9.54,USDA FoodData Central,SR Legacy 2018-04,FDC 169928,CC0 1.0
+kajsija,voće i povrće,kom,pending,,171697,"Apricots, raw",48,1.4,0.39,11.12,USDA FoodData Central,SR Legacy 2018-04,FDC 171697,CC0 1.0
+avokado,voće i povrće,kom,pending,,171705,"Avocados, raw, all commercial varieties",160,2,14.66,8.53,USDA FoodData Central,SR Legacy 2018-04,FDC 171705,CC0 1.0
+piletina,meso i riba,g,pending,,171447,"Chicken, broilers or fryers, meat and skin, raw",215,18.6,15.06,0,USDA FoodData Central,SR Legacy 2018-04,FDC 171447,CC0 1.0
+pileći file,meso i riba,g,pending,,171077,"Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",120,22.5,2.62,0,USDA FoodData Central,SR Legacy 2018-04,FDC 171077,CC0 1.0
+pileći bataci,meso i riba,g,pending,,173614,"Chicken, broilers or fryers, dark meat, drumstick, meat only, raw",116,19.41,3.71,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173614,CC0 1.0
+svinjetina,meso i riba,g,pending,,167818,"Pork, fresh, loin, whole, separable lean and fat, raw",198,19.74,12.58,0,USDA FoodData Central,SR Legacy 2018-04,FDC 167818,CC0 1.0
+svinjski vrat,meso i riba,g,pending,,167843,"Pork, fresh, shoulder, whole, separable lean and fat, raw",236,17.18,17.99,0,USDA FoodData Central,SR Legacy 2018-04,FDC 167843,CC0 1.0
+junetina,meso i riba,g,pending,,171816,"Beef, round, top round, steak, separable lean only, trimmed to 1/8"" fat, all grades, raw",135,22.91,4.09,0,USDA FoodData Central,SR Legacy 2018-04,FDC 171816,CC0 1.0
+govedina,meso i riba,g,pending,,171206,"Beef, chuck for stew, separable lean and fat, all grades, raw",128,21.75,4.48,0.16,USDA FoodData Central,SR Legacy 2018-04,FDC 171206,CC0 1.0
+jagnjetina,meso i riba,g,pending,,174311,"Lamb, leg, whole (shank and sirloin), separable lean and fat, trimmed to 1/4"" fat, choice, raw",230,17.91,17.07,0,USDA FoodData Central,SR Legacy 2018-04,FDC 174311,CC0 1.0
+ćuretina,meso i riba,g,pending,,171480,"Turkey, whole, meat only, raw",115,22.64,1.93,0.14,USDA FoodData Central,SR Legacy 2018-04,FDC 171480,CC0 1.0
+mleveno meso,meso i riba,g,pending,,174036,"Beef, ground, 80% lean meat / 20% fat, raw",254,17.17,20,0,USDA FoodData Central,SR Legacy 2018-04,FDC 174036,CC0 1.0
+slanina,meso i riba,g,pending,,168277,"Pork, cured, bacon, unprepared",393,13.66,37.13,0,USDA FoodData Central,SR Legacy 2018-04,FDC 168277,CC0 1.0
+pršuta,meso i riba,g,pending,,168282,"Pork, cured, ham, center slice, country-style, separable lean only, raw",195,27.8,8.32,0.3,USDA FoodData Central,SR Legacy 2018-04,FDC 168282,CC0 1.0
+šunka,meso i riba,g,pending,,173864,"Ham, sliced, regular (approximately 11% fat)",164,16.6,8.8,3.63,USDA FoodData Central,SR Legacy 2018-04,FDC 173864,CC0 1.0
+kobasica,meso i riba,g,pending,,171631,"Sausage, Italian, pork, mild, raw",290,13.9,24.26,2.97,USDA FoodData Central,SR Legacy 2018-04,FDC 171631,CC0 1.0
+losos,meso i riba,g,pending,,175167,"Fish, salmon, Atlantic, farmed, raw",208,20.42,13.42,0,USDA FoodData Central,SR Legacy 2018-04,FDC 175167,CC0 1.0
+tuna,meso i riba,g,pending,,173706,"Fish, tuna, fresh, bluefin, raw",144,23.33,4.9,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173706,CC0 1.0
+oslić,meso i riba,g,pending,,171955,"Fish, cod, Atlantic, raw",82,17.81,0.67,0,USDA FoodData Central,SR Legacy 2018-04,FDC 171955,CC0 1.0
+skuša,meso i riba,g,pending,,175119,"Fish, mackerel, Atlantic, raw",205,18.6,13.89,0,USDA FoodData Central,SR Legacy 2018-04,FDC 175119,CC0 1.0
+pastrmka,meso i riba,g,pending,,173717,"Fish, trout, rainbow, farmed, raw",141,19.94,6.18,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173717,CC0 1.0
+sardine,meso i riba,g,pending,,175139,"Fish, sardine, Atlantic, canned in oil, drained solids with bone",208,24.62,11.45,0,USDA FoodData Central,SR Legacy 2018-04,FDC 175139,CC0 1.0
+škampi,meso i riba,g,pending,,174210,"Crustaceans, shrimp, mixed species, raw (may contain additives to retain moisture)",71,13.61,1.01,0.91,USDA FoodData Central,SR Legacy 2018-04,FDC 174210,CC0 1.0
+lignje,meso i riba,g,pending,,174223,"Mollusks, squid, mixed species, raw",92,15.58,1.38,3.08,USDA FoodData Central,SR Legacy 2018-04,FDC 174223,CC0 1.0
+jaje,mlečni proizvodi i jaja,kom,pending,,171287,"Egg, whole, raw, fresh",143,12.56,9.51,0.72,USDA FoodData Central,SR Legacy 2018-04,FDC 171287,CC0 1.0
+mleko,mlečni proizvodi i jaja,ml,pending,,171265,"Milk, whole, 3.25% milkfat, with added vitamin D",61,3.15,3.25,4.8,USDA FoodData Central,SR Legacy 2018-04,FDC 171265,CC0 1.0
+ovseno mleko,mlečni proizvodi i jaja,ml,pending,,,,,,,,,,,
+jogurt,mlečni proizvodi i jaja,ml,pending,,171284,"Yogurt, plain, whole milk",61,3.47,3.25,4.66,USDA FoodData Central,SR Legacy 2018-04,FDC 171284,CC0 1.0
+kiselo mleko,mlečni proizvodi i jaja,ml,pending,,170874,"Milk, buttermilk, fluid, cultured, lowfat",40,3.31,1.07,4.79,USDA FoodData Central,SR Legacy 2018-04,FDC 170874,CC0 1.0
+kisela pavlaka,mlečni proizvodi i jaja,g,pending,,171257,"Cream, sour, cultured",198,2.44,19.35,4.63,USDA FoodData Central,SR Legacy 2018-04,FDC 171257,CC0 1.0
+slatka pavlaka,mlečni proizvodi i jaja,ml,pending,,170859,"Cream, fluid, heavy whipping",340,2.84,36.08,2.84,USDA FoodData Central,SR Legacy 2018-04,FDC 170859,CC0 1.0
+maslac,mlečni proizvodi i jaja,g,pending,,173410,"Butter, salted",717,0.85,81.11,0.06,USDA FoodData Central,SR Legacy 2018-04,FDC 173410,CC0 1.0
+margarin,mlečni proizvodi i jaja,g,pending,,172347,"Margarine, regular, 80% fat, composite, tub, with salt",713,0.22,80.17,0.75,USDA FoodData Central,SR Legacy 2018-04,FDC 172347,CC0 1.0
+beli sir,mlečni proizvodi i jaja,g,pending,,173420,"Cheese, feta",265,14.21,21.49,3.88,USDA FoodData Central,SR Legacy 2018-04,FDC 173420,CC0 1.0
+mladi sir,mlečni proizvodi i jaja,g,pending,,172179,"Cheese, cottage, creamed, large or small curd",98,11.12,4.3,3.38,USDA FoodData Central,SR Legacy 2018-04,FDC 172179,CC0 1.0
+kačkavalj,mlečni proizvodi i jaja,g,pending,,170850,"Cheese, provolone",351,25.58,26.62,2.14,USDA FoodData Central,SR Legacy 2018-04,FDC 170850,CC0 1.0
+mocarela,mlečni proizvodi i jaja,g,pending,,170845,"Cheese, mozzarella, whole milk",299,22.17,22.14,2.4,USDA FoodData Central,SR Legacy 2018-04,FDC 170845,CC0 1.0
+parmezan,mlečni proizvodi i jaja,g,pending,,170848,"Cheese, parmesan, hard",392,35.75,25,3.22,USDA FoodData Central,SR Legacy 2018-04,FDC 170848,CC0 1.0
+krem sir,mlečni proizvodi i jaja,g,pending,,173418,"Cheese, cream",350,6.15,34.44,5.52,USDA FoodData Central,SR Legacy 2018-04,FDC 173418,CC0 1.0
+kajmak,mlečni proizvodi i jaja,g,pending,,,,,,,,,,,
+urda,mlečni proizvodi i jaja,g,pending,,170851,"Cheese, ricotta, whole milk",150,7.54,10.18,7.27,USDA FoodData Central,SR Legacy 2018-04,FDC 170851,CC0 1.0
+hleb,pekara,g,pending,,167532,"Bread, white wheat",238,10.66,2.15,43.91,USDA FoodData Central,SR Legacy 2018-04,FDC 167532,CC0 1.0
+integralni hleb,pekara,g,pending,,172688,"Bread, whole-wheat, commercially prepared",252,12.45,3.5,42.71,USDA FoodData Central,SR Legacy 2018-04,FDC 172688,CC0 1.0
+tost,pekara,g,pending,,174924,"Bread, white, commercially prepared (includes soft bread crumbs)",266,8.85,3.33,49.42,USDA FoodData Central,SR Legacy 2018-04,FDC 174924,CC0 1.0
+lepinja,pekara,kom,pending,,174915,"Bread, pita, white, enriched",275,9.1,1.2,55.7,USDA FoodData Central,SR Legacy 2018-04,FDC 174915,CC0 1.0
+kifla,pekara,kom,pending,,172793,"Rolls, dinner, plain, commercially prepared (includes brown-and-serve)",310,10.86,6.47,52.04,USDA FoodData Central,SR Legacy 2018-04,FDC 172793,CC0 1.0
+kore za pitu,pekara,g,pending,,172791,Phyllo dough,299,7.1,6,52.6,USDA FoodData Central,SR Legacy 2018-04,FDC 172791,CC0 1.0
+lisnato testo,pekara,g,pending,,172738,"Puff pastry, frozen, ready-to-bake, baked",558,7.4,38.5,45.7,USDA FoodData Central,SR Legacy 2018-04,FDC 172738,CC0 1.0
+tortilja,pekara,kom,pending,,167535,"Tortillas, ready-to-bake or -fry, flour, shelf stable",297,8.01,7.58,49.27,USDA FoodData Central,SR Legacy 2018-04,FDC 167535,CC0 1.0
+prezle,pekara,g,pending,,174924,"Bread, white, commercially prepared (includes soft bread crumbs)",266,8.85,3.33,49.42,USDA FoodData Central,SR Legacy 2018-04,FDC 174924,CC0 1.0
+pšenično brašno,suvi proizvodi,g,pending,,168894,"Wheat flour, white, all-purpose, enriched, bleached",364,10.33,0.98,76.31,USDA FoodData Central,SR Legacy 2018-04,FDC 168894,CC0 1.0
+integralno brašno,suvi proizvodi,g,pending,,168893,"Wheat flour, whole-grain (Includes foods for USDA's Food Distribution Program)",340,13.21,2.5,71.97,USDA FoodData Central,SR Legacy 2018-04,FDC 168893,CC0 1.0
+kukuruzno brašno,suvi proizvodi,g,pending,,169697,"Cornmeal, whole-grain, yellow",362,8.12,3.59,76.89,USDA FoodData Central,SR Legacy 2018-04,FDC 169697,CC0 1.0
+griz,suvi proizvodi,g,pending,,169715,"Semolina, enriched",360,12.68,1.05,72.83,USDA FoodData Central,SR Legacy 2018-04,FDC 169715,CC0 1.0
+pirinač,suvi proizvodi,g,pending,,168877,"Rice, white, long-grain, regular, raw, enriched",365,7.13,0.66,79.95,USDA FoodData Central,SR Legacy 2018-04,FDC 168877,CC0 1.0
+testenina,suvi proizvodi,g,pending,,169736,"Pasta, dry, enriched",371,13.04,1.51,74.67,USDA FoodData Central,SR Legacy 2018-04,FDC 169736,CC0 1.0
+špagete,suvi proizvodi,g,pending,,169736,"Pasta, dry, enriched",371,13.04,1.51,74.67,USDA FoodData Central,SR Legacy 2018-04,FDC 169736,CC0 1.0
+makarone,suvi proizvodi,g,pending,,169736,"Pasta, dry, enriched",371,13.04,1.51,74.67,USDA FoodData Central,SR Legacy 2018-04,FDC 169736,CC0 1.0
+rezanci,suvi proizvodi,g,pending,,169731,"Noodles, egg, dry, enriched",384,14.16,4.44,71.27,USDA FoodData Central,SR Legacy 2018-04,FDC 169731,CC0 1.0
+ovsene pahuljice,suvi proizvodi,g,pending,,173904,"Cereals, oats, regular and quick, not fortified, dry",379,13.15,6.52,67.7,USDA FoodData Central,SR Legacy 2018-04,FDC 173904,CC0 1.0
+šećer,suvi proizvodi,g,pending,,169655,"Sugars, granulated",387,0,0,99.98,USDA FoodData Central,SR Legacy 2018-04,FDC 169655,CC0 1.0
+smeđi šećer,suvi proizvodi,g,pending,,168833,"Sugars, brown",380,0.12,0,98.09,USDA FoodData Central,SR Legacy 2018-04,FDC 168833,CC0 1.0
+šećer u prahu,suvi proizvodi,g,pending,,169656,"Sugars, powdered",389,0,0,99.77,USDA FoodData Central,SR Legacy 2018-04,FDC 169656,CC0 1.0
+vanilin šećer,suvi proizvodi,g,pending,,,,,,,,,,,
+prašak za pecivo,suvi proizvodi,g,pending,,172803,"Leavening agents, baking powder, double-acting, sodium aluminum sulfate",53,0,0,27.7,USDA FoodData Central,SR Legacy 2018-04,FDC 172803,CC0 1.0
+soda bikarbona,suvi proizvodi,g,pending,,175040,"Leavening agents, baking soda",0,0,0,0,USDA FoodData Central,SR Legacy 2018-04,FDC 175040,CC0 1.0
+kvasac,suvi proizvodi,g,pending,,175043,"Leavening agents, yeast, baker's, active dry",325,40.44,7.61,41.22,USDA FoodData Central,SR Legacy 2018-04,FDC 175043,CC0 1.0
+kakao,suvi proizvodi,g,pending,,169593,"Cocoa, dry powder, unsweetened",228,19.6,13.7,57.9,USDA FoodData Central,SR Legacy 2018-04,FDC 169593,CC0 1.0
+čokolada,suvi proizvodi,g,pending,,170273,"Chocolate, dark, 70-85% cacao solids",598,7.79,42.63,45.9,USDA FoodData Central,SR Legacy 2018-04,FDC 170273,CC0 1.0
+pasulj,suvi proizvodi,g,pending,,175202,"Beans, white, mature seeds, raw",333,23.36,0.85,60.27,USDA FoodData Central,SR Legacy 2018-04,FDC 175202,CC0 1.0
+sočivo,suvi proizvodi,g,pending,,172420,"Lentils, raw",352,24.63,1.06,63.35,USDA FoodData Central,SR Legacy 2018-04,FDC 172420,CC0 1.0
+leblebija,suvi proizvodi,g,pending,,173756,"Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",378,20.47,6.04,62.95,USDA FoodData Central,SR Legacy 2018-04,FDC 173756,CC0 1.0
+orasi,suvi proizvodi,g,pending,,170187,"Nuts, walnuts, english",654,15.23,65.21,13.71,USDA FoodData Central,SR Legacy 2018-04,FDC 170187,CC0 1.0
+lešnici,suvi proizvodi,g,pending,,170581,"Nuts, hazelnuts or filberts",628,14.95,60.75,16.7,USDA FoodData Central,SR Legacy 2018-04,FDC 170581,CC0 1.0
+bademi,suvi proizvodi,g,pending,,170567,"Nuts, almonds",579,21.15,49.93,21.55,USDA FoodData Central,SR Legacy 2018-04,FDC 170567,CC0 1.0
+kikiriki,suvi proizvodi,g,pending,,172430,"Peanuts, all types, raw",567,25.8,49.24,16.13,USDA FoodData Central,SR Legacy 2018-04,FDC 172430,CC0 1.0
+susam,suvi proizvodi,g,pending,,170150,"Seeds, sesame seeds, whole, dried",573,17.73,49.67,23.45,USDA FoodData Central,SR Legacy 2018-04,FDC 170150,CC0 1.0
+suvo grožđe,suvi proizvodi,g,pending,,168166,"Raisins, seeded",296,2.52,0.54,78.47,USDA FoodData Central,SR Legacy 2018-04,FDC 168166,CC0 1.0
+med,suvi proizvodi,g,pending,,169640,Honey,304,0.3,0,82.4,USDA FoodData Central,SR Legacy 2018-04,FDC 169640,CC0 1.0
+kokos,suvi proizvodi,g,pending,,170169,"Nuts, coconut meat, raw",354,3.33,33.49,15.23,USDA FoodData Central,SR Legacy 2018-04,FDC 170169,CC0 1.0
+kinoa,suvi proizvodi,g,pending,,168874,"Quinoa, uncooked",368,14.12,6.07,64.16,USDA FoodData Central,SR Legacy 2018-04,FDC 168874,CC0 1.0
+heljda,suvi proizvodi,g,pending,,170685,"Buckwheat groats, roasted, dry",346,11.73,2.71,74.95,USDA FoodData Central,SR Legacy 2018-04,FDC 170685,CC0 1.0
+ječam,suvi proizvodi,g,pending,,170284,"Barley, pearled, raw",352,9.91,1.16,77.72,USDA FoodData Central,SR Legacy 2018-04,FDC 170284,CC0 1.0
+so,začini i sosovi,g,pending,,173468,"Salt, table",0,0,0,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173468,CC0 1.0
+biber,začini i sosovi,g,pending,,170931,"Spices, pepper, black",251,10.39,3.26,63.95,USDA FoodData Central,SR Legacy 2018-04,FDC 170931,CC0 1.0
+aleva paprika,začini i sosovi,g,pending,,171329,"Spices, paprika",282,14.14,12.89,53.99,USDA FoodData Central,SR Legacy 2018-04,FDC 171329,CC0 1.0
+ljuta aleva paprika,začini i sosovi,g,pending,,170932,"Spices, pepper, red or cayenne",318,12.01,17.27,56.63,USDA FoodData Central,SR Legacy 2018-04,FDC 170932,CC0 1.0
+origano,začini i sosovi,g,pending,,171328,"Spices, oregano, dried",265,9,4.28,68.92,USDA FoodData Central,SR Legacy 2018-04,FDC 171328,CC0 1.0
+bosiljak,začini i sosovi,g,pending,,171317,"Spices, basil, dried",233,22.98,4.07,47.75,USDA FoodData Central,SR Legacy 2018-04,FDC 171317,CC0 1.0
+ruzmarin,začini i sosovi,g,pending,,171333,"Spices, rosemary, dried",331,4.88,15.22,64.06,USDA FoodData Central,SR Legacy 2018-04,FDC 171333,CC0 1.0
+majčina dušica,začini i sosovi,g,pending,,170938,"Spices, thyme, dried",276,9.11,7.43,63.94,USDA FoodData Central,SR Legacy 2018-04,FDC 170938,CC0 1.0
+lovorov list,začini i sosovi,g,pending,,170917,"Spices, bay leaf",313,7.61,8.36,74.97,USDA FoodData Central,SR Legacy 2018-04,FDC 170917,CC0 1.0
+cimet,začini i sosovi,g,pending,,171320,"Spices, cinnamon, ground",247,3.99,1.24,80.59,USDA FoodData Central,SR Legacy 2018-04,FDC 171320,CC0 1.0
+muskatni oraščić,začini i sosovi,g,pending,,171326,"Spices, nutmeg, ground",525,5.84,36.31,49.29,USDA FoodData Central,SR Legacy 2018-04,FDC 171326,CC0 1.0
+kim,začini i sosovi,g,pending,,170918,"Spices, caraway seed",333,19.77,14.59,49.9,USDA FoodData Central,SR Legacy 2018-04,FDC 170918,CC0 1.0
+kurkuma,začini i sosovi,g,pending,,172231,"Spices, turmeric, ground",312,9.68,3.25,67.14,USDA FoodData Central,SR Legacy 2018-04,FDC 172231,CC0 1.0
+začinska mešavina,začini i sosovi,g,pending,,,,,,,,,,,
+senf,začini i sosovi,g,pending,,172234,"Mustard, prepared, yellow",60,3.74,3.34,5.83,USDA FoodData Central,SR Legacy 2018-04,FDC 172234,CC0 1.0
+kečap,začini i sosovi,g,pending,,168556,Catsup,101,1.04,0.1,27.4,USDA FoodData Central,SR Legacy 2018-04,FDC 168556,CC0 1.0
+majonez,začini i sosovi,g,pending,,171009,"Salad dressing, mayonnaise, regular",680,0.96,74.85,0.57,USDA FoodData Central,SR Legacy 2018-04,FDC 171009,CC0 1.0
+sirće,začini i sosovi,ml,pending,,172237,"Vinegar, distilled",18,0,0,0.04,USDA FoodData Central,SR Legacy 2018-04,FDC 172237,CC0 1.0
+balzamiko sirće,začini i sosovi,ml,pending,,172241,"Vinegar, balsamic",88,0.49,0,17.03,USDA FoodData Central,SR Legacy 2018-04,FDC 172241,CC0 1.0
+soja sos,začini i sosovi,ml,pending,,174277,Soy sauce made from soy and wheat (shoyu),53,8.14,0.57,4.93,USDA FoodData Central,SR Legacy 2018-04,FDC 174277,CC0 1.0
+ulje,začini i sosovi,ml,pending,,171025,"Oil, sunflower, linoleic, (approx. 65%)",884,0,100,0,USDA FoodData Central,SR Legacy 2018-04,FDC 171025,CC0 1.0
+maslinovo ulje,začini i sosovi,ml,pending,,171413,"Oil, olive, salad or cooking",884,0,100,0,USDA FoodData Central,SR Legacy 2018-04,FDC 171413,CC0 1.0
+ljuti sos,začini i sosovi,ml,pending,,171186,"Sauce, hot chile, sriracha",93,1.93,0.93,19.16,USDA FoodData Central,SR Legacy 2018-04,FDC 171186,CC0 1.0
+paradajz pire,konzerve i tegle,g,pending,,170460,"Tomato products, canned, puree, without salt added",38,1.65,0.21,8.98,USDA FoodData Central,SR Legacy 2018-04,FDC 170460,CC0 1.0
+pelat,konzerve i tegle,g,pending,,170051,"Tomatoes, red, ripe, canned, packed in tomato juice",16,0.79,0.25,3.47,USDA FoodData Central,SR Legacy 2018-04,FDC 170051,CC0 1.0
+koncentrat paradajza,konzerve i tegle,g,pending,,170459,"Tomato products, canned, paste, without salt added (Includes foods for USDA's Food Distribution Program)",82,4.32,0.47,18.91,USDA FoodData Central,SR Legacy 2018-04,FDC 170459,CC0 1.0
+masline,konzerve i tegle,g,pending,,169094,"Olives, ripe, canned (small-extra large)",116,0.84,10.9,6.04,USDA FoodData Central,SR Legacy 2018-04,FDC 169094,CC0 1.0
+kiseli krastavci,konzerve i tegle,g,pending,,168558,"Pickles, cucumber, dill or kosher dill",12,0.5,0.3,2.41,USDA FoodData Central,SR Legacy 2018-04,FDC 168558,CC0 1.0
+ajvar,konzerve i tegle,g,pending,,,,,,,,,,,
+džem,konzerve i tegle,g,pending,,169641,Jams and preserves,278,0.37,0.07,68.86,USDA FoodData Central,SR Legacy 2018-04,FDC 169641,CC0 1.0
+kapri,konzerve i tegle,g,pending,,172238,"Capers, canned",23,2.36,0.86,4.89,USDA FoodData Central,SR Legacy 2018-04,FDC 172238,CC0 1.0
+kokosovo mleko,konzerve i tegle,ml,pending,,170173,"Nuts, coconut milk, canned (liquid expressed from grated meat and water)",197,2.02,21.33,2.81,USDA FoodData Central,SR Legacy 2018-04,FDC 170173,CC0 1.0
+smrznuto povrće,zamrznuto,g,pending,,170471,"Vegetables, mixed, frozen, unprepared",72,3.33,0.52,13.47,USDA FoodData Central,SR Legacy 2018-04,FDC 170471,CC0 1.0
+sladoled,zamrznuto,g,pending,,167575,"Ice creams, vanilla",207,3.5,11,23.6,USDA FoodData Central,SR Legacy 2018-04,FDC 167575,CC0 1.0
+voda,pića,ml,pending,,173647,"Beverages, water, tap, drinking",0,0,0,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173647,CC0 1.0
+mineralna voda,pića,ml,pending,,173233,"Beverages, water, bottled, PERRIER",0,0,0,0,USDA FoodData Central,SR Legacy 2018-04,FDC 173233,CC0 1.0
+belo vino,pića,ml,pending,,174837,"Alcoholic beverage, wine, table, white",82,0.07,0,2.6,USDA FoodData Central,SR Legacy 2018-04,FDC 174837,CC0 1.0
+crno vino,pića,ml,pending,,173190,"Alcoholic beverage, wine, table, red",85,0.07,0,2.61,USDA FoodData Central,SR Legacy 2018-04,FDC 173190,CC0 1.0
+pivo,pića,ml,pending,,168746,"Alcoholic beverage, beer, regular, all",43,0.46,0,3.55,USDA FoodData Central,SR Legacy 2018-04,FDC 168746,CC0 1.0
+sok od limuna,pića,ml,pending,,167747,"Lemon juice, raw",22,0.35,0.24,6.9,USDA FoodData Central,SR Legacy 2018-04,FDC 167747,CC0 1.0
+sok od pomorandže,pića,ml,pending,,169098,"Orange juice, raw (Includes foods for USDA's Food Distribution Program)",45,0.7,0.2,10.4,USDA FoodData Central,SR Legacy 2018-04,FDC 169098,CC0 1.0
+kafa,pića,g,pending,,171890,"Beverages, coffee, brewed, prepared with tap water",1,0.12,0.02,0,USDA FoodData Central,SR Legacy 2018-04,FDC 171890,CC0 1.0
+čaj,pića,g,pending,,173227,"Beverages, tea, black, brewed, prepared with tap water",1,0,0,0.3,USDA FoodData Central,SR Legacy 2018-04,FDC 173227,CC0 1.0
+želatin,ostalo,g,pending,,169599,"Gelatins, dry powder, unsweetened",335,85.6,0.1,0,USDA FoodData Central,SR Legacy 2018-04,FDC 169599,CC0 1.0
+kocka za supu,ostalo,kom,pending,,171562,"Soup, chicken broth or bouillon, dry",267,16.66,13.88,18.01,USDA FoodData Central,SR Legacy 2018-04,FDC 171562,CC0 1.0
+tofu,ostalo,g,pending,,172476,"Tofu, raw, regular, prepared with calcium sulfate",76,8.08,4.78,1.87,USDA FoodData Central,SR Legacy 2018-04,FDC 172476,CC0 1.0
