@@ -39,7 +39,7 @@ Observed result: 334 worksheet rows; 308 rows (92.2%) have all four requested
 nutrients (energy kcal, protein, total fat and carbohydrate). The remaining 26
 have no complete USDA record and stay unknown. Values are copied by exact FDC ID
 from the dataset's nutrient records, not inferred from food names. The generated
-[review artifact](nutrition-values-sr-legacy-2018.csv) records the source,
+[review artifact](research/nutrition-values-sr-legacy-2018.csv) records the source,
 release, FDC reference and CC0 1.0 for complete rows. The artifact does not
 alter the worksheet's identity or source review state and is not an application
 seed. It does not include Ciqual values.
