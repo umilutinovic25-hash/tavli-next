@@ -279,13 +279,15 @@ final class FoodFactorEvidence {
 /// Razrešava faktore za jednu hranu i jedno domaćinstvo. Kućni faktor ima
 /// prednost; bez njega se koristi samo jedan pregledani deljeni faktor.
 /// Više faktora istog prioriteta ostavlja tu vrstu za proveru.
+/// [currentRecords] contains only currently applicable revisions; historical
+/// revisions stay available for saved conversion snapshots, not resolution.
 FoodConversionFactors resolveFoodConversionFactors({
   required String foodId,
   required String householdId,
-  required Iterable<FoodConversionFactorRecord> records,
+  required Iterable<FoodConversionFactorRecord> currentRecords,
   String? preparationState,
 }) {
-  final candidates = records
+  final candidates = currentRecords
       .where(
         (r) =>
             r.isValid &&

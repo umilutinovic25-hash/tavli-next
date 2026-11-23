@@ -114,7 +114,7 @@ void main() {
       final resolved = resolveFoodConversionFactors(
         foodId: 'egg',
         householdId: 'home-a',
-        records: [shared, home],
+        currentRecords: [shared, home],
       );
       final converted = conv(2, 'kom', grams, factors: resolved) as Converted;
 
@@ -130,7 +130,7 @@ void main() {
       final resolved = resolveFoodConversionFactors(
         foodId: 'egg',
         householdId: 'home-b',
-        records: [shared, home],
+        currentRecords: [shared, home],
       );
       final converted = conv(2, 'kom', grams, factors: resolved) as Converted;
 
@@ -152,7 +152,7 @@ void main() {
       final resolved = resolveFoodConversionFactors(
         foodId: 'egg',
         householdId: 'home-a',
-        records: [shared, home, conflictingHome],
+        currentRecords: [shared, home, conflictingHome],
       );
 
       expect(
@@ -177,7 +177,7 @@ void main() {
       final resolved = resolveFoodConversionFactors(
         foodId: 'egg',
         householdId: 'home-a',
-        records: [unreviewedShared],
+        currentRecords: [unreviewedShared],
       );
 
       expect(
@@ -194,7 +194,7 @@ void main() {
       final oldFactors = resolveFoodConversionFactors(
         foodId: 'egg',
         householdId: 'home-b',
-        records: [shared],
+        currentRecords: [shared],
       );
       final approved = conv(2, 'kom', grams, factors: oldFactors) as Converted;
       final saved = Converted.fromApprovedSnapshotJson(
@@ -212,7 +212,7 @@ void main() {
       final newFactors = resolveFoodConversionFactors(
         foodId: 'egg',
         householdId: 'home-b',
-        records: [updatedShared],
+        currentRecords: [updatedShared],
       );
       final recalculated =
           conv(2, 'kom', grams, factors: newFactors) as Converted;
@@ -230,7 +230,7 @@ void main() {
       final resolved = resolveFoodConversionFactors(
         foodId: 'egg',
         householdId: 'home-a',
-        records: [
+        currentRecords: [
           shared,
           home,
           const FoodConversionFactorRecord(
@@ -261,7 +261,7 @@ void main() {
       final resolved = resolveFoodConversionFactors(
         foodId: 'egg',
         householdId: 'home-b',
-        records: [
+        currentRecords: [
           shared,
           home,
           const FoodConversionFactorRecord(
@@ -296,7 +296,7 @@ void main() {
       final resolved = resolveFoodConversionFactors(
         foodId: 'egg',
         householdId: 'home-b',
-        records: [packageRecord],
+        currentRecords: [packageRecord],
       );
       final converted = conv(
         2,

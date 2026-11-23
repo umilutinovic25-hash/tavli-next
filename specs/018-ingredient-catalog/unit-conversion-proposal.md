@@ -57,7 +57,8 @@ revisions with an id, source, revision number and scope; shared revisions must
 be reviewed before use. Conflicting applicable overrides leave the amount for
 review and never fall back to the shared value. Package size comes from the
 selected package, so a plain “pakovanje” with several possible sizes remains
-unresolved.
+unresolved. Resolution receives only the current revision for each factor
+scope; historical revisions remain available to reproduce saved snapshots.
 Apply the [017 measures proposal](../017-kitchen-unit-conversion/measure-contract-proposal.md)
 when an eligible source uses a kitchen volume such as a cup or tablespoon.
 Convert a volume to grams only with applicable density.
