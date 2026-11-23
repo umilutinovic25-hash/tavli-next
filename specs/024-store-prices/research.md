@@ -1,7 +1,7 @@
 # Store-price source and basket research
 
-**Status:** Independent research, not approved source selection or an
-implemented import. Source tasks: D1-017 and D1-018 / FR-001–002 in
+**Status:** Owner-approved source proposal, confirmed against the portal on
+2026-11-23; implementation remains in progress. Source tasks: D1-017 and D1-018 / FR-001–002 in
 [spec 024](spec.md). No store data, user basket or price history is added to
 this repository.
 
@@ -29,6 +29,20 @@ historical and current-list rows. It also reported product names containing
 package sizes that were not safely inferable from the observed unit-price
 fields. These are historical sample observations, not claims about the current
 contents of every retailer file.
+
+## Source decision and current portal metadata — 2026-11-23
+
+The project owner approved using the Delhaize Serbia and Europrom datasets
+listed above. The portal currently identifies both as available under the
+Serbian Open Data License, with country-level coverage, real-time update
+frequency and source plus retrieval-date attribution requirements. Both
+descriptions warn that a consolidated list can show the highest current price
+when store prices differ. The application therefore presents a retailer and
+published format estimate, never a particular branch's price. The importer is
+operator-triggered; a recurring schedule and location-specific feed remain
+outside this decision.
+
+Sources: [Delhaize dataset](https://data.gov.rs/sr/datasets/cenovnici-proizvoda-prema-pravilniku-o-uslovima-sadrzaju-i-nacinu-objavljivanja-cenovnika-delhaize-serbia-doo-beograd/) and [Europrom dataset](https://data.gov.rs/sr/datasets/cenovnici-proizvoda-prema-pravilniku-o-uslovima-sadrzaju-i-nacinu-objavljivanja-cenovnika-europrom-doo/).
 
 ## Download verification — 2026-11-21
 
@@ -94,9 +108,10 @@ Replaying the same valid file must leave the same set of observations.
 | Same barcode has a monthly snapshot and a current row | Keep the snapshot separate from the current observation. |
 | A pack name contains a size but the product has no confirmed mapping | Preserve the row and count it as uncovered for basket comparison. |
 
-This is source verification and a decision proposal. Retailer selection,
-licence obligations, refresh/staleness policy and packaging evidence still
-need review under Q1.
+Source selection and attribution are approved. Direct package-to-food mappings
+still require human review and evidence. Unmapped products remain unpriced;
+the two public files do not establish store-level prices. Monthly snapshots and
+promotions remain excluded from the current comparison.
 
 ## Synthetic comparison evidence
 

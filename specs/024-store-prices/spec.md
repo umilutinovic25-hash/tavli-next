@@ -2,7 +2,7 @@
 
 **ID**: 024-store-prices | **Feature key**: PRICES
 **Created**: 2026-11-14 | **Baseline**: dev 207c94c
-**Status**: Draft implementation specification; decisions below gate dependent tasks.
+**Status**: Source choice approved by project owner on 2026-11-23; implementation in progress.
 **Lead**: Dev 1 | **Proposed independent reviewer**: Dev 3
 
 ## Scope and source
@@ -49,7 +49,10 @@ that UI task becomes Ready. English is used for engineering documents only.
 
 Producer specs: [018](../018-ingredient-catalog/spec.md), [020](../020-catalog-shopping/spec.md)
 
-- **Q1** (Dev 1 with reviewer): Approve source terms/coverage/update schedule and item/package mapping; exact store list and integration limits remain unverified.
+- **Q1a — source choice and attribution**: Project owner approved the proposed Delhaize Serbia and Europrom public data.gov.rs files on 2026-11-23. The Serbian Open Data License requires source and retrieval-date attribution. Delhaize and Europrom list country-level coverage and state that a consolidated price may show the highest price across their stores. Import and display them as retailer/format price lists; never call them a local-store quote.
+- **Q1b — freshness and operation**: Import is an authenticated, manually triggered server operation. No recurring schedule is enabled until an operator owns its cadence and failure alerting. Retain source URL, SHA-256, retrieved time, price-list date and format with each import.
+- **Q1c — product and package mapping**: No source name or measure text is enough to infer a food identity or package size. A barcode becomes comparable only after a reviewed mapping records food ID, package quantity, compatible base unit, reviewer and direct evidence. Unmapped and conflicted rows stay out of estimates; those basket needs count as missing prices.
+- **Q1d — exact store selection**: These two chosen files do not provide reliable location-specific prices, so no location selector or store-specific promise is included.
 
 Unresolved questions block their dependent code, not independent research/tests.
 Do not invent answers to linked proposals that were not provided. Before Ready,

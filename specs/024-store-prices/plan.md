@@ -1,6 +1,6 @@
 # Implementation plan: Store price imports and basket estimates
 
-**Status**: scoped proposal; runtime implementation not started by this revision.
+**Status**: owner-approved sources; implementation drafted on a dev-based feature branch; migration and importer are not deployed.
 **Spec**: [requirements](spec.md) | **Lead/review**: Dev 1 / Dev 3
 **Baseline**: dev 207c94c; every implementing branch starts from then-current origin/dev.
 
@@ -22,9 +22,12 @@ Price reference records carry retailer, product/food mapping, package unit, date
 
 Producer dependencies: [018](../018-ingredient-catalog/spec.md), [020](../020-catalog-shopping/spec.md)
 
-Independent [price-source research](research.md) records public-source
-limitations and a text-only synthetic comparison fixture.
-It is not approved source selection or a shipped importer.
+The owner-approved [price-source decision](spec.md#dependencies-and-open-decisions)
+selects the Delhaize Serbia and Europrom open-data CSVs. Their consolidated
+retailer/format scope and the required source/retrieval-date attribution remain
+visible in every estimate. Product and package mappings require direct evidence;
+the importer never derives package size or canonical identity from display text.
+Import runs only when an operator invokes the authenticated server endpoint.
 
 Use [shared boundaries](../011-team-development/contracts/shared-boundaries.md)
 and the [contract template](../../.specify/templates/contract-template.md).

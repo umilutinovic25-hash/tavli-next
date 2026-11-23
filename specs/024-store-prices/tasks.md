@@ -1,7 +1,6 @@
 # Tasks: Store price imports and basket estimates
 
-Status: planned, not completed. Source roles/phases are preserved. All source
-tasks remain not_assessed until current code is checked. Lead: Dev 1;
+Status: implementation drafted in a separate feature branch; not merged or deployed. Source selection is recorded. Acceptance remains unverified where local SQL or reviewed product/package mappings are unavailable. Source roles/phases are preserved. Lead: Dev 1;
 proposed reviewers: Dev 3 (choose a different human from the implementer).
 Paths and contracts are in plan.md; finalize exact filenames and remaining
 implementation/test/review estimates before Ready.

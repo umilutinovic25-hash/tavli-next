@@ -21,6 +21,7 @@ import 'shopping_counts.dart';
 import 'shopping_frame.dart';
 import 'shopping_list_view.dart';
 import 'shopping_providers.dart';
+import 'store_price_summary.dart';
 
 /// Tab Nabavka: po planu (nedelja ili ceo plan) ili po receptu (bez plana).
 class ShoppingScreen extends ConsumerStatefulWidget {
@@ -482,16 +483,19 @@ class _WholePlanState extends ConsumerState<_WholePlan> {
                   ids: ids(selected, bought: selectedBought),
                   bought: selectedBought,
                 ),
-          children: groupedRows(
-            open: open,
-            bought: done,
-            category: (t) => t.category,
-            row: row,
-            emptyText: 'Za ovaj plan nema šta da se kupi.',
-            allBoughtText: 'Sve je kupljeno.',
-            text: theme.textTheme,
-            colors: theme.colorScheme,
-          ),
+          children: [
+            ...groupedRows(
+              open: open,
+              bought: done,
+              category: (t) => t.category,
+              row: row,
+              emptyText: 'Za ovaj plan nema šta da se kupi.',
+              allBoughtText: 'Sve je kupljeno.',
+              text: theme.textTheme,
+              colors: theme.colorScheme,
+            ),
+            StorePriceSummary(items: widget.items),
+          ],
         );
       },
     );

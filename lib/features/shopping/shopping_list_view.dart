@@ -14,6 +14,7 @@ import '../../providers.dart';
 import '../planning/plan_format.dart';
 import 'shopping_frame.dart';
 import 'shopping_providers.dart';
+import 'store_price_summary.dart';
 
 /// "1,5 kg", "~35 ml", "2 kom"; null kad količina nije poznata.
 String? amountLabel(
@@ -223,6 +224,7 @@ class _ShoppingItemsListState extends ConsumerState<ShoppingItemsList> {
               text: theme.textTheme,
               colors: theme.colorScheme,
             ),
+            StorePriceSummary(items: items),
           ],
         );
       },
