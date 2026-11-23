@@ -95,6 +95,14 @@ class RecipeEntity extends SyncEntity<$RecipesTable, RecipeRow> {
   @override
   Future<void> deleteLocal(AppDatabase db, String id) =>
       db.transaction(() async {
+        final recipe = await (db.select(
+          db.recipes,
+        )..where((row) => row.id.equals(id))).getSingleOrNull();
+        if (recipe != null) {
+          await (db.delete(
+            db.recipeEmbeddings,
+          )..where((row) => row.recipeId.equals(id))).go();
+        }
         await (db.delete(
           db.userFavorites,
         )..where((row) => row.recipeId.equals(id))).go();

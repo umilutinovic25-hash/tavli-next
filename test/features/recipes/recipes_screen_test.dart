@@ -7,6 +7,21 @@ import 'package:tavli_ui/tavli_ui.dart';
 import '../../helpers/test_app.dart';
 
 void main() {
+  testTavli('semantička pretraga objašnjava slanje sadržaja pre aktivacije', (
+    tester,
+  ) async {
+    await pumpTavli(tester, recipes: [sampleRecipe('a', 'Pasulj')]);
+
+    await tester.tap(find.bySemanticsLabel('Pretraži po smislu'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pretraga preko OpenAI-ja'), findsOneWidget);
+    expect(find.textContaining('biće poslati OpenAI-ju'), findsOneWidget);
+    await tester.tap(find.text('Otkaži'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pasulj'), findsOneWidget);
+  });
+
   testTavli('prazna lista pokazuje poruku i dugme za dodavanje', (
     tester,
   ) async {

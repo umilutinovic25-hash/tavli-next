@@ -72,6 +72,15 @@ class GatewayChatClient {
     return content;
   }
 
+  /// Embedding requests share the gateway's authenticated text quota and keep
+  /// the OpenAI key on the server.
+  Future<Map<String, Object?>> embed(List<Map<String, Object?>> inputs) =>
+      _request(
+        HttpMethod.post,
+        const Duration(seconds: 45),
+        body: {'task': 'recipe_embeddings', 'inputs': inputs},
+      );
+
   Future<Map<String, Object?>> _request(
     HttpMethod method,
     Duration timeout, {

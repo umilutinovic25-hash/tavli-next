@@ -55,6 +55,31 @@ validator; the gateway does not parse recipes.
 
 Any other value is `400 bad_request`. A new AI feature adds its task here first.
 
+### Recipe embeddings (approved model choice, 2026-11-23)
+
+Semantic recipe search uses a distinct authenticated request so the OpenAI
+embedding key remains in Edge Function Secrets and embedding use can be enabled
+independently from OpenAI chat completions:
+
+```json
+{
+  "task": "recipe_embeddings",
+  "inputs": [
+    { "text": "title and recipe content", "taskType": "RETRIEVAL_DOCUMENT" },
+    { "text": "a search query", "taskType": "RETRIEVAL_QUERY" }
+  ]
+}
+```
+
+Allow 1–32 inputs, at most one query, 8,000 characters per input and 40,000
+characters in total. The server fixes the model to `text-embedding-3-small`,
+requests 768 dimensions, validates the response, and reserves one authenticated
+text quota slot for each batch. The dedicated `AI_OPENAI_EMBEDDINGS_ENABLED=1`
+flag and `OPENAI_API_KEY` are required; this flag does not enable OpenAI chat.
+The gateway does not log recipe content or vectors. The client stores derived
+vectors only in the account-scoped local database and sends only changed recipe
+documents again.
+
 ### Proposed extension for spec 035
 
 `fasting_question` is a text task with a task-specific body:
@@ -292,6 +317,7 @@ print them.
 | `OPENAI_API_KEY` | OpenAI models (D3) | optional | optional, when enabling OpenAI |
 | `OPENAI_MODEL` | model behind `openai/default` (D3) | with the OpenAI key | with the OpenAI key |
 | `AI_OPENAI_ENABLED` | opts in to OpenAI when set to `1` | unset initially | unset initially |
+| `AI_OPENAI_EMBEDDINGS_ENABLED` | opts in to `text-embedding-3-small` recipe vectors | unset initially | unset initially |
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` come from the platform, as for
 `delete-account`. Rotation: replace the secret in the dashboard; no deploy or

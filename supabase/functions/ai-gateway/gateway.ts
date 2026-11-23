@@ -2,19 +2,23 @@ import {
   BodyTooLarge,
   boundedJson,
   type Completion,
+  type EmbeddingRequest,
   maxBodyBytes,
   parseCompletion,
+  parseEmbeddingRequest,
   record,
 } from "./input.ts";
 import {
   chains,
+  embeddingModel,
   type Env,
   type Kind,
   modelId,
+  resolveEmbedding,
   resolveModel,
 } from "./providers.ts";
 
-const maxProviderResponseBytes = 256_000;
+const maxProviderResponseBytes = 800_000;
 
 type QuotaLimit = "daily" | "global" | "minute" | "concurrent";
 
@@ -161,6 +165,81 @@ async function complete(
   }
 }
 
+async function embed(
+  input: EmbeddingRequest,
+  selected: NonNullable<ReturnType<typeof resolveEmbedding>>,
+  send: typeof fetch,
+): Promise<Response> {
+  const signal = AbortSignal.timeout(30_000);
+  try {
+    const upstream = await send(selected.url, {
+      method: "POST",
+      redirect: "error",
+      signal,
+      headers: {
+        Authorization: "Bearer " + selected.key,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: selected.model,
+        input: input.inputs.map((item) => item.text),
+        dimensions: 768,
+        encoding_format: "float",
+      }),
+    });
+    if (!upstream.ok) {
+      await upstream.body?.cancel().catch(() => {});
+      if (upstream.status === 404) return failure(503, "model_unavailable");
+      if (upstream.status === 429) {
+        const retry = upstream.headers.get("Retry-After");
+        const seconds = retry && /^\d+$/.test(retry) ? Number(retry) : NaN;
+        return response(429, {
+          error: "provider_rate_limited",
+          ...(Number.isSafeInteger(seconds)
+            ? { retryAfterSeconds: seconds }
+            : {}),
+        });
+      }
+      return failure(502, "provider_error");
+    }
+    const payload = record(
+      await boundedJson(upstream.body, maxProviderResponseBytes),
+    );
+    if (
+      payload?.model !== selected.model || !Array.isArray(payload?.data) ||
+      payload.data.length !== input.inputs.length
+    ) {
+      return failure(502, "provider_error");
+    }
+    const vectors = new Array<number[]>(input.inputs.length);
+    const seen = new Set<number>();
+    for (const raw of payload.data) {
+      const item = record(raw);
+      const index = item?.index;
+      const values = item?.embedding;
+      if (
+        typeof index !== "number" || !Number.isSafeInteger(index) ||
+        index < 0 || index >= vectors.length || seen.has(index) ||
+        !Array.isArray(values) ||
+        values.length !== 768 ||
+        values.some((value) =>
+          typeof value !== "number" || !Number.isFinite(value)
+        )
+      ) return failure(502, "provider_error");
+      vectors[index] = values as number[];
+      seen.add(index);
+    }
+    if (seen.size !== vectors.length) {
+      return failure(502, "provider_error");
+    }
+    return response(200, { model: embeddingModel, embeddings: vectors });
+  } catch {
+    return signal.aborted
+      ? failure(504, "timeout")
+      : failure(502, "provider_error");
+  }
+}
+
 export function gateway(
   { env, authenticate, reserve, release, send }: GatewayDependencies,
 ) {
@@ -194,14 +273,32 @@ export function gateway(
       if (Number(request.headers.get("Content-Length")) > maxBodyBytes) {
         return failure(413, "too_large");
       }
-      let input: Completion | undefined;
+      let body: unknown;
       try {
-        input = parseCompletion(await boundedJson(request.body, maxBodyBytes));
+        body = await boundedJson(request.body, maxBodyBytes);
       } catch (error) {
         return error instanceof BodyTooLarge
           ? failure(413, "too_large")
           : failure(400, "bad_request");
       }
+      if (record(body)?.task === "recipe_embeddings") {
+        const embeddingInput = parseEmbeddingRequest(body);
+        if (!embeddingInput) return failure(400, "bad_request");
+        const selected = resolveEmbedding(env);
+        if (!selected) return failure(503, "model_unavailable");
+        const reservation = await reserve(uid, "text", limitsFor(env, "text"));
+        if ("limit" in reservation) return quotaResponse(reservation, "text");
+        try {
+          return await embed(embeddingInput, selected, send);
+        } finally {
+          try {
+            await release(reservation.id);
+          } catch {
+            console.warn("ai_gateway_release_failed");
+          }
+        }
+      }
+      const input: Completion | undefined = parseCompletion(body);
       if (!input) return failure(400, "bad_request");
 
       const candidate = chains[input.kind].find((entry) =>

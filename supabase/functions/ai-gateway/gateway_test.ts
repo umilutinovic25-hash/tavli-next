@@ -213,3 +213,105 @@ Deno.test("the gateway kill switch skips both quota and provider", async () => {
   equal(reserved.length, 0);
   equal(calls.length, 0);
 });
+
+Deno.test("recipe embeddings stay behind auth, OpenAI opt-in and text quota", async () => {
+  const values = Array.from({ length: 768 }, (_, index) => index / 768);
+  const { handle, reserved, released, calls } = setup({
+    env: {
+      AI_OPENAI_EMBEDDINGS_ENABLED: "1",
+      OPENAI_API_KEY: "fake-openai-key",
+    },
+    upstream: () =>
+      Response.json({
+        model: "text-embedding-3-small",
+        data: [
+          { index: 0, embedding: values },
+          { index: 1, embedding: values },
+        ],
+      }),
+  });
+  const result = await handle(post({
+    task: "recipe_embeddings",
+    inputs: [
+      { text: "recipe title and ingredients", taskType: "RETRIEVAL_DOCUMENT" },
+      { text: "something with vegetables", taskType: "RETRIEVAL_QUERY" },
+    ],
+  }));
+  equal(result.status, 200);
+  const body = await result.json() as { model: string; embeddings: number[][] };
+  equal(body.model, "text-embedding-3-small");
+  equal(body.embeddings.length, 2);
+  equal(body.embeddings[0].length, 768);
+  equal(reserved.length, 1);
+  equal((reserved[0] as { kind: string }).kind, "text");
+  equal(released, ["fake-reservation"]);
+  equal(calls[0].url, "https://api.openai.com/v1/embeddings");
+  equal(calls[0].init?.headers, {
+    Authorization: "Bearer fake-openai-key",
+    "Content-Type": "application/json",
+  });
+  const sent = JSON.parse(String(calls[0].init?.body));
+  equal(sent.model, "text-embedding-3-small");
+  equal(sent.dimensions, 768);
+  equal(sent.input, [
+    "recipe title and ingredients",
+    "something with vegetables",
+  ]);
+});
+
+Deno.test("embeddings are unavailable before OpenAI is enabled", async () => {
+  const { handle, reserved, calls } = setup({
+    env: {
+      AI_OPENAI_ENABLED: "1",
+      OPENAI_API_KEY: "fake-openai-key",
+      OPENAI_MODEL: "fake-chat-model",
+    },
+  });
+  const result = await handle(post({
+    task: "recipe_embeddings",
+    inputs: [{ text: "query", taskType: "RETRIEVAL_QUERY" }],
+  }));
+  equal(result.status, 503);
+  equal(reserved.length, 0);
+  equal(calls.length, 0);
+});
+
+Deno.test("invalid embedding requests are rejected before quota reservation", async () => {
+  const { handle, reserved, calls } = setup({
+    env: {
+      AI_OPENAI_EMBEDDINGS_ENABLED: "1",
+      OPENAI_API_KEY: "fake-openai-key",
+    },
+  });
+  const result = await handle(post({
+    task: "recipe_embeddings",
+    inputs: [{ text: "query", taskType: "RETRIEVAL_QUERY", owner: "forged" }],
+  }));
+  equal(result.status, 400);
+  equal(reserved.length, 0);
+  equal(calls.length, 0);
+});
+
+Deno.test("embedding quota rejection makes no OpenAI call", async () => {
+  const { handle, reserved, released, calls } = setup({
+    env: {
+      AI_OPENAI_EMBEDDINGS_ENABLED: "1",
+      OPENAI_API_KEY: "fake-openai-key",
+    },
+    reservation: { limit: "daily", retryAfterSeconds: 60 },
+  });
+  const result = await handle(post({
+    task: "recipe_embeddings",
+    inputs: [{ text: "query", taskType: "RETRIEVAL_QUERY" }],
+  }));
+  equal(result.status, 429);
+  equal(await result.json(), {
+    error: "quota_exceeded",
+    limit: "daily",
+    kind: "text",
+    retryAfterSeconds: 60,
+  });
+  equal(reserved.length, 1);
+  equal(released.length, 0);
+  equal(calls.length, 0);
+});

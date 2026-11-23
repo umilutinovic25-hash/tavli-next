@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../account/auth_controller.dart';
+import '../../ai/embedding_client.dart';
+import '../../ai/recipe_semantic_search.dart';
 import '../../data/photo_resize.dart';
+import '../../data/recipe_embedding_repository.dart';
 import '../../data/recipe_photo_store.dart';
 import '../../data/recipe_rating_repository.dart';
 import '../../data/recipe_repository.dart';
@@ -33,6 +36,23 @@ final recipeRepositoryProvider = Provider<RecipeRepository>(
     clock: ref.watch(clockProvider),
   ),
 );
+
+final recipeEmbeddingRepositoryProvider = Provider<RecipeEmbeddingRepository>(
+  (ref) => RecipeEmbeddingRepository(
+    ref.watch(databaseProvider),
+    (ref.watch(accountScopeProvider) ?? noAccountScope).householdId,
+  ),
+);
+
+final recipeSemanticSearchServiceProvider =
+    Provider<RecipeSemanticSearchService?>((ref) {
+      final gateway = ref.watch(gatewayChatClientProvider);
+      if (gateway == null) return null;
+      return RecipeSemanticSearchService(
+        client: OpenAIEmbeddingClient(gateway),
+        embeddings: ref.watch(recipeEmbeddingRepositoryProvider),
+      );
+    });
 
 final recipeRatingRepositoryProvider = Provider<RecipeRatingRepository>(
   (ref) => RecipeRatingRepository(

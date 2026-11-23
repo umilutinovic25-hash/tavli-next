@@ -417,6 +417,18 @@ void main() {
   test('trag brisanja briše lokalni red i izmene koje čekaju', () async {
     seedAll();
     await downloader().run();
+    await db
+        .into(db.recipeEmbeddings)
+        .insert(
+          RecipeEmbeddingsCompanion.insert(
+            recipeId: 'r1',
+            householdId: scope.householdId,
+            contentHash: 'hash',
+            model: 'text-embedding-3-small',
+            vectorJson: '[0.1]',
+            createdAt: DateTime.utc(2026),
+          ),
+        );
     final writer = SyncedWriter(db, accountId: scope.userId);
     await writer.upsert('pantry_item', 'o1');
     await db.delete(db.ratings).go();
@@ -435,6 +447,7 @@ void main() {
     expect(await db.select(db.recipeVersions).get(), isEmpty);
     expect(await db.select(db.ratings).get(), isEmpty);
     expect(await db.select(db.ratingSummaries).get(), isEmpty);
+    expect(await db.select(db.recipeEmbeddings).get(), isEmpty);
     // Stavka plana ostaje, bez recepta.
     expect((await db.select(db.mealPlanEntries).get()).single.recipeId, isNull);
     expect(await db.select(db.syncOutbox).get(), isEmpty);

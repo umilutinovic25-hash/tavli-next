@@ -633,6 +633,30 @@ void main() {
     });
 
     test('posle uspeha na serveru briše sve od naloga na uređaju', () async {
+      await db
+          .into(db.recipeEmbeddings)
+          .insert(
+            RecipeEmbeddingsCompanion.insert(
+              recipeId: 'r-a',
+              householdId: a.householdId,
+              contentHash: 'hash-a',
+              model: 'text-embedding-3-small',
+              vectorJson: '[0.1]',
+              createdAt: DateTime.utc(2026),
+            ),
+          );
+      await db
+          .into(db.recipeEmbeddings)
+          .insert(
+            RecipeEmbeddingsCompanion.insert(
+              recipeId: 'r-other',
+              householdId: 'drugi-dom',
+              contentHash: 'hash-other',
+              model: 'text-embedding-3-small',
+              vectorJson: '[0.2]',
+              createdAt: DateTime.utc(2026),
+            ),
+          );
       await service.deleteAccount(a);
 
       expect(backend.server.profiles.containsKey(a.userId), isFalse);
@@ -641,6 +665,13 @@ void main() {
         ['tudji'],
       );
       expect(await db.select(db.recipeVersions).get(), isEmpty);
+      expect(
+        [
+          for (final row in await db.select(db.recipeEmbeddings).get())
+            row.recipeId,
+        ],
+        ['r-other'],
+      );
       expect(await db.select(db.ratings).get(), isEmpty);
       // Nabavka drugog domaćinstva ostaje.
       expect(

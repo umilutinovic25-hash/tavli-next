@@ -512,6 +512,20 @@ class UserFavorites extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Device-local derived vectors; never sent through the recipe sync outbox.
+@DataClassName('RecipeEmbeddingRow')
+class RecipeEmbeddings extends Table {
+  TextColumn get recipeId => text()();
+  TextColumn get householdId => text()();
+  TextColumn get contentHash => text()();
+  TextColumn get model => text()();
+  TextColumn get vectorJson => text()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {recipeId, householdId};
+}
+
 @DriftDatabase(
   tables: [
     Recipes,
@@ -533,6 +547,7 @@ class UserFavorites extends Table {
     UserProfiles,
     UserAllergenSelections,
     UserFavorites,
+    RecipeEmbeddings,
     AppSettings,
     ModelStatuses,
     Accounts,
@@ -545,7 +560,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'tavli'));
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -567,6 +582,7 @@ class AppDatabase extends _$AppDatabase {
       if (from < 8) await transaction(_migrateToRecipeRatings);
       if (from < 9) await transaction(() => _migrateToFoodCatalog(m));
       if (from < 10) await transaction(() => _migrateToMemberPlanning(m));
+      if (from < 11) await m.createTable(recipeEmbeddings);
     },
   );
 

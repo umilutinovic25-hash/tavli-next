@@ -24,6 +24,46 @@ export interface Completion {
   temperature: number;
 }
 
+export interface EmbeddingRequest {
+  inputs: Array<
+    { text: string; taskType: "RETRIEVAL_QUERY" | "RETRIEVAL_DOCUMENT" }
+  >;
+}
+
+const maxEmbeddingInputs = 32;
+const maxEmbeddingInputLength = 8_000;
+const maxEmbeddingTotalLength = 40_000;
+
+export function parseEmbeddingRequest(
+  value: unknown,
+): EmbeddingRequest | undefined {
+  const body = record(value);
+  if (
+    !body || Object.keys(body).length !== 2 ||
+    body.task !== "recipe_embeddings" ||
+    !Array.isArray(body.inputs) || body.inputs.length < 1 ||
+    body.inputs.length > maxEmbeddingInputs
+  ) return;
+  const inputs: EmbeddingRequest["inputs"] = [];
+  let totalLength = 0;
+  let queryCount = 0;
+  for (const raw of body.inputs) {
+    const item = record(raw);
+    if (!item || Object.keys(item).length !== 2) return;
+    const { text, taskType } = item;
+    if (
+      typeof text !== "string" || !text.trim() ||
+      text.length > maxEmbeddingInputLength ||
+      (taskType !== "RETRIEVAL_QUERY" && taskType !== "RETRIEVAL_DOCUMENT")
+    ) return;
+    totalLength += text.length;
+    if (totalLength > maxEmbeddingTotalLength) return;
+    if (taskType === "RETRIEVAL_QUERY" && ++queryCount > 1) return;
+    inputs.push({ text, taskType });
+  }
+  return { inputs };
+}
+
 export class BodyTooLarge extends Error {}
 
 export async function boundedJson(

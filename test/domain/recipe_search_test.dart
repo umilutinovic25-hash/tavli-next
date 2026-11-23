@@ -177,4 +177,41 @@ void main() {
     expect(result, isNotEmpty);
     expect(watch.elapsedMilliseconds, lessThan(300));
   });
+
+  group('semantička pretraga', () {
+    test('rangira po sličnosti i čuva redosled kod izjednačenja', () {
+      final result = searchSemantically(
+        [supa, cevapi, salata],
+        const RecipeFilter(),
+        [1, 0],
+        {
+          supa.id: [0.8, 0.6],
+          cevapi.id: [0, 1],
+          salata.id: [0.8, 0.6],
+        },
+      );
+      expect(titles(result), ['Pileća supa', 'Piletina salata', 'Ćevapi']);
+    });
+
+    test(
+      'primenjuje filtere pre rangiranja i preskače nedostajuće vektore',
+      () {
+        final result = searchSemantically(
+          [supa, cevapi, salata],
+          const RecipeFilter(maxPrepMinutes: 30),
+          [1, 0],
+          {
+            supa.id: [1, 0],
+            cevapi.id: [0.4, 0.6],
+          },
+        );
+        expect(titles(result), ['Ćevapi']);
+      },
+    );
+
+    test('ne poredi nulte ili vektore različite dužine', () {
+      expect(cosineSimilarity([0, 0], [1, 0]), isNull);
+      expect(cosineSimilarity([1], [1, 0]), isNull);
+    });
+  });
 }

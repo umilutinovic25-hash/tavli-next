@@ -10487,6 +10487,438 @@ class UserFavoritesCompanion extends UpdateCompanion<UserFavoriteRow> {
   }
 }
 
+class $RecipeEmbeddingsTable extends RecipeEmbeddings
+    with TableInfo<$RecipeEmbeddingsTable, RecipeEmbeddingRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecipeEmbeddingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _recipeIdMeta = const VerificationMeta(
+    'recipeId',
+  );
+  @override
+  late final GeneratedColumn<String> recipeId = GeneratedColumn<String>(
+    'recipe_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _householdIdMeta = const VerificationMeta(
+    'householdId',
+  );
+  @override
+  late final GeneratedColumn<String> householdId = GeneratedColumn<String>(
+    'household_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentHashMeta = const VerificationMeta(
+    'contentHash',
+  );
+  @override
+  late final GeneratedColumn<String> contentHash = GeneratedColumn<String>(
+    'content_hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _modelMeta = const VerificationMeta('model');
+  @override
+  late final GeneratedColumn<String> model = GeneratedColumn<String>(
+    'model',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vectorJsonMeta = const VerificationMeta(
+    'vectorJson',
+  );
+  @override
+  late final GeneratedColumn<String> vectorJson = GeneratedColumn<String>(
+    'vector_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    recipeId,
+    householdId,
+    contentHash,
+    model,
+    vectorJson,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recipe_embeddings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecipeEmbeddingRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('recipe_id')) {
+      context.handle(
+        _recipeIdMeta,
+        recipeId.isAcceptableOrUnknown(data['recipe_id']!, _recipeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recipeIdMeta);
+    }
+    if (data.containsKey('household_id')) {
+      context.handle(
+        _householdIdMeta,
+        householdId.isAcceptableOrUnknown(
+          data['household_id']!,
+          _householdIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_householdIdMeta);
+    }
+    if (data.containsKey('content_hash')) {
+      context.handle(
+        _contentHashMeta,
+        contentHash.isAcceptableOrUnknown(
+          data['content_hash']!,
+          _contentHashMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentHashMeta);
+    }
+    if (data.containsKey('model')) {
+      context.handle(
+        _modelMeta,
+        model.isAcceptableOrUnknown(data['model']!, _modelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_modelMeta);
+    }
+    if (data.containsKey('vector_json')) {
+      context.handle(
+        _vectorJsonMeta,
+        vectorJson.isAcceptableOrUnknown(data['vector_json']!, _vectorJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vectorJsonMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {recipeId, householdId};
+  @override
+  RecipeEmbeddingRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecipeEmbeddingRow(
+      recipeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recipe_id'],
+      )!,
+      householdId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}household_id'],
+      )!,
+      contentHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_hash'],
+      )!,
+      model: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}model'],
+      )!,
+      vectorJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vector_json'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RecipeEmbeddingsTable createAlias(String alias) {
+    return $RecipeEmbeddingsTable(attachedDatabase, alias);
+  }
+}
+
+class RecipeEmbeddingRow extends DataClass
+    implements Insertable<RecipeEmbeddingRow> {
+  final String recipeId;
+  final String householdId;
+  final String contentHash;
+  final String model;
+  final String vectorJson;
+  final DateTime createdAt;
+  const RecipeEmbeddingRow({
+    required this.recipeId,
+    required this.householdId,
+    required this.contentHash,
+    required this.model,
+    required this.vectorJson,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['recipe_id'] = Variable<String>(recipeId);
+    map['household_id'] = Variable<String>(householdId);
+    map['content_hash'] = Variable<String>(contentHash);
+    map['model'] = Variable<String>(model);
+    map['vector_json'] = Variable<String>(vectorJson);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  RecipeEmbeddingsCompanion toCompanion(bool nullToAbsent) {
+    return RecipeEmbeddingsCompanion(
+      recipeId: Value(recipeId),
+      householdId: Value(householdId),
+      contentHash: Value(contentHash),
+      model: Value(model),
+      vectorJson: Value(vectorJson),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory RecipeEmbeddingRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecipeEmbeddingRow(
+      recipeId: serializer.fromJson<String>(json['recipeId']),
+      householdId: serializer.fromJson<String>(json['householdId']),
+      contentHash: serializer.fromJson<String>(json['contentHash']),
+      model: serializer.fromJson<String>(json['model']),
+      vectorJson: serializer.fromJson<String>(json['vectorJson']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'recipeId': serializer.toJson<String>(recipeId),
+      'householdId': serializer.toJson<String>(householdId),
+      'contentHash': serializer.toJson<String>(contentHash),
+      'model': serializer.toJson<String>(model),
+      'vectorJson': serializer.toJson<String>(vectorJson),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  RecipeEmbeddingRow copyWith({
+    String? recipeId,
+    String? householdId,
+    String? contentHash,
+    String? model,
+    String? vectorJson,
+    DateTime? createdAt,
+  }) => RecipeEmbeddingRow(
+    recipeId: recipeId ?? this.recipeId,
+    householdId: householdId ?? this.householdId,
+    contentHash: contentHash ?? this.contentHash,
+    model: model ?? this.model,
+    vectorJson: vectorJson ?? this.vectorJson,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  RecipeEmbeddingRow copyWithCompanion(RecipeEmbeddingsCompanion data) {
+    return RecipeEmbeddingRow(
+      recipeId: data.recipeId.present ? data.recipeId.value : this.recipeId,
+      householdId: data.householdId.present
+          ? data.householdId.value
+          : this.householdId,
+      contentHash: data.contentHash.present
+          ? data.contentHash.value
+          : this.contentHash,
+      model: data.model.present ? data.model.value : this.model,
+      vectorJson: data.vectorJson.present
+          ? data.vectorJson.value
+          : this.vectorJson,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecipeEmbeddingRow(')
+          ..write('recipeId: $recipeId, ')
+          ..write('householdId: $householdId, ')
+          ..write('contentHash: $contentHash, ')
+          ..write('model: $model, ')
+          ..write('vectorJson: $vectorJson, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    recipeId,
+    householdId,
+    contentHash,
+    model,
+    vectorJson,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecipeEmbeddingRow &&
+          other.recipeId == this.recipeId &&
+          other.householdId == this.householdId &&
+          other.contentHash == this.contentHash &&
+          other.model == this.model &&
+          other.vectorJson == this.vectorJson &&
+          other.createdAt == this.createdAt);
+}
+
+class RecipeEmbeddingsCompanion extends UpdateCompanion<RecipeEmbeddingRow> {
+  final Value<String> recipeId;
+  final Value<String> householdId;
+  final Value<String> contentHash;
+  final Value<String> model;
+  final Value<String> vectorJson;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const RecipeEmbeddingsCompanion({
+    this.recipeId = const Value.absent(),
+    this.householdId = const Value.absent(),
+    this.contentHash = const Value.absent(),
+    this.model = const Value.absent(),
+    this.vectorJson = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RecipeEmbeddingsCompanion.insert({
+    required String recipeId,
+    required String householdId,
+    required String contentHash,
+    required String model,
+    required String vectorJson,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : recipeId = Value(recipeId),
+       householdId = Value(householdId),
+       contentHash = Value(contentHash),
+       model = Value(model),
+       vectorJson = Value(vectorJson),
+       createdAt = Value(createdAt);
+  static Insertable<RecipeEmbeddingRow> custom({
+    Expression<String>? recipeId,
+    Expression<String>? householdId,
+    Expression<String>? contentHash,
+    Expression<String>? model,
+    Expression<String>? vectorJson,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (recipeId != null) 'recipe_id': recipeId,
+      if (householdId != null) 'household_id': householdId,
+      if (contentHash != null) 'content_hash': contentHash,
+      if (model != null) 'model': model,
+      if (vectorJson != null) 'vector_json': vectorJson,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RecipeEmbeddingsCompanion copyWith({
+    Value<String>? recipeId,
+    Value<String>? householdId,
+    Value<String>? contentHash,
+    Value<String>? model,
+    Value<String>? vectorJson,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return RecipeEmbeddingsCompanion(
+      recipeId: recipeId ?? this.recipeId,
+      householdId: householdId ?? this.householdId,
+      contentHash: contentHash ?? this.contentHash,
+      model: model ?? this.model,
+      vectorJson: vectorJson ?? this.vectorJson,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (recipeId.present) {
+      map['recipe_id'] = Variable<String>(recipeId.value);
+    }
+    if (householdId.present) {
+      map['household_id'] = Variable<String>(householdId.value);
+    }
+    if (contentHash.present) {
+      map['content_hash'] = Variable<String>(contentHash.value);
+    }
+    if (model.present) {
+      map['model'] = Variable<String>(model.value);
+    }
+    if (vectorJson.present) {
+      map['vector_json'] = Variable<String>(vectorJson.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecipeEmbeddingsCompanion(')
+          ..write('recipeId: $recipeId, ')
+          ..write('householdId: $householdId, ')
+          ..write('contentHash: $contentHash, ')
+          ..write('model: $model, ')
+          ..write('vectorJson: $vectorJson, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AppSettingsTable extends AppSettings
     with TableInfo<$AppSettingsTable, AppSettingRow> {
   @override
@@ -12765,6 +13197,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UserAllergenSelectionsTable userAllergenSelections =
       $UserAllergenSelectionsTable(this);
   late final $UserFavoritesTable userFavorites = $UserFavoritesTable(this);
+  late final $RecipeEmbeddingsTable recipeEmbeddings = $RecipeEmbeddingsTable(
+    this,
+  );
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final $ModelStatusesTable modelStatuses = $ModelStatusesTable(this);
   late final $AccountsTable accounts = $AccountsTable(this);
@@ -12830,6 +13265,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     userProfiles,
     userAllergenSelections,
     userFavorites,
+    recipeEmbeddings,
     appSettings,
     modelStatuses,
     accounts,
@@ -20677,6 +21113,252 @@ typedef $$UserFavoritesTableProcessedTableManager =
       UserFavoriteRow,
       PrefetchHooks Function()
     >;
+typedef $$RecipeEmbeddingsTableCreateCompanionBuilder =
+    RecipeEmbeddingsCompanion Function({
+      required String recipeId,
+      required String householdId,
+      required String contentHash,
+      required String model,
+      required String vectorJson,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$RecipeEmbeddingsTableUpdateCompanionBuilder =
+    RecipeEmbeddingsCompanion Function({
+      Value<String> recipeId,
+      Value<String> householdId,
+      Value<String> contentHash,
+      Value<String> model,
+      Value<String> vectorJson,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$RecipeEmbeddingsTableFilterComposer
+    extends Composer<_$AppDatabase, $RecipeEmbeddingsTable> {
+  $$RecipeEmbeddingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get recipeId => $composableBuilder(
+    column: $table.recipeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get model => $composableBuilder(
+    column: $table.model,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vectorJson => $composableBuilder(
+    column: $table.vectorJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RecipeEmbeddingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecipeEmbeddingsTable> {
+  $$RecipeEmbeddingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get recipeId => $composableBuilder(
+    column: $table.recipeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get model => $composableBuilder(
+    column: $table.model,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vectorJson => $composableBuilder(
+    column: $table.vectorJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RecipeEmbeddingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecipeEmbeddingsTable> {
+  $$RecipeEmbeddingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get recipeId =>
+      $composableBuilder(column: $table.recipeId, builder: (column) => column);
+
+  GeneratedColumn<String> get householdId => $composableBuilder(
+    column: $table.householdId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get model =>
+      $composableBuilder(column: $table.model, builder: (column) => column);
+
+  GeneratedColumn<String> get vectorJson => $composableBuilder(
+    column: $table.vectorJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$RecipeEmbeddingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RecipeEmbeddingsTable,
+          RecipeEmbeddingRow,
+          $$RecipeEmbeddingsTableFilterComposer,
+          $$RecipeEmbeddingsTableOrderingComposer,
+          $$RecipeEmbeddingsTableAnnotationComposer,
+          $$RecipeEmbeddingsTableCreateCompanionBuilder,
+          $$RecipeEmbeddingsTableUpdateCompanionBuilder,
+          (
+            RecipeEmbeddingRow,
+            BaseReferences<
+              _$AppDatabase,
+              $RecipeEmbeddingsTable,
+              RecipeEmbeddingRow
+            >,
+          ),
+          RecipeEmbeddingRow,
+          PrefetchHooks Function()
+        > {
+  $$RecipeEmbeddingsTableTableManager(
+    _$AppDatabase db,
+    $RecipeEmbeddingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RecipeEmbeddingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RecipeEmbeddingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RecipeEmbeddingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> recipeId = const Value.absent(),
+                Value<String> householdId = const Value.absent(),
+                Value<String> contentHash = const Value.absent(),
+                Value<String> model = const Value.absent(),
+                Value<String> vectorJson = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RecipeEmbeddingsCompanion(
+                recipeId: recipeId,
+                householdId: householdId,
+                contentHash: contentHash,
+                model: model,
+                vectorJson: vectorJson,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String recipeId,
+                required String householdId,
+                required String contentHash,
+                required String model,
+                required String vectorJson,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => RecipeEmbeddingsCompanion.insert(
+                recipeId: recipeId,
+                householdId: householdId,
+                contentHash: contentHash,
+                model: model,
+                vectorJson: vectorJson,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$RecipeEmbeddingsTable, RecipeEmbeddingRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $RecipeEmbeddingsTable,
+                    RecipeEmbeddingRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RecipeEmbeddingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RecipeEmbeddingsTable,
+      RecipeEmbeddingRow,
+      $$RecipeEmbeddingsTableFilterComposer,
+      $$RecipeEmbeddingsTableOrderingComposer,
+      $$RecipeEmbeddingsTableAnnotationComposer,
+      $$RecipeEmbeddingsTableCreateCompanionBuilder,
+      $$RecipeEmbeddingsTableUpdateCompanionBuilder,
+      (
+        RecipeEmbeddingRow,
+        BaseReferences<
+          _$AppDatabase,
+          $RecipeEmbeddingsTable,
+          RecipeEmbeddingRow
+        >,
+      ),
+      RecipeEmbeddingRow,
+      PrefetchHooks Function()
+    >;
 typedef $$AppSettingsTableCreateCompanionBuilder =
     AppSettingsCompanion Function({
       required String key,
@@ -21916,6 +22598,8 @@ class $AppDatabaseManager {
       );
   $$UserFavoritesTableTableManager get userFavorites =>
       $$UserFavoritesTableTableManager(_db, _db.userFavorites);
+  $$RecipeEmbeddingsTableTableManager get recipeEmbeddings =>
+      $$RecipeEmbeddingsTableTableManager(_db, _db.recipeEmbeddings);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
   $$ModelStatusesTableTableManager get modelStatuses =>

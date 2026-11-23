@@ -238,6 +238,9 @@ class AccountService {
         await (_db.delete(
           _db.ratingSummaries,
         )..where((t) => t.householdId.equals(hid))).go();
+        await (_db.delete(
+          _db.recipeEmbeddings,
+        )..where((t) => t.householdId.equals(hid))).go();
         for (final r in await (_db.select(
           _db.recipes,
         )..where((t) => t.householdId.equals(hid))).get()) {

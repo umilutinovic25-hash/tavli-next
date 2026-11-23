@@ -79,3 +79,15 @@ export function resolveModel(candidate: Model, env: Env) {
   }
   return { ...config, key, model: { ...candidate, name } };
 }
+
+export const embeddingModel = "text-embedding-3-small";
+
+export function resolveEmbedding(env: Env) {
+  const key = env("OPENAI_API_KEY")?.trim();
+  if (env("AI_OPENAI_EMBEDDINGS_ENABLED") !== "1" || !key) return null;
+  return {
+    key,
+    model: embeddingModel,
+    url: "https://api.openai.com/v1/embeddings",
+  };
+}

@@ -289,6 +289,18 @@ void main() {
     await repo.create(recipe('a').copyWith(imagePath: path));
     await repo.update(recipe('a', title: 'B'), kind: ChangeKind.manual);
     await db
+        .into(db.recipeEmbeddings)
+        .insert(
+          RecipeEmbeddingsCompanion.insert(
+            recipeId: 'a',
+            householdId: scope.householdId,
+            contentHash: 'hash',
+            model: 'text-embedding-3-small',
+            vectorJson: '[0.1]',
+            createdAt: now,
+          ),
+        );
+    await db
         .into(db.ratings)
         .insert(
           RatingsCompanion.insert(
@@ -305,6 +317,7 @@ void main() {
     expect(await repo.get('a'), isNull);
     expect(await db.select(db.recipeVersions).get(), isEmpty);
     expect(await db.select(db.ratings).get(), isEmpty);
+    expect(await db.select(db.recipeEmbeddings).get(), isEmpty);
     expect(photos.saved, isEmpty);
   });
 

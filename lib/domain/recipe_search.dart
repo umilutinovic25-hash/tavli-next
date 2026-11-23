@@ -5,6 +5,8 @@
 /// ostave. Radi nad receptima iz lokalne baze, pa radi i bez mreže.
 library;
 
+import 'dart:math' show sqrt;
+
 import 'recipe.dart';
 import 'recipe_format.dart';
 import 'recipe_labels.dart';
@@ -83,6 +85,52 @@ List<Recipe> searchRecipes(Iterable<Recipe> recipes, RecipeFilter filter) {
     for (final r in recipes)
       if (_matches(r, filter, q)) r,
   ];
+}
+
+/// Ranks locally cached recipe vectors by cosine similarity, then applies the
+/// user's non-text filters. Recipes without a compatible vector are omitted.
+List<Recipe> searchSemantically(
+  Iterable<Recipe> recipes,
+  RecipeFilter filter,
+  List<double> queryVector,
+  Map<String, List<double>> recipeVectors,
+) {
+  final ranked = <({Recipe recipe, double score, int order})>[];
+  final filters = filter.copyWith(query: '');
+  var order = 0;
+  for (final recipe in recipes) {
+    final currentOrder = order++;
+    if (!_matches(recipe, filters, '')) continue;
+    final vector = recipeVectors[recipe.id];
+    if (vector == null || vector.length != queryVector.length) continue;
+    final score = cosineSimilarity(queryVector, vector);
+    if (score != null) {
+      ranked.add((recipe: recipe, score: score, order: currentOrder));
+    }
+  }
+  ranked.sort((a, b) {
+    final byScore = b.score.compareTo(a.score);
+    return byScore != 0 ? byScore : a.order.compareTo(b.order);
+  });
+  return [for (final match in ranked) match.recipe];
+}
+
+/// Cosine similarity; null means vectors are empty, incompatible or invalid.
+double? cosineSimilarity(List<double> a, List<double> b) {
+  if (a.isEmpty || a.length != b.length) return null;
+  var dot = 0.0;
+  var normA = 0.0;
+  var normB = 0.0;
+  for (var i = 0; i < a.length; i++) {
+    final left = a[i];
+    final right = b[i];
+    if (!left.isFinite || !right.isFinite) return null;
+    dot += left * right;
+    normA += left * left;
+    normB += right * right;
+  }
+  if (normA == 0 || normB == 0) return null;
+  return dot / sqrt(normA * normB);
 }
 
 bool _matches(Recipe r, RecipeFilter f, String q) {
