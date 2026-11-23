@@ -29,8 +29,9 @@ is available for consumer review. It is a draft, not an accepted contract or
 evidence that T001 has been completed.
 
 The [food-specific quantity conversion proposal](unit-conversion-proposal.md)
-defines the draft T014–T015 handoff to shopping and nutrition, including
-synthetic quantity fixtures and the decisions needed before implementation.
+records the team's accepted T014–T015 conversion rules and synthetic quantity
+fixtures. Factor persistence and consumer rollout remain gated on the coordinated
+server/Drift migration sequence described in that contract.
 
 Use [shared boundaries](../011-team-development/contracts/shared-boundaries.md)
 and the [contract template](../../.specify/templates/contract-template.md).

@@ -1,6 +1,6 @@
 # Food-specific quantity conversion proposal
 
-**Status** — Draft for review. The examples use synthetic conversion factors.
+**Status** — Conversion rules accepted by the team on 2026-11-23; persistence and consumer rollout remain implementation work. The examples use synthetic conversion factors.
 **Owner** — Dev 1. Proposed reviewers are Dev 2 for the nutrition consumer
 and Dev 4 for the pantry and shopping boundary.
 **Scope** — D1-010 / FR-007, T014–T015,
@@ -24,7 +24,10 @@ current name key and the food's visibility in the active household.
 
 The consumer supplies the original quantity and unit, the target base unit and,
 for a food-specific conversion, the verified food identity and active household.
-An approved plan uses the conversion evidence carried with its saved demand.
+An approved plan uses a saved conversion snapshot containing the resulting
+micros, base unit, approximation flag, and factor ids, values, sources,
+revisions and scope. A later factor revision applies only to a new approval or
+an explicit recalculation; it never silently changes an approved amount.
 An explicit package selection also supplies the package identifier.
 
 The proposed result is one of these outcomes.
@@ -49,9 +52,12 @@ Food-specific factors are optional, positive and finite.
 Use exact unit ratios first for quantities already in the target dimension.
 For a necessary food-specific factor, an applicable household override takes
 precedence over reviewed shared evidence for the same food, preparation state
-and factor. A missing override permits a shared fallback. Conflicting applicable
-overrides leave the amount for review. Package size comes from the selected
-package, so a plain “pakovanje” with several possible sizes remains unresolved.
+and factor. A missing override permits a shared fallback. Factors are immutable
+revisions with an id, source, revision number and scope; shared revisions must
+be reviewed before use. Conflicting applicable overrides leave the amount for
+review and never fall back to the shared value. Package size comes from the
+selected package, so a plain “pakovanje” with several possible sizes remains
+unresolved.
 Apply the [017 measures proposal](../017-kitchen-unit-conversion/measure-contract-proposal.md)
 when an eligible source uses a kitchen volume such as a cup or tablespoon.
 Convert a volume to grams only with applicable density.
@@ -91,9 +97,12 @@ words, quantities, existing approved shopping allocations and pending outbox
 writes. Reconciliation must account for one physical stock amount once when
 older and newer representations coexist.
 
-Before implementation, record agreement on factor scope and precedence,
-storage and revision of conversion evidence, and the mixed-client rollout.
-The [catalog rollout](data-model.md#rollout) places consumer writes after the
-server and read-only catalog client. The draft proposes behavior and
-acceptance data for T014–T015. Schema and runtime changes belong in the
-reviewed implementation slice.
+The team confirmed household precedence, reviewed shared fallback, versioned
+source evidence, frozen approved snapshots, and review on conflicting evidence
+on 2026-11-23. The [catalog rollout](data-model.md#rollout) places consumer
+writes after the server and read-only catalog client. The domain resolver and
+fixtures are being implemented first; persisted factor rows and consumer
+integration must use the next coordinated Drift/server migration after the
+currently open catalog migration PR, and must retain the mixed-client rollout
+gate. This ordering avoids reusing the Drift schema version already claimed by
+PR #137.

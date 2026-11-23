@@ -90,6 +90,238 @@ void main() {
     });
   });
 
+  group('verzionisani faktori i domet domaćinstva', () {
+    const shared = FoodConversionFactorRecord(
+      id: 'shared-piece-v1',
+      foodId: 'egg',
+      kind: FoodConversionFactorKind.pieceWeightG,
+      value: 50,
+      source: 'reviewed-catalog',
+      revision: 1,
+      reviewed: true,
+    );
+    const home = FoodConversionFactorRecord(
+      id: 'home-piece-v2',
+      foodId: 'egg',
+      kind: FoodConversionFactorKind.pieceWeightG,
+      value: 60,
+      source: 'household',
+      revision: 2,
+      householdId: 'home-a',
+    );
+
+    test('kućni faktor ima prednost i nosi izvor, reviziju i opseg', () {
+      final resolved = resolveFoodConversionFactors(
+        foodId: 'egg',
+        householdId: 'home-a',
+        records: [shared, home],
+      );
+      final converted = conv(2, 'kom', grams, factors: resolved) as Converted;
+
+      expect(converted.micros, 120 * 1000000);
+      expect(converted.factorEvidence, hasLength(1));
+      expect(converted.factorEvidence.single.id, 'home-piece-v2');
+      expect(converted.factorEvidence.single.source, 'household');
+      expect(converted.factorEvidence.single.revision, 2);
+      expect(converted.factorEvidence.single.householdId, 'home-a');
+    });
+
+    test('drugo domaćinstvo koristi pregledani deljeni faktor', () {
+      final resolved = resolveFoodConversionFactors(
+        foodId: 'egg',
+        householdId: 'home-b',
+        records: [shared, home],
+      );
+      final converted = conv(2, 'kom', grams, factors: resolved) as Converted;
+
+      expect(converted.micros, 100 * 1000000);
+      expect(converted.factorEvidence.single.id, 'shared-piece-v1');
+      expect(converted.factorEvidence.single.householdId, isNull);
+    });
+
+    test('sukob kućnih faktora ne pada nazad na deljeni faktor', () {
+      const conflictingHome = FoodConversionFactorRecord(
+        id: 'home-piece-v3',
+        foodId: 'egg',
+        kind: FoodConversionFactorKind.pieceWeightG,
+        value: 55,
+        source: 'household',
+        revision: 3,
+        householdId: 'home-a',
+      );
+      final resolved = resolveFoodConversionFactors(
+        foodId: 'egg',
+        householdId: 'home-a',
+        records: [shared, home, conflictingHome],
+      );
+
+      expect(
+        conv(2, 'kom', grams, factors: resolved),
+        isA<NeedsReview>().having(
+          (r) => r.reason,
+          'reason',
+          ConversionReview.conflictingFactor,
+        ),
+      );
+    });
+
+    test('nepregledani deljeni faktor se ne koristi', () {
+      const unreviewedShared = FoodConversionFactorRecord(
+        id: 'shared-piece-unreviewed',
+        foodId: 'egg',
+        kind: FoodConversionFactorKind.pieceWeightG,
+        value: 50,
+        source: 'reviewed-catalog',
+        revision: 1,
+      );
+      final resolved = resolveFoodConversionFactors(
+        foodId: 'egg',
+        householdId: 'home-a',
+        records: [unreviewedShared],
+      );
+
+      expect(
+        conv(2, 'kom', grams, factors: resolved),
+        isA<NeedsReview>().having(
+          (r) => r.reason,
+          'reason',
+          ConversionReview.missingFactor,
+        ),
+      );
+    });
+
+    test('odobrena konverzija zadržava staru reviziju kad stigne nova', () {
+      final oldFactors = resolveFoodConversionFactors(
+        foodId: 'egg',
+        householdId: 'home-b',
+        records: [shared],
+      );
+      final approved = conv(2, 'kom', grams, factors: oldFactors) as Converted;
+      final saved = Converted.fromApprovedSnapshotJson(
+        approved.toApprovedSnapshotJson(),
+      );
+      const updatedShared = FoodConversionFactorRecord(
+        id: 'shared-piece-v2',
+        foodId: 'egg',
+        kind: FoodConversionFactorKind.pieceWeightG,
+        value: 52,
+        source: 'reviewed-catalog',
+        revision: 2,
+        reviewed: true,
+      );
+      final newFactors = resolveFoodConversionFactors(
+        foodId: 'egg',
+        householdId: 'home-b',
+        records: [updatedShared],
+      );
+      final recalculated =
+          conv(2, 'kom', grams, factors: newFactors) as Converted;
+
+      expect(approved.micros, 100 * 1000000);
+      expect(approved.factorEvidence.single.revision, 1);
+      expect(saved.micros, approved.micros);
+      expect(saved.factorEvidence.single.id, 'shared-piece-v1');
+      expect(saved.factorEvidence.single.revision, 1);
+      expect(recalculated.micros, 104 * 1000000);
+      expect(recalculated.factorEvidence.single.revision, 2);
+    });
+
+    test('tačna konverzija ignoriše sukob faktora koji joj nije potreban', () {
+      final resolved = resolveFoodConversionFactors(
+        foodId: 'egg',
+        householdId: 'home-a',
+        records: [
+          shared,
+          home,
+          const FoodConversionFactorRecord(
+            id: 'home-density-a',
+            foodId: 'egg',
+            kind: FoodConversionFactorKind.densityGPerMl,
+            value: 1,
+            source: 'household',
+            revision: 1,
+            householdId: 'home-a',
+          ),
+          const FoodConversionFactorRecord(
+            id: 'home-density-b',
+            foodId: 'egg',
+            kind: FoodConversionFactorKind.densityGPerMl,
+            value: 1.1,
+            source: 'household',
+            revision: 2,
+            householdId: 'home-a',
+          ),
+        ],
+      );
+
+      expect(conv(100, 'g', grams, factors: resolved), isA<Converted>());
+    });
+
+    test('kućni faktor za drugo domaćinstvo ne utiče na razrešenje', () {
+      final resolved = resolveFoodConversionFactors(
+        foodId: 'egg',
+        householdId: 'home-b',
+        records: [
+          shared,
+          home,
+          const FoodConversionFactorRecord(
+            id: 'other-home-piece',
+            foodId: 'egg',
+            kind: FoodConversionFactorKind.pieceWeightG,
+            value: 80,
+            source: 'household',
+            revision: 1,
+            householdId: 'home-c',
+          ),
+        ],
+      );
+
+      final converted = conv(2, 'kom', grams, factors: resolved) as Converted;
+      expect(converted.micros, 100 * 1000000);
+      expect(converted.factorEvidence.single.id, 'shared-piece-v1');
+    });
+
+    test('poreklo pakovanja se čuva uz konverziju', () {
+      const packageRecord = FoodConversionFactorRecord(
+        id: 'egg-carton-6-v1',
+        foodId: 'egg',
+        kind: FoodConversionFactorKind.packageAmount,
+        value: 6,
+        source: 'reviewed-catalog',
+        revision: 1,
+        unit: 'kom',
+        packageId: 'carton-6',
+        reviewed: true,
+      );
+      final resolved = resolveFoodConversionFactors(
+        foodId: 'egg',
+        householdId: 'home-b',
+        records: [packageRecord],
+      );
+      final converted = conv(
+        2,
+        'pakovanje',
+        piece,
+        factors: resolved,
+        packageId: 'carton-6',
+      ) as Converted;
+
+      expect(converted.micros, 12 * 1000000);
+      expect(converted.factorEvidence.single.toJson(), {
+        'id': 'egg-carton-6-v1',
+        'food_id': 'egg',
+        'kind': 'packageAmount',
+        'value': 6.0,
+        'source': 'reviewed-catalog',
+        'revision': 1,
+        'household_id': null,
+        'unit': 'kom',
+        'package_id': 'carton-6',
+        'preparation_state': null,
+      });
+    });
+  });
+
   group('kuhinjske mere', () {
     test('2 kašike i 1 kašičica su približno 35 ml', () {
       final total = totalOf([
