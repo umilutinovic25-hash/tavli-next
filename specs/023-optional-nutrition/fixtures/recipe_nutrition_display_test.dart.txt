@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tavli/data/database.dart';
 import 'package:tavli/domain/recipe.dart';
-import 'package:tavli/features/foods/nutrition_line.dart';
 import 'package:tavli/providers.dart';
 
 import '../../helpers/test_app.dart';
@@ -69,10 +68,10 @@ Future<void> _openRecipe(WidgetTester tester, {required int covered}) async {
       ),
     ],
   );
-  expect(find.text('Testni recept'), findsWidgets);
+  final title = find.text('Testni recept');
+  expect(title, findsWidgets);
   expect(find.textContaining('blitva'), findsOneWidget);
-  final nutrition = tester.element(find.byType(NutritionLine));
-  final catalog = ProviderScope.containerOf(nutrition)
+  final catalog = ProviderScope.containerOf(tester.element(title.first))
       .read(foodCatalogProvider)
       .requireValue;
   expect(
